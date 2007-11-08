@@ -79,16 +79,20 @@ Util.Document.create_element = function(doc, name, attrs, children)
 				
 				// See http://tinyurl.com/yvsqbx for more information.
 				
-				e.className = attrs[name];
+				var klass = attrs[name];
+				
+				// Allow an array of classes to be passed in.
+				if (typeof(klass) != 'string' && klass.join)
+					klass = klass.join(' ');
+					
+				e.className = klass;
 				continue; // note that this continues the for loop!
 			case 'htmlFor':
 				dest_name = 'for';
 				break;
-		}
-		
-		if (name == 'style') {
-			style = attrs.style;
-			continue;
+			case 'style':
+				style = attrs.style;
+				continue; // note that this continues the for loop!
 		}
 		
 		var a = attrs[name];
