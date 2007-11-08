@@ -55,15 +55,25 @@ UI.Keybinding_Manager = function()
 	this.evaluate = function(keyboard_event)
 	{
 		this.bindings.each(function(binding) {
-			if (binding.test.call(binding.context, keyboard_event)) {
-				if (!binding.action.call(binding.context, keyboard_event)) {
-					Util.Event.prevent_default(keyboard_event);
+			try {
+				if (binding.test.call(binding.context, keyboard_event)) {
+					if (!binding.action.call(binding.context, keyboard_event)) {
+						Util.Event.prevent_default(keyboard_event);
+					}
+				}
+			} catch (e) {
+				if (console && console.warning) {
+					console.warning('Exception in keybinding:', e);
 				}
 			}
+			
 		});
 	}
 }
 
+/**
+ * @ignore
+ */
 UI.Keybinding_Manager.Special = {
 	Alt: 'e.altKey',
 	Ctrl: '((Util.Browser.Windows && e.altKey) || ' +
