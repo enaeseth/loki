@@ -1,50 +1,3 @@
-// We need to create this iframe as a place to put code that
-// Gecko needs to run with special privileges, for which
-// privileges Gecko requires that the code be signed.
-// (But we don't want to sign _all_ of Loki, because the page
-// that invokes the javascript has to be signed with the 
-// javascript, and we want to be able to use Loki on dynamic
-// pages; sigining dynamic pages would be too inconvenient, not
-// to mention slow.)
-// We create this here, on the assumption that it will have
-// loaded by the time we need it.
-//
-// For more information about how to sign scripts, see 
-// privileged/HOWTO
-//
-// Gecko
-if ('object' == typeof(Components))
-{
-	document.addEventListener('DOMContentLoaded', function() {
-		UI.Clipboard_Helper_Privileged_Iframe = document.createElement('IFRAME');
-		UI.Clipboard_Helper_Privileged_Iframe.src = UI__Clipboard_Helper_Privileged_Iframe__src;
-		UI.Clipboard_Helper_Privileged_Iframe.setAttribute('style', 'height:2px; width:2px; left:-500px; position:absolute;');
-		document.getElementsByTagName('BODY')[0].appendChild(UI.Clipboard_Helper_Privileged_Iframe);
-	}, false);
-}
-// For IE also we want a separate sandbox for clipboard operations. We
-// execCommand paste here, then run clean/masseuses, then transfer to 
-// the real iframe. Or we transfer from the real iframe to here, then run
-// unmasseuses, then execCommand copy.
-//
-// The reason to go through all this rather than use window.clipboardData
-// is that the latter only supports copying/pasting as text (or URL ... why 
-// would anyone want that), not HTML.
-else
-{
-	window.attachEvent("onload", function()
-	{
-		UI.Clipboard_Helper_Editable_Iframe = document.createElement('IFRAME');
-		// When under https, this causes an alert in IE about combining https and http:
-		UI.Clipboard_Helper_Editable_Iframe.src = UI__Clipboard_Helper_Editable_Iframe__src;
-		UI.Clipboard_Helper_Editable_Iframe.style.height = '2px';
-		UI.Clipboard_Helper_Editable_Iframe.style.width = '2px';
-		UI.Clipboard_Helper_Editable_Iframe.style.left = '-500px';
-		UI.Clipboard_Helper_Editable_Iframe.style.position = 'absolute';
-		document.body.appendChild(UI.Clipboard_Helper_Editable_Iframe);
-	});
-}
-
 /**
  * Declares instance variables.
  *
@@ -179,7 +132,7 @@ UI.Clipboard_Helper = function()
 		*/
 	};
 
-	var _gecko_copy = function(html)
+	function _gecko_copy(html)
 	{
 		try
 		{
@@ -194,7 +147,7 @@ UI.Clipboard_Helper = function()
 		}
 	};
 
-	var _ie_copy = function(html)
+	function _ie_copy(html)
 	{
 		try
 		{
@@ -217,7 +170,7 @@ UI.Clipboard_Helper = function()
 		}
 	};
 
-	var _gecko_paste = function()
+	function _gecko_paste()
 	{
 		try
 		{
@@ -255,7 +208,7 @@ UI.Clipboard_Helper = function()
 		}
 	};
 
-	var _ie_paste = function()
+	function _ie_paste()
 	{
 		try
 		{

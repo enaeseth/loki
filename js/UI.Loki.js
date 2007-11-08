@@ -30,7 +30,10 @@ UI.Loki = function(textarea, settings)
 	var _masseuses = Array();
 	var _menugroups = Array();
 	var _keybindings = Array();
+	var _keybinding_manager = new UI.Keybinding_Manager();
 	var _editor_domain;
+	
+	var _capabilities = [];
 
 	var self = this;
 
@@ -38,7 +41,8 @@ UI.Loki = function(textarea, settings)
 	/**
 	 * Returns the HTML of the document currently being edited.
 	 *
-	 * @return	string	the HTML of the document currently being edited.
+	 * @type string
+	 * @return the HTML of the document currently being edited.
 	 */
 	this.get_html = function()
 	{
@@ -272,6 +276,9 @@ UI.Loki = function(textarea, settings)
 
 			// Add keybindings
 			_add_keybindings();
+			
+			// Initialize capabilities
+			_init_capabilities();
 		}
 		catch(e)
 		{
@@ -311,6 +318,24 @@ UI.Loki = function(textarea, settings)
 		_root = _owner_document.createElement('DIV');
 		Util.Element.add_class(_root, 'loki');
 	};
+	
+	function _init_capabilities()
+	{
+		var temp = [UI.Bold_Capability];
+		
+		temp.each(function(capability) {
+			var c = new capability(self);
+			_capabilities.push(c);
+			
+			for (var test in c.keybindings) {
+				var action = c.keybindings[test];
+				if ('string' == typeof(action))
+					action = c[action];
+				
+				_keybinding_manager.bind(test, action, c);
+			}
+		});
+	}
 
 	/**
 	 * Creates the toolbar, populated with the appropriate buttons.
@@ -388,7 +413,7 @@ UI.Loki = function(textarea, settings)
 			blockquote: [UI.Blockquote_Button],
 			olist: [UI.OL_Button],
 			ulist: [UI.UL_Button],
-			indenttext: [UI.Indent_Button, UI.Outdent_Button],
+			indenttext: [UI.Outdent_Button, UI.Indent_Button],
 			findtext: [UI.Find_Button],
 			table: [UI.Table_Button],
 			image: [UI.Image_Button],
@@ -1016,15 +1041,15 @@ UI.Loki = function(textarea, settings)
 
 		// We need to listen for different key events for IE and Gecko,
 		// because their default actions are on different events.
-		if ( document.all ) // IE // XXX: hack
+		if (Util.Browser.IE) // IE
 		{
-			Util.Event.add_event_listener(_document, 'keydown', function(event) 
+			Util.Event.add_event_listener(_document, 'keydown', function(e) 
 			{ 
-				event = event == null ? _window.event : event;
+				var event = e || window.event;
 				var bubble = fire_keybindings(event);
 				if ( !bubble )
 				{
-					event.cancleBubble = true;
+					event.cancelBubble = true;
 					return Util.Event.prevent_default(event);
 				}
 			});
@@ -1066,6 +1091,7 @@ UI.Loki = function(textarea, settings)
 	 */
 	var _show_contextmenu = function(event)
 	{
+		/* // disable while working on new menu code
 		var menu = (new UI.Menu).init(self);
 
 		// Get appropriate menuitems
@@ -1090,7 +1116,7 @@ UI.Loki = function(textarea, settings)
 			y = event.screenY + 2;
 		}
 
-		menu.display(x, y);
+		menu.display(x, y);*/
 
 		Util.Event.prevent_default(event);
 		return false; // IE
