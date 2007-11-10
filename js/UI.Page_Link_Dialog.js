@@ -264,6 +264,16 @@ UI.Page_Link_Dialog = function()
 		var a = this._initially_selected_item.httpless_uri.split('#');
 		this._initially_selected_nameless_uri = a[0];
 		this._initially_selected_name = a.length > 1 ? a[1] : '';
+		
+		if (a.length > 1 && a[0].length == 0) {
+			// We have an anchor but nothing else; this means that the user
+			// linked to an anchor on the current item. In this case, we should
+			// simply skip going through the finder and proceed as if this
+			// were a new link.
+			
+			this._load_sites(this._sites_feed);
+			return;
+		}
 
 		// Add initially selected uri
 		var self = this;
