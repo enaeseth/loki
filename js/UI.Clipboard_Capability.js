@@ -77,7 +77,11 @@ UI.Clipboard_Capability = function Clipboard(loki)
 	{
 		var group = menu.add_group('Clipboard');
 		
-		//group.add_item(new UI.Menu.Item('Cut'));
+		group.add_item(new UI.Menu.Item('Cut'), [this, 'cut'],
+			{enabled: selected});
+		group.add_item(new UI.Menu.Item('Copy'), [this, 'copy'],
+			{enabled: selected});
+		group.add_item(new UI.Menu.Item('Paste'), [this, 'paste']);
 	}
 	
 	function get_selection()
