@@ -1,5 +1,6 @@
 /**
  * @class Manages the collection of Loki's capabilities.
+ * @author Eric Naeseth
  */
 UI.Capabilities = {
 	sets: {
@@ -106,7 +107,7 @@ UI.Capabilities = {
 	{
 		if (name in this.abilities) {
 			throw new Error('A capability is registered under the name "' +
-				name + '".');
+				name + '"; cannot create a set with the same name.');
 		}
 		
 		if (!this.sets[name])
@@ -135,10 +136,12 @@ UI.Capabilities = {
 		this.add('bold', UI.Bold_Capability);
 		this.add('italic', UI.Italic_Capability);
 		this.add('underline', UI.Underline_Capability);
+		this.add('clipboard', UI.Clipboard_Capability);
+		this.add('source', UI.Source_Capability);
 		// ----- END BUNDLED CAPABILITIES -----
 		
 		// ----- BEGIN BUNDLED SETS -----
-		this.put_set('default', ['bold', 'italic']);
+		this.put_set('default', ['bold', 'italic', 'clipboard']);
 		// ----- END BUNDLED SETS -----
 		
 		this._bundled_capabilities_added = true;
