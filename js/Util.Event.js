@@ -21,12 +21,9 @@ Util.Event = function()
  */
 Util.Event.listener = function(func)
 {	
-	return function(e)
+	return function()
 	{
-		if (!e)
-			var e = window.event;
-		
-		return func(e);
+		return func(arguments[0] || window.event);
 	};
 }
 

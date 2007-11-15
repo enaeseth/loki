@@ -131,13 +131,9 @@ UI.Menu = function Menu(loki, style_classes)
 			}
 			
 			var event = arguments[0] || window.event;
-
-			var x = event.pageX || event.clientX + doc.body.scrollLeft +
-				doc.documentElement.scrollLeft;
-			var y = event.pageY || event.clientY + doc.body.scrollTop +
-				doc.documentElement.scrollTop;
-
-			menu.show(doc, x, y);
+			var coords = Util.Event.get_coordinates(event);
+			
+			menu.show(doc, coords[0], coords[1]);
 			
 			Util.Event.prevent_default(event);
 		}
