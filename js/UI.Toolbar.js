@@ -22,6 +22,7 @@ UI.Toolbar = function(loki)
 	/**
 	 * Adds an item to the end of the toolbar.
 	 * @param	{UI.Toolbar.Item}	item	Item to add
+	 * @type void
 	 */
 	this.add_item = function add_item(item)
 	{
@@ -41,6 +42,15 @@ UI.Toolbar = function(loki)
 		list.appendChild(li);
 		
 		items.push(item);
+	}
+	
+	/**
+	 * Gets the root toolbar element.
+	 * @type HTMLULElement
+	 */
+	this.get_element = function get_element()
+	{
+		return list;
 	}
 }
 
