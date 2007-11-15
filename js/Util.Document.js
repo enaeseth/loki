@@ -63,6 +63,11 @@ Util.Document.create_element = function(doc, name, attrs, children)
 		}
 	}
 	
+	function dim(dimension)
+	{
+		return (typeof(dimension) == 'number') ? dimension + 'px' : dimension;
+	}
+	
 	var style = {};
 	
 	for (var name in attrs || {}) {
@@ -107,7 +112,26 @@ Util.Document.create_element = function(doc, name, attrs, children)
 	}
 	
 	for (var name in style) {
-		e.style[name] = style[name];
+		// Special cases
+		switch (name) {
+			case 'box':
+				var box = style[name];
+				e.style.left = dim(box[0]);
+				e.style.top = dim(box[1]);
+				e.style.width = dim(box[2]);
+				e.style.height = dim(box[3] || box[2]);
+				break;
+			case 'left':
+			case 'top':
+			case 'right':
+			case 'bottom':
+			case 'width':
+			case 'height':
+				e.style[name] = dim(style[name]);
+				break;
+			default:
+				e.style[name] = style[name];
+		}
 	}
 	
 	Util.Array.for_each(children || [], function(c) {
