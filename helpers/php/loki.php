@@ -17,8 +17,6 @@ if (!defined('LOKI_2_PATH')) {
 	}
 }
 
-include_once(LOKI_2_PHP_INC.'options.php'); // so we can get L_DEFAULT etc.
-
 /**
  * Second generation of the Loki XHTML editor
  *
@@ -91,7 +89,9 @@ class Loki2
 				E_USER_ERROR);
 		}
 		
-		$this->_asset_protocol = strpos($_SERVER['SCRIPT_URI'], 'https') === 0 ? 'https://' : 'http://';
+		$this->_asset_protocol = strpos($_SERVER['SCRIPT_URI'], 'https') === 0
+			? 'https://'
+			: 'http://';
 		$this->_asset_host = $_SERVER['HTTP_HOST'];
 		$this->_asset_path = LOKI_2_HTTP_PATH;
 		$this->_asset_uri = $this->_asset_protocol . $this->_asset_host . $this->_asset_path;
@@ -158,82 +158,80 @@ class Loki2
 	function print_form_children()
 	{
 		$this->include_js();
-		?>
-
-		<!--div><a href="javascript:void(0);" onclick="Util.Window.alert(document.body.innerHTML);">View virtual source</a></div-->
-		<script type="application/javascript" language="javascript">
-		//document.domain = 'carleton.edu'; /// XXX: for testing; maybe remove later if not necessary
-		var loki;
-		var loki_debug = <?php echo $this->_debug ? 'true' : 'false' ?>; // set to false or remove when live
-		function loki_do_onload()
-		{
-			var options = new UI.Loki_Options;
-			<?php
-			if ( is_array($this->_current_options) )
-			{
-				echo "options.init(['";
-				echo implode("', '", $this->_current_options)."'";
-			}
-			else
-				echo "options.init(['" . $this->_current_options . "'";
-
-			// Source is only available if the user is an admin
-			if ($this->_user_is_admin)
-				echo ", 'source'";
-			echo "], '');\n";
-			// XXX deal with minuses
-
-			//echo "options.init(['all', 'source'], '');\n"; // XXX tmp, for testing
-			?>
+		
+		$options_str = (is_array($this->_current_options))
+			? implode(' ', $this->_current_options)
+			: $this->_current_options;
+		
+		// Source view is only available if the user is an administrator.
+		if ($this->_user_is_admin)
+			$options_str .= ' +source';
 			
-			/*
-			try
-			{
-			*/
-				var settings = {
-					base_uri : '<?php echo $this->_asset_path; ?>',
-					images_feed : '<?php if(!empty($this->_feeds['images'])) echo $this->_feeds['images']; ?>',
-					sites_feed : '<?php if(!empty($this->_feeds['sites'])) echo $this->_feeds['sites']; ?>',
-					finder_feed : '<?php if(!empty($this->_feeds['finder'])) echo $this->_feeds['finder']; ?>',
-					default_site_regexp : new RegExp('<?php echo $this->_default_site_regexp; ?>'),
-					default_type_regexp : new RegExp('<?php echo $this->_default_type_regexp; ?>'),
-					use_https : <?php echo $this->_asset_protocol == 'https://' ? 'true' : 'false'; ?>,
-					use_reason_integration : false,
-                    use_xhtml : true,
-					sanitize_unsecured : <?php echo (($this->_sanitize_unsecured) ? 'true' : 'false') ?>,
-					options : options,
-					allowable_tags : <?php echo $this->_js_allowable_tags() ?>
-				};
-
-				loki = new UI.Loki;
-				loki.init(document.getElementById('loki__<?php echo $this->_field_name; ?>__textarea'), settings);
-			/*
-			}
-			catch(e)
-			{
-				mb('Error:', e.message);
-				throw e;
-			}
-			*/
-		}
-		try
-		{
-			window.addEventListener('load', loki_do_onload, false);
-		}
-		catch(e)
-		{
-			try
-			{
-				window.attachEvent('onload', loki_do_onload);
-			}
-			catch(f)
-			{
-				throw(new Error('Neither the W3C nor the IE way of adding the event listener to start Loki worked. When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-			}
-		}
+		$textarea_id = 'loki__'.$this->_field_name.'__textarea';
+		?>
+		
+		<script type="application/javascript">
+			(function init_<?= $this->_editor_id ?>() {
+				var created = false;
+				
+				function create_editor()
+				{
+					if (created)
+						return;
+					created = true;
+					
+					var loki = new UI.Loki;
+					var settings = {
+						base_uri : '<?php echo $this->_asset_path; ?>',
+						images_feed : '<?php if(!empty($this->_feeds['images'])) echo $this->_feeds['images']; ?>',
+						sites_feed : '<?php if(!empty($this->_feeds['sites'])) echo $this->_feeds['sites']; ?>',
+						finder_feed : '<?php if(!empty($this->_feeds['finder'])) echo $this->_feeds['finder']; ?>',
+						default_site_regexp : new RegExp('<?php echo $this->_default_site_regexp; ?>'),
+						default_type_regexp : new RegExp('<?php echo $this->_default_type_regexp; ?>'),
+						use_https : <?php echo $this->_asset_protocol == 'https://' ? 'true' : 'false'; ?>,
+						use_reason_integration : false,
+	                    use_xhtml : true,
+						sanitize_unsecured : <?php echo (($this->_sanitize_unsecured) ? 'true' : 'false') ?>,
+						options : <?php echo '"', addslashes($options_str), '"' ?>,
+						allowable_tags : <?php echo $this->_js_allowable_tags() ?>
+					};
+					
+					loki.init(document.getElementById('<?php echo $textarea_id ?>'), settings);
+				}
+				
+				function report_error(message)
+				{
+					var exc = arguments[1] || null;
+					
+					if (console && console.error) {
+						if (exc)
+							console.error(message, exc);
+						else
+							console.error(message);
+					} else {
+						alert(message);
+					}
+				}
+				
+				try {
+					if (window.addEventListener) {
+						document.addEventListener('DOMContentLoaded', create_editor, true);
+						window.addEventListener('load', create_editor, false);
+					} else if (window.attachEvent) {
+						window.attachEvent('onload', create_editor);
+					} else {
+						var message = 'Failed to create the Loki editor for <?= $this->_field_name ?>: no available method for trapping load completion.';
+						report_error(message);
+					}
+				} catch (e) {
+					report_error('Failed to listen for window load.', e);
+				}
+				
+			})();
 		</script>
+
 		<?php // we htmlspecialchars because Mozilla converts all greater and less than signs in the textarea to entities, but doesn't convert amperstands to entities. When the value of the textarea is copied into the iframe, these entities are resolved, so as to create tags ... but then so are greater and less than signs that were originally entity'd. This is not desirable, and in particular allows people to add their own HTML tags, which is bad bad bad. ?>
-		<textarea name="<?php echo $this->_field_name; ?>" rows="20" cols="80" id="loki__<?php echo $this->_field_name; ?>__textarea"><?php echo htmlentities($this->_field_value, ENT_QUOTES, 'UTF-8'); ?></textarea>
+		<textarea name="<?php echo $this->_field_name; ?>" rows="20" cols="80" id="<?php echo $textarea_id; ?>"><?php echo htmlentities($this->_field_value, ENT_QUOTES, 'UTF-8'); ?></textarea>
 		<?php
 
 	}
