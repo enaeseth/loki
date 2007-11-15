@@ -109,8 +109,25 @@ Util.Event.matches_keycode = function(event, key_code)
 			return key_code == code ||
 				(key_code >= 65 && key_code <= 90 && key_code + 32 == code);
 	} else {
-		throw new Error('The given event is not an applicable keyboard event.');
+		throw new TypeError('The given event is not an applicable ' +
+			'keyboard event.');
 	}
+}
+
+/**
+ * Gets the mouse coordinates of the given event.
+ * @type array
+ * @param {Event} event	the mouse event
+ * @return [x, y]
+ */
+Util.Event.get_coordinates = function get_coordinates(event)
+{
+	var x = event.pageX || event.clientX + doc.body.scrollLeft +
+		doc.documentElement.scrollLeft;
+	var y = event.pageY || event.clientY + doc.body.scrollTop +
+		doc.documentElement.scrollTop;
+		
+	return [x, y];
 }
 
 /**
