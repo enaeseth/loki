@@ -13,7 +13,7 @@ if (!defined('LOKI_2_PATH')) {
 		// old constant name
 		define('LOKI_2_PATH', LOKI_2_INC);
 	} else {
-		define('LOKI_2_PATH', Loki2::_guess_path());
+		Loki2::_guess_path();
 	}
 }
 
@@ -320,6 +320,35 @@ class Loki2
 		
 		return true;
 	}
+	
+	/**
+	 * Returns the capabilities and sets of capabilities that are bundled with
+	 * Loki.
+	 *
+	 * {
+	 *      'capabilities' => array('[selector]' => '[description]', ...),
+	 *		'sets' => array('[selector]' => array('[cap. selector]', ...), ...)
+	 * }
+	 *
+	 * @return object	the capabilities and sets
+	 * @static
+	 */
+	function get_capabilities()
+	{
+		static $capabilities = null;
+		
+		if (!$capabilities) {
+			require_once LOKI_2_PHP_INC.'capability_reader.php';
+			$c = new Loki2Capabilities();
+			
+			if (!$c->read(LOKI_2_PATH.'js'.DIRECTORY_SEPARATOR))
+				return false;
+			
+			$capabilities = $c;
+		}
+		
+		return $capabilities;
+	}
 
 	/**
 	 * Quotes a javascript regular expression.
@@ -358,6 +387,7 @@ class Loki2
 		if (!$source)
 			$source = $this->_asset_file_path.'js';
 		
+		require_once LOKI_2_PHP_INC.'js_filenames.php';
 		$finder = new Loki2ScriptFinder($source);
 		return $finder->files;
 	}
@@ -386,11 +416,21 @@ class Loki2
 	
 	/**
 	 * @static
-	 * @return string
+	 * @return void
 	 */
 	function _guess_path()
 	{
-		return dirname(dirname(dirname(__FILE__))).DIRECTORY_SEPARATOR;
+		$php_helper = dirname(__FILE__);
+		if (basename($php_helper) == 'php') {
+			$helpers = dirname($php_helper);
+			if (basename($helpers) == 'helpers') {
+				define('LOKI_2_PATH', dirname($helpers).DIRECTORY_SEPARATOR);
+				return;
+			}
+		}
+		
+		user_error('Cannot automatically determine the path to Loki 2; please '.
+			'define the LOKI_2_PATH constant.', E_USER_ERROR);
 	}
 }
 ?>
