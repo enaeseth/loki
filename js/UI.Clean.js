@@ -417,7 +417,7 @@ UI.Clean.clean = function(root, settings)
 	}
 };
 
-UI.Clean.cleanURI = function(uri)
+UI.Clean.clean_URI = function(uri)
 {
 	var local = Util.URI.extract_domain(uri) ==
 		Util.URI.extract_domain(window.location);
@@ -427,7 +427,7 @@ UI.Clean.cleanURI = function(uri)
 		: uri;
 }
 
-UI.Clean.cleanHtml = function(html, settings)
+UI.Clean.clean_HTML = function(html, settings)
 {
     // empty elements (as defined by HTML 4.01)
     var empty_elems = '(br|area|link|img|param|hr|input|col|base|meta)';
@@ -459,12 +459,10 @@ UI.Clean.cleanHtml = function(html, settings)
     ];
 
 
-    mb('UI.Clean.cleanHtml: html before clean', html);
-    for (var i in tests)
-        if (tests[i].test == null || tests[i].test())
+    for (var i in tests) {
+        if (!tests[i].test || tests[i].test())
             html = html.replace(tests[i].pattern, tests[i].replacement);
-    //alert(html);
-    mb('UI.Clean.cleanHtml: html after clean', html);
+	}
 
     return html;
 };

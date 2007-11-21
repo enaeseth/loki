@@ -65,7 +65,7 @@ UI.Image_Helper = function()
 	{
 		// Create the image
 		var image = self._loki.document.createElement('IMG');
-		var clean_src = UI.Clean.cleanURI(image_info.uri);
+		var clean_src = UI.Clean.clean_URI(image_info.uri);
 		image.setAttribute('src', clean_src);
 		if (clean_src != image_info.uri)
 			image.setAttribute('loki:src', image_info.uri);
