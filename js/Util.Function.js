@@ -101,7 +101,7 @@ Util.Function.Methods = {
 	
 	curry: function(function_)
 	{
-		if (!arguments.length)
+		if (arguments.length <= 1)
 			return function_;
 		
 		var args = Util.Array.from(arguments).slice(1);
@@ -113,7 +113,7 @@ Util.Function.Methods = {
 	
 	dynamic_curry: function(function_)
 	{
-		if (!arguments.length)
+		if (arguments.length <= 1)
 			return function_;
 		
 		var args = Util.Array.from(arguments).slice(1).map(function (a) {
