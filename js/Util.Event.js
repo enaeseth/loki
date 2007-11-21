@@ -93,8 +93,8 @@ Util.Event.remove_event_listener = function(node, type, listener)
 
 /**
  * Tests whether the given keyboard event matches the provided key code.
- * @param {Event} the keyboard event
- * @param {intgeger} the key code
+ * @param {Event}	event	the keyboard event
+ * @param {integer} key_code	the key code
  * @type boolean
  */
 Util.Event.matches_keycode = function(event, key_code)
@@ -116,9 +116,9 @@ Util.Event.matches_keycode = function(event, key_code)
 
 /**
  * Gets the mouse coordinates of the given event.
- * @type array
+ * @type object
  * @param {Event} event	the mouse event
- * @return [x, y]
+ * @return {x: (integer), y: (integer)}
  */
 Util.Event.get_coordinates = function get_coordinates(event)
 {
@@ -127,7 +127,7 @@ Util.Event.get_coordinates = function get_coordinates(event)
 	var y = event.pageY || event.clientY + doc.body.scrollTop +
 		doc.documentElement.scrollTop;
 		
-	return [x, y];
+	return {x: x, y: y};
 }
 
 /**
