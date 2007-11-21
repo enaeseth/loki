@@ -38,7 +38,7 @@ UI.Toolbar = function(loki)
 		
 		item.toolbar = this;
 		var li = dh.create_element('li');
-		item.insert(li);
+		item.insert(this.document, dh, li);
 		list.appendChild(li);
 		
 		items.push(item);
