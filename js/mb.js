@@ -5,7 +5,7 @@ var messagebox_i = 0;
 var messagebox_elem;
 var messagebox = mb = function(message, obj)
 {
-	if (loki_debug)
+	if (false)
 	{
 		function init()
 		{
