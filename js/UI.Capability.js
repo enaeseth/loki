@@ -13,7 +13,7 @@ UI.Capability = function(loki, name)
 	
 	this.toolbar_items = [];
 	this.source_toolbar_items = [];
-	this.keybindings = {};
+	this.keybindings = [];
 	this.masseuses = [];
 	
 	this._relevant = true;
@@ -131,6 +131,9 @@ UI.Capability = function(loki, name)
 	 */
 	this._add_keybinding = function _add_keybinding(keys, method)
 	{
-		this.keybindings[keys] = method || 'execute';
+		this.keybindings.push({
+			test: keys,
+			action: method || 'execute'
+		});
 	}
 }
