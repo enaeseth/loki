@@ -11,7 +11,7 @@ UI.Keybinding_Manager = function()
 	 * Adds a keybinding.
 	 * @param {string or function} Either a string describing the keys or a
 	 *        function that when passed a keyboard event object returns true
-	 *        if the keybound function should be called, false if otherwise
+	 *        if the keybound function should be called, false if otherwise.
 	 * @param {function} The function to be bound to keys
 	 * @param {object} An optional object to be used as "this" when the test
 	 *                 and action are called.
@@ -55,11 +55,12 @@ UI.Keybinding_Manager = function()
 	 */
 	this.evaluate = function(keyboard_event)
 	{
-		this.bindings.each(function(binding) {
+		return bindings.reduce(function(return_value, binding) {
 			try {
 				if (binding.test.call(binding.context, keyboard_event)) {
 					if (!binding.action.call(binding.context, keyboard_event)) {
 						Util.Event.prevent_default(keyboard_event);
+						return_value = false;
 					}
 				}
 			} catch (e) {
@@ -68,7 +69,8 @@ UI.Keybinding_Manager = function()
 				}
 			}
 			
-		});
+			return return_value;
+		}, true);
 	}
 }
 
@@ -77,8 +79,8 @@ UI.Keybinding_Manager = function()
  */
 UI.Keybinding_Manager.Special = {
 	Alt: 'e.altKey',
-	Ctrl: '((Util.Browser.Windows && e.altKey) || ' +
-		'(Util.Browser.Mac && e.ctrlKey))',
+	Ctrl: '((!Util.Browser.Mac && e.ctrlKey) || ' +
+		'(Util.Browser.Mac && e.metaKey))',
 	Backspace: 8,
 	Delete: 46,
 	End: 35,
