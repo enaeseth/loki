@@ -190,7 +190,7 @@ class Loki2
 						use_reason_integration : false,
 	                    use_xhtml : true,
 						sanitize_unsecured : <?php echo (($this->_sanitize_unsecured) ? 'true' : 'false') ?>,
-						options : <?php echo '"', addslashes($options_str), '"' ?>,
+						capabilities : <?php echo '"', addslashes($options_str), '"' ?>,
 						allowable_tags : <?php echo $this->_js_allowable_tags() ?>
 					};
 					
