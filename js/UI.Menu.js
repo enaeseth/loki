@@ -21,7 +21,7 @@ UI.Menu = function Menu(loki, style_classes)
 		var style_classes = '';
 		
 	var groups = [];
-	var element = null;
+	this.element = null;
 	
 	var context_helpers = null;
 	
@@ -54,12 +54,13 @@ UI.Menu = function Menu(loki, style_classes)
 	 * @param {integer} the y coordinate at which to display the menu
 	 * @type void
 	 */
-	this.show = function show(doc, x, y)
+	this.show = function show(target, x, y)
 	{
 		var parent = arguments[3] || null;
+		var doc = target.ownerDocument;
 		var dh = new Util.Document(doc);
 		
-		var menu = dh.create_element('div', {
+		this.element = dh.create_element('div', {
 			className: style_classes,
 			style: {
 				position: 'absolute',
@@ -67,8 +68,10 @@ UI.Menu = function Menu(loki, style_classes)
 				top: y
 			}
 		});
+		var menu = this.element;
 		
 		var first_group = true;
+		var self = this;
 		
 		groups.each(function (group) {
 			if (group.item_count() == 0)
@@ -77,11 +80,11 @@ UI.Menu = function Menu(loki, style_classes)
 			if (first_group) {
 				first_group = false;
 			} else {
-				menu.appendChild(dh.create_element, 'hr');
+				menu.appendChild(dh.create_element('hr'));
 			}
 			
 			if (group.title) {
-				menu.appendChild(dh.create_element('h3', {}, group.title));
+				menu.appendChild(dh.create_element('h3', {}, [group.title]));
 			}
 			
 			var ul = dh.create_element('ul');
@@ -89,13 +92,13 @@ UI.Menu = function Menu(loki, style_classes)
 				var li = dh.create_element('li');
 				ul.appendChild(li);
 				
-				item.insert(li);
+				item.insert(self, group, li);
 			});
 			
 			menu.appendChild(ul);
 		});
 		
-		doc.body.appendChild(menu);
+		target.appendChild(menu);
 	}
 	
 	/**
@@ -122,31 +125,46 @@ UI.Menu = function Menu(loki, style_classes)
 	this.use_as_contextual = function use_as_contextual(doc, on_show, on_hide)
 	{
 		var menu = this;
+		if (arguments[3]) {
+			var target = arguments[3];
+			var target_doc = (target.ownerDocument)
+				? target.ownerDocument
+				: target;
+		} else {
+			var target = doc;
+			var target_doc = doc;
+		}
 		
 		function display_context()
 		{
-			if (on_show) {
-				if (!on_show(menu))
-					return;
+			var event = arguments[0] || window.event;
+			
+			if (menu.element) {
+				hide_context();
+				return Util.Event.prevent_default(event);
 			}
 			
-			var event = arguments[0] || window.event;
+			if (on_show && !on_show(menu))
+				return Util.Event.prevent_default(event);
+			
 			var coords = Util.Event.get_coordinates(event);
 			
-			menu.show(doc, coords[0], coords[1]);
+			menu.show(target, coords.x, coords.y);
 			
-			Util.Event.prevent_default(event);
+			return Util.Event.prevent_default(event);
 		}
 
 		function hide_context()
 		{
-			if (on_hide)
+			if (menu.element && on_hide)
 				on_hide(menu);
 			menu.hide();
 		}
 		
-		Util.Element.add_event_listener(doc, 'contextmenu', display_context);
-		Util.Element.add_event_listener(doc, 'click', hide_context);
+		Util.Event.add_event_listener(doc, 'click', hide_context);
+		Util.Event.add_event_listener(doc, 'contextmenu', display_context);
+		// if doc == target_doc, this is harmless:
+		Util.Event.add_event_listener(target_doc, 'click', hide_context);
 	}
 }
 
@@ -246,12 +264,15 @@ UI.Menu.Item = function MenuItem(title, action)
 	this.title = title;
 	
 	if (typeof(action) == 'object') {
-		this.action = action[0] || action.method;
-		this.target = action[1] || action.target || options.target || null;
+		this.action = action[1] || action.method;
+		this.target = action[0] || action.target || options.target || null;
 	} else {
 		this.action = action || Util.Function.empty;
 		this.target = options.target || null;
 	}
+	
+	if (typeof(this.action) == 'string')
+		this.action = this.target[this.action];
 	
 	this.enabled = (typeof(options.enabled) != 'undefined')
 		? !!options.enabled
@@ -287,5 +308,9 @@ UI.Menu.Item = function MenuItem(title, action)
 		var link = Util.Document.create_element(container.ownerDocument,
 			'a', {className: (this.submenu ? 'has_sub' : '')}, [this.title]);
 		container.appendChild(link);
+		
+		Util.Event.add_event_listener(container, 'click', function(e) {
+			this.action.call(this.target);
+		}.bind(this), true);
 	}
 }
