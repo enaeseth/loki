@@ -5,7 +5,7 @@ Util.Function = {
 	 * @author Eric Naeseth
 	 * @see http://taylor-hughes.com/?entry=112
 	 */
-	synchronize: function(function_)
+	synchronize: function synchronize(function_)
 	{
 		var sync = Util.Function.synchronize;
 		
@@ -61,27 +61,27 @@ Util.Function = {
 		}
 	},
 	
-	empty: function()
+	empty: function empty()
 	{
 		
 	},
 	
-	constant: function(k)
+	constant: function constant(k)
 	{
 		return k;
 	},
 	
-	optimist: function()
+	optimist: function optimist()
 	{
 		return true;
 	},
 	
-	pessimist: function()
+	pessimist: function pessimist()
 	{
 		return false;
 	},
 	
-	unimplemented: function()
+	unimplemented: function unimplemented()
 	{
 		throw new Error('Function not implemented!');
 	}
