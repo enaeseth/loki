@@ -186,10 +186,8 @@ Util.Event.prevent_default = function(event)
 	{
 		try // IE
 		{
-			//event = event == null ? _window.event : event;
 			event.returnValue = false;
-			event.cancelBubble = true;
-			//return false;
+			//event.cancelBubble = true;
 		}
 		catch(f)
 		{
@@ -199,20 +197,6 @@ Util.Event.prevent_default = function(event)
 		}
 	}
 	return false;
-
-	/*
-	if ( document.all ) // IE // XXX: hack
-	{
-		//event = event == null ? _window.event : event;
-		event.returnValue = false;
-		event.cancelBubble = true;
-		return false;
-	}
-	else // Gecko
-	{
-		event.preventDefault();
-	}
-	*/
 };
 
 /**
