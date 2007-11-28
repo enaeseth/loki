@@ -66,7 +66,7 @@ UI.Clipboard_Capability = function Clipboard(loki)
 	
 	this.context_changed = function context_changed()
 	{
-		selected = !this.is_selection_empty;
+		selected = !this.is_selection_empty();
 		
 		[buttons.cut, buttons.copy].each(function (button) {
 			button.set_enabled(selected);

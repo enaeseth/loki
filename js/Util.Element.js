@@ -76,8 +76,7 @@ Util.Element.set_class_array = function(elem, classes)
 // "className", see on set_all_classes().
 Util.Element.remove_all_classes = function(elem)
 {
-	if ( document.all ) // TEMP: the existence of document.all isn't really related to 'className', so I should use something else ... but what?
-	{
+	if (Util.Browser.IE) {
 		elem.removeAttribute('className');
 	}
 	elem.removeAttribute('class');

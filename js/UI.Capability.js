@@ -103,7 +103,8 @@ UI.Capability = function(loki, name)
 	 */
 	this._add_button = function _add_button(image, title, method)
 	{
-		return add_button_to_toolbar(this.toolbar_items, image, title, method);
+		return add_button_to_toolbar.call(this, this.toolbar_items, image,
+			title, method);
 	}
 	
 	/**
@@ -119,8 +120,8 @@ UI.Capability = function(loki, name)
 	 */
 	this._add_source_button = function _add_source_button(image, title, method)
 	{
-		return add_button_to_toolbar(this.source_toolbar_items, image, title,
-			method);
+		return add_button_to_toolbar.call(this, this.source_toolbar_items,
+			image, title, method);
 	}
 	
 	/**

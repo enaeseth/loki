@@ -97,7 +97,7 @@ Util.Event.remove_event_listener = function(node, type, listener)
  * @param {integer} key_code	the key code
  * @type boolean
  */
-Util.Event.matches_keycode = function(event, key_code)
+Util.Event.matches_keycode = function matches_keycode(event, key_code)
 {
 	if (['keydown', 'keyup'].contains(event.type) && e.keyCode == keycode) {
 		return true;
@@ -112,7 +112,7 @@ Util.Event.matches_keycode = function(event, key_code)
 		throw new TypeError('The given event is not an applicable ' +
 			'keyboard event.');
 	}
-}
+};
 
 /**
  * Gets the mouse coordinates of the given event.
@@ -128,7 +128,7 @@ Util.Event.get_coordinates = function get_coordinates(event)
 		doc.documentElement.scrollTop;
 		
 	return {x: x, y: y};
-}
+};
 
 /**
  * Calls the listeners which have been "attached" to the

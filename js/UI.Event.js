@@ -19,8 +19,6 @@ UI.Event = function(type)
  * @author Eric Naeseth
  */
 UI.Event_Target = {
-	_es_event_listeners: {},
-	
 	/**
 	 * Registers an event listener on the target.
 	 * @param	{string}	The event type for which the user is registering
@@ -34,14 +32,17 @@ UI.Event_Target = {
 	add_event_listener: function(type, listener, context)
 	{
 		if (!this._es_event_listeners) {
-			throw new Error('The event listener dictionary is gone!');
+			this._es_event_listeners = {};
 		}
 		
 		if (!this._es_event_listeners[type]) {
-			this._es_event_listeners[type] = {};
+			this._es_event_listeners[type] = [];
 		}
 		
-		this._es_event_listeners[type][listener] = context || null;
+		this._es_event_listeners[type].push({
+			listener: listener,
+			context: context || null
+		});
 	},
 	
 	/**
@@ -62,8 +63,14 @@ UI.Event_Target = {
 			return;
 		}
 		
-		if (this._es_event_listeners[type] == (context || null))
-			delete this._es_event_listeners[type][listener];
+		var listeners = this._es_event_listeners[type];
+		
+		for (var i = 0; i < listeners.length; i++) {
+			var r = listeners[i];
+			if (r.listener == listener && r.context == (context || null))
+				listeners.splice(i, 1);
+			i--;
+		}
 	},
 	
 	/**
@@ -74,7 +81,8 @@ UI.Event_Target = {
 	dispatch_event: function(event)
 	{
 		if (!this._es_event_listeners) {
-			throw new Error('The event listener dictionary is gone!');
+			this._es_event_listeners = {};
+			return;
 		}
 		
 		if (!event.type) {
@@ -91,14 +99,14 @@ UI.Event_Target = {
 		try {
 			var listeners = this._es_event_listeners[event.type];
 			
-			for (var listener in listeners) {
+			for (var i = 0; i < listeners.length; i++) {
+				var r = listeners[i];
+				
 				try {
-					var context = listeners[listener];
-					
-					if (typeof(listener) == 'function') {
-						listener.call(context, event);
+					if (typeof(r.listener) == 'function') {
+						r.listener.call(r.context, event);
 					} else {
-						listener[context || 'handle_event'](event);
+						r.listener[r.context || 'handle_event'](event);
 					}
 				} catch (e) {
 					exceptions.push(e);

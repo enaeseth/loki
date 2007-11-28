@@ -1,5 +1,6 @@
 /**
  * @class Handles the triggering of functions for specific key combinations.
+ * @constructor
  * @author Eric Naeseth
  */
 UI.Keybinding_Manager = function()

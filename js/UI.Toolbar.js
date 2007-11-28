@@ -180,10 +180,10 @@ UI.Toolbar.Button = function(image, title, on_click, enabled)
 			
 		Util.Event.add_event_listener(wrapper, 'click', function (e) {
 			var event = e || window.event;
-			if (this.enabled)
+			if (this._enabled)
 				this.dispatch_event(new UI.Event('click'));
 			return Util.Event.prevent_default(event);
-		}, true);
+		}.bind(this), true);
 		
 		container.appendChild(wrapper);
 	}
