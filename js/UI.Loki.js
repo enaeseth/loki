@@ -150,6 +150,7 @@ UI.Loki = function Loki(settings)
 		editor_root.removeChild(hidden_input);
 		
 		switch_toolbar(source_toolbar, toolbar);
+		finish_ui_creation();
 	}
 	
 	this.show_source_view = function show_source_view()
@@ -185,7 +186,6 @@ UI.Loki = function Loki(settings)
 		create_ui();
 		add_capabilities();
 		finish_ui_creation();
-		activate_capabilities();
 	}
 	
 	this.focus = function focus()
@@ -351,20 +351,6 @@ UI.Loki = function Loki(settings)
 			// Masseuses
 			masseuses.append(cap.masseuses);
 		});
-	}
-	
-	/**
-	 * Inform all the capabilities (who want to hear) that the editing document
-	 * has been created.
-	 * @type void
-	 */
-	function activate_capabilities()
-	{
-		capabilities.each(function (c) {
-			if (typeof(c.activate) == 'function') {
-				c.activate(self.window, self.document);
-			}
-		})
 	}
 	
 	function create_ui()
@@ -551,6 +537,7 @@ UI.Loki = function Loki(settings)
 			
 			Util.Document.make_editable(self.document);
 			
+			activate_capabilities();
 			activate_keybindings();
 			activate_contextual_menu();
 			trap_form_submission();
@@ -558,6 +545,20 @@ UI.Loki = function Loki(settings)
 			self.show_source_view();
 			throw e;
 		}
+	}
+	
+	/**
+	 * Inform all the capabilities (who want to hear) that the editing document
+	 * has been created.
+	 * @type void
+	 */
+	function activate_capabilities()
+	{
+		capabilities.each(function (c) {
+			if (typeof(c.activate) == 'function') {
+				c.activate(self.window, self.document);
+			}
+		})
 	}
 	
 	function clear_document()
