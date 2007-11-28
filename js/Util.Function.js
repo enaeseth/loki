@@ -71,6 +71,16 @@ Util.Function = {
 		return k;
 	},
 	
+	optimist: function()
+	{
+		return true;
+	},
+	
+	pessimist: function()
+	{
+		return false;
+	},
+	
 	unimplemented: function()
 	{
 		throw new Error('Function not implemented!');
