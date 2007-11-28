@@ -54,7 +54,6 @@ if (!defined('LOKI_2_PATH')) {
  * $loki->print_form_children();
  * </code>
  */
-
 class Loki2
 {
 	var $_asset_path;
@@ -163,7 +162,7 @@ class Loki2
 			? implode(' ', $this->_current_options)
 			: $this->_current_options;
 		
-		// Source view is only available if the user is an administrator.
+		// Source view is available if and only if the user is an administrator.
 		if ($this->_user_is_admin)
 			$options_str .= ' +source';
 			
@@ -180,7 +179,6 @@ class Loki2
 						return;
 					created = true;
 					
-					var loki = new UI.Loki;
 					var settings = {
 						base_uri : '<?php echo $this->_asset_path; ?>',
 						images_feed : '<?php if(!empty($this->_feeds['images'])) echo $this->_feeds['images']; ?>',
@@ -196,7 +194,8 @@ class Loki2
 						allowable_tags : <?php echo $this->_js_allowable_tags() ?>
 					};
 					
-					loki.init(document.getElementById('<?php echo $textarea_id ?>'), settings);
+					var loki = new UI.Loki(settings);
+					loki.replace_textarea(document.getElementById('<?php echo $textarea_id ?>'));
 				}
 				
 				function report_error(message)
