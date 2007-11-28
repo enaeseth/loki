@@ -4,9 +4,14 @@
  */
 UI.Capabilities = {
 	sets: {
-		all: []
+		all: [],
+		inherent: []
 	},
 	abilities: {},
+	
+	// "Inherent" capabilities; those which are necessary to Loki's
+	// proper functioning and not directly noticeable by the user.
+	inherent_abilities: [],
 	
 	_bundled_capabilities_added: false,
 	
@@ -73,6 +78,7 @@ UI.Capabilities = {
 			ret.push(working[name]);
 		}
 		
+		ret.append(this.inherent_abilities);
 		return ret;
 	},
 	
@@ -131,6 +137,12 @@ UI.Capabilities = {
 		
 		if (this._bundled_capabilities_added)
 			return;
+			
+		// Add the inherent capabilities. Note that these *must* exist outside
+		// the magic zone below.
+		this.inherent_abilities = [
+			UI.Paragraphifier
+		];
 		
 		// ----- BEGIN BUNDLED CAPABILITIES -----
 		this.add('bold', UI.Bold_Capability);
