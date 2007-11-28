@@ -1,6 +1,6 @@
 .loki
 {
-	width: 95%;  /* be overridden by textarea height and width */
+	width: auto;  /* be overridden by textarea height and width */
 
 	padding: 5px;
 	border: 1px solid #999999;
@@ -18,88 +18,107 @@
 .loki table td {
 	height:100%;
 }
+
 .loki iframe
 {
+	clear: left;
 	width: 100%;
 	height: 100%;
+	border: inset #F0F0F0 2px;
 }
 
-.loki .toolbar
-{
-	line-height:23px;
-}
-
-.loki .toolbar a
-{
-	border: #e2e2d2 solid 1px;
-
-	margin:2px 1px;
-	vertical-align: top;
-}
-
-.loki .toolbar a img
-{
-	vertical-align: top;
-	/* this makes a weird blue border in IE (maybe b/c it's a link?) ... */
-	/*border: transparent solid 1px;*/
-	/* ... so instead we add a margin here and take it away below: */
-	margin: 1px;
-}
-
-.loki .toolbar a.hover img    /* use real classes rather than pseudo-classes to accomodate IE */
-{
-	background-color: buttonface;
-	border-bottom: buttonshadow solid 1px;
-	border-left: buttonhighlight solid 1px;
-	border-right: buttonshadow solid 1px;
-	border-top:  buttonhighlight solid 1px;
-	margin: 0px;
-}
-
-.loki .toolbar a.active img   /* use real classes rather than pseudo-classes to accomodate IE */
-{
-	background-color: buttonface;
-	border-bottom: buttonhighlight solid 1px;
-	border-left: buttonshadow solid 1px;
-	border-right: buttonhighlight solid 1px;
-	border-top:  buttonshadow solid 1px;
-	margin: 0px;
-}
-
-
-.loki .contextmenu
-{
-	background-color: ButtonFace;
-	/*border: outset 2px lightgrey;*/
-	border: 2px solid buttonshadow;
-	border-left-color: buttonhighlight;
-	border-top-color: buttonhighlight;
-	font-size: 9pt;
-	font-family: sans-serif;
-	color: black
-}
-
-.loki .contextmenu a.menuitem
-{
-	padding: 2px;
-	cursor: default;
+.loki ul.toolbar {
+	clear: left;
 	display: block;
-	color: black;
-	text-decoration: none;
+	list-style: none;
+	margin: 0 0 2px 0;
+	padding: 0;
+	overflow: auto;
 }
 
-.loki .contextmenu a.menuitem:hover
-{
-	/* use buttonshadow-esque colors instead of real ones here? */
+.loki ul.toolbar li {
+	float: left;
+	margin: 0 2px 0 0;
+	padding: 0;
+}
+
+.loki ul.toolbar li a {
+	border: 1px solid transparent;
+	display: block;
+}
+
+.loki ul.toolbar li a.button:hover {
+	border: 1px solid #264572;
+	background: #99BEDB;
+}
+
+.loki ul.toolbar li a.button img {
+	display: block;
+	border: none;
+	margin: 0;
+}
+
+
+.loki div.contextmenu {
+	position: absolute;
+	border: 1px solid;
+	border-color: buttonhighlight buttonshadow buttonshadow
+		buttonhighlight;
+	padding: 0.2em 0;
+	font-size: 90%;
+	min-width: 80px;
+	background: buttonface;
+}
+
+.loki div.contextmenu h3 {
+	color: #333;
+	font-size: 80%;
+	font-weight: bold;
+	margin: 0 0 0.2em 0;
+	padding: 0 0.4em;
+}
+
+.loki div.contextmenu ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.loki div.contextmenu ul li {
+	
+}
+
+.loki div.contextmenu hr {
+	margin: 0.3em auto;
+	height: 1px;
+	color: #AAA;
+	background: #AAA;
+	border: none;
+}
+
+.loki div.contextmenu ul li a {
+	display: block;
+	padding: 0.1em 31px 0.1em 19px;
+}
+
+.loki div.contextmenu ul li .right {
+	float: right;
+}
+
+.loki div.contextmenu ul li:hover {
 	background-color: Highlight;
-	color: HighlightText;
 }
 
-.loki .contextmenu .disabled
+.loki div.contextmenu ul .on {
+	background: url('check.gif') 3px center no-repeat;
+}
+
+.loki div.contextmenu ul .has_sub {
+	background: url('submenu.gif') right center no-repeat;
+}
+
+.loki .contextmenu ul .disabled
 {
-	padding: 2px;
-	cursor: default;
-	display: block;
 	color: GrayText;
 }
 
