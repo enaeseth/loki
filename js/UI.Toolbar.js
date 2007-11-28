@@ -182,6 +182,7 @@ UI.Toolbar.Button = function(image, title, on_click, enabled)
 			var event = e || window.event;
 			if (this._enabled)
 				this.dispatch_event(new UI.Event('click'));
+			this.toolbar.loki.focus();
 			return Util.Event.prevent_default(event);
 		}.bind(this), true);
 		
