@@ -142,6 +142,45 @@ Util.Document.create_element = function(doc, name, attrs, children)
 }
 
 /**
+ * Make the document editable. Mozilla doesn't support
+ * contentEditable. Both IE and Mozilla support
+ * designMode. However, in IE if designMode is set on an iframe's
+ * contentDocument, the iframe's ownerDocument will be denied
+ * permission to access it (even if otherwise it *would* have
+ * permission). So for IE we use contentEditable, and for Mozilla
+ * designMode.
+ * @param {HTMLDocument}	doc
+ * @type void
+ */
+Util.Document.make_editable = function make_editable(doc)
+{
+	try {
+		// Internet Explorer
+		doc.body.contentEditable = true;
+		// If the document isn't editable, this will throw an
+		// error. If the document is editable, this is perfectly
+		// harmless.
+		doc.queryCommandState('Bold');
+	} catch (e) {
+		// Gecko (et al?)
+		try {
+			// Turn on design mode.  N.B.: designMode has to be
+			// set after the iframe_elem's src is set (or its
+			// document is closed). ... Otherwise the designMode
+			// attribute will be reset to "off", and things like
+			// execCommand won't work (though, due to Mozilla bug
+			// #198155, the iframe's new document will be
+			// editable)
+			doc.designMode = 'on';
+			doc.execCommand('undo', false, null);
+		} catch (f) {
+			throw new Error('Unable to make the document editable. ' +
+				'(' + e + '); (' + f + ')');
+		}
+	}
+}
+
+/**
  * Gets the HEAD element of a document.
  * @param	doc		document from which to obtain the HEAD
  */

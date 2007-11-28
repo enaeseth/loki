@@ -32,7 +32,7 @@ if ('object' == typeof(Components))
 // would anyone want that), not HTML.
 else
 {
-	window.attachEvent("onload", function()
+	Util.Event.add_event_listener(window, 'load', function()
 	{
 		UI.Clipboard_Helper_Editable_Iframe = document.createElement('IFRAME');
 		// When under https, this causes an alert in IE about combining https and http:
@@ -59,9 +59,9 @@ UI.Clipboard_Capability = function Clipboard(loki)
 	
 	var selected = undefined;
 	var buttons = {
-		cut: this._add_button('cut.gif', 'Cut', this.cut),
-		copy: this._add_button('copy.gif', 'Copy', this.copy),
-		paste: this._add_button('paste.gif', 'Paste', this.paste)
+		cut: this._add_button('cut.gif', 'Cut', 'cut'),
+		copy: this._add_button('copy.gif', 'Copy', 'copy'),
+		paste: this._add_button('paste.gif', 'Paste', 'paste')
 	};
 	
 	this.context_changed = function context_changed()
@@ -77,11 +77,11 @@ UI.Clipboard_Capability = function Clipboard(loki)
 	{
 		var group = menu.add_group('Clipboard');
 		
-		group.add_item(new UI.Menu.Item('Cut'), [this, 'cut'],
-			{enabled: selected});
-		group.add_item(new UI.Menu.Item('Copy'), [this, 'copy'],
-			{enabled: selected});
-		group.add_item(new UI.Menu.Item('Paste'), [this, 'paste']);
+		group.add_item(new UI.Menu.Item('Cut', [this, 'cut'],
+			{enabled: selected}));
+		group.add_item(new UI.Menu.Item('Copy', [this, 'copy'],
+			{enabled: selected}));
+		group.add_item(new UI.Menu.Item('Paste', [this, 'paste']));
 	}
 	
 	function get_selection()
@@ -152,40 +152,47 @@ UI.Clipboard_Capability = function Clipboard(loki)
 			return html;
 		}
 		
+		function insert_html(html)
+		{
+			if (rng.pasteHTML && rng.select) {
+				rng.pasteHTML(html);
+				rng.select();
+			} else {
+				var dest_doc = rng.startContainer.ownerDocument;
+				
+				// Paste into temporary container
+				var container = dest_doc.createElement('DIV');
+				container.innerHTML = html;
+
+				// Copy into document fragment
+				var frag = dest_doc.createDocumentFragment();
+				for (var i = 0; i < container.childNodes.length; i++) {
+					// XXX: why the cloning step? -EN
+					frag.appendChild(container.childNodes[i].cloneNode(true));
+				}
+
+				// Paste the fragment
+				Util.Selection.paste_node(sel, frag);
+			}
+		}
+		
 		try {
 			// Internet Explorer
 			
 			var editable_doc =
 				UI.Clipboard_Helper_Editable_Iframe.contentWindow.document;
 			
-			editable_doc.body.contentEditable = true;
-			editable_doc.body.innerHTML = '';
+			Util.Document.make_editable(editable_doc);
 			editable_doc.execCommand('SelectAll', false, null);
 			editable_doc.execCommand('Paste', false, null);
 
-			rng.pasteHTML(clean(editable_doc.body.innerHTML));
-			rng.select();
+			insert_html(clean(editable_doc.body.innerHTML));
 		} catch (e) {
 			// Gecko
 			
-			var dest_doc = rng.startContainer.ownerDocument;
-			var html = clean(UI.Clipboard_Helper_Privileged_Iframe.
+			insert_html(clean(UI.Clipboard_Helper_Privileged_Iframe.
 				contentDocument.Clipboard_Helper_Privileged_Functions.
-				get_clipboard());
-			
-			// Paste into temporary container
-			var container = dest_doc.createElement('DIV');
-			container.innerHTML = html;
-			
-			// Copy into document fragment
-			var frag = dest_doc.createDocumentFragment();
-			for (var i = 0; i < container.childNodes.length; i++) {
-				// XXX: why the cloning step? -EN
-				frag.appendChild(container.childNodes[i].cloneNode(true));
-			}
-			
-			// Paste the fragment
-			Util.Selection.paste_node(sel, frag);
+				get_clipboard()));
 		}
 	}
 }
