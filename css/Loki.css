@@ -52,22 +52,31 @@
 	background: #99BEDB;
 }
 
+.loki ul.toolbar li a.disabled:hover {
+	border: 1px solid transparent;
+	background: transparent;
+}
+
 .loki ul.toolbar li a.button img {
 	display: block;
 	border: none;
 	margin: 0;
 }
 
+.loki ul.toolbar li a.active {
+	border: 1px solid #2C4362;
+	background: #B3C2CC;
+}
 
 .loki div.contextmenu {
 	position: absolute;
 	border: 1px solid;
-	border-color: buttonhighlight buttonshadow buttonshadow
-		buttonhighlight;
+	border-color: ThreeDLightShadow ThreeDShadow ThreeDShadow
+		ThreeDLightShadow;
 	padding: 0.2em 0;
 	font-size: 90%;
 	min-width: 80px;
-	background: buttonface;
+	background: ThreeDFace;
 }
 
 .loki div.contextmenu h3 {
@@ -107,6 +116,7 @@
 
 .loki div.contextmenu ul li:hover {
 	background-color: Highlight;
+	color: HighlightText;
 }
 
 .loki div.contextmenu ul .on {
