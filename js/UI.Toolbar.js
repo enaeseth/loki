@@ -180,14 +180,17 @@ UI.Toolbar.Button = function(image, title, on_click, enabled)
 		wrapper = dh.create_element('a', {className: 'button'},
 			[image]);
 			
-		Util.Event.add_event_listener(wrapper, 'click', function (e) {
-			var event = e || window.event;
+		function toolbar_button_clicked(event)
+		{
 			if (this._enabled)
 				this.dispatch_event(new UI.Event('click'));
 			this.toolbar.loki.context_changed();
-			this.toolbar.loki.focus();
+			if (this.autofocus == undefined || this.autofocus)
+				this.toolbar.loki.focus();
 			return Util.Event.prevent_default(event);
-		}.bind(this), true);
+		}
+			
+		Util.Event.observe(wrapper, 'click', toolbar_button_clicked, this);
 		
 		container.appendChild(wrapper);
 	}
