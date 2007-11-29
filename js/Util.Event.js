@@ -64,6 +64,34 @@ Util.Event.add_event_listener = function(node, type, listener)
 };
 
 /**
+ * (More intelligently and concisely) adds an event listener to a node.
+ * @param {Node}	target	the node to which to add the event listener
+ * @param {string}	type	the type of event to listen for
+ * @param {function}	listener	the listener function that will be called
+ * @param {object}	context	the "this context" in which to call the listener
+ * @type void
+ */
+Util.Event.observe = function(target, type, listener, context)
+{
+	if (typeof(target.addEventListener) == 'function') {
+		if (context) {
+			target.addEventListener(type, function event_listener_proxy() {
+				listener.apply(context, arguments);
+			}, false);
+		} else {
+			target.addEventListener(type, listener, false);
+		}
+	} else if (typeof(target.attachEvent == 'function')) {
+		target.attachEvent('on' + type, function ie_event_listener_proxy() {
+			listener.call(context, (arguments[0] || window.event));
+		});
+	} else {
+		throw new Error('Browser does not support either of the modern event ' +
+			'listening API\'s.');
+	}
+}
+
+/**
  * Removes an event listener from a node. Doesn't work at present.
  *
  * @param	node		the node from which to remove the event listener
