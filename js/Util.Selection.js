@@ -282,7 +282,17 @@ Util.Selection.collapse = function(sel, to_start)
  */
 Util.Selection.is_collapsed = function(sel)
 {
-	var rng = Util.Range.create_range(sel);
+	var rng;
+	
+	try {
+		rng = Util.Range.create_range(sel);
+	} catch (e) {
+		if (e.code == 1)
+			return true;
+		else
+			throw e;
+	}
+	
 	if ( rng.text != null )
 		return rng.text == '';
 	else if ( rng.length != null )

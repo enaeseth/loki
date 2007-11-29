@@ -38,7 +38,7 @@ UI.Keybinding_Manager = function()
 				}).join(') && (') + ')';
 			}).join(' || ');
 			
-			key_test = new Function('e', test);
+			key_test = new Function('e', 'return ' + test + ';');
 		}
 		
 		bindings.push({
@@ -55,13 +55,24 @@ UI.Keybinding_Manager = function()
 	 */
 	this.evaluate = function(keyboard_event)
 	{
+		function invoke_binding(binding)
+		{
+			var result = binding.action.call(binding.context,
+				keyboard_event);
+			
+			if (result == undefined || result === false) {
+				Util.Event.prevent_default(keyboard_event);
+				return false;
+			}
+			
+			return true;
+		}
+		
 		return bindings.reduce(function(return_value, binding) {
 			try {
 				if (binding.test.call(binding.context, keyboard_event)) {
-					if (!binding.action.call(binding.context, keyboard_event)) {
-						Util.Event.prevent_default(keyboard_event);
+					if (!invoke_binding(binding))
 						return_value = false;
-					}
 				}
 			} catch (e) {
 				if (typeof(console) != 'undefined' && console.warning) {
@@ -79,7 +90,7 @@ UI.Keybinding_Manager = function()
  */
 UI.Keybinding_Manager.Special = {
 	Alt: 'e.altKey',
-	Ctrl: '((!Util.Browser.Mac && e.ctrlKey) || ' +
+	Ctrl: '(((!Util.Browser.Mac || Util.Browser.Gecko) && e.ctrlKey) || ' +
 		'(Util.Browser.Mac && e.metaKey))',
 	Backspace: 8,
 	Delete: 46,

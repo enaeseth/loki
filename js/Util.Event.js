@@ -121,15 +121,15 @@ Util.Event.remove_event_listener = function(node, type, listener)
 
 /**
  * Tests whether the given keyboard event matches the provided key code.
- * @param {Event}	event	the keyboard event
+ * @param {Event}	e	the keyboard event
  * @param {integer} key_code	the key code
  * @type boolean
  */
-Util.Event.matches_keycode = function matches_keycode(event, key_code)
+Util.Event.matches_keycode = function matches_keycode(e, key_code)
 {
-	if (['keydown', 'keyup'].contains(event.type) && e.keyCode == keycode) {
+	if (['keydown', 'keyup'].contains(e.type) && e.keyCode == keycode) {
 		return true;
-	} else if (event.type == 'keypress') {
+	} else if (e.type == 'keypress') {
 		var code = (e.charCode)
 			? e.charCode
 			: e.keyCode; // Internet Explorer instead puts the ASCII value here.

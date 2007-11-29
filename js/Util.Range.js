@@ -19,22 +19,13 @@ Util.Range = function()
  */
 Util.Range.create_range = function(sel)
 {
-	try
-	{
+	if (typeof(sel.getRangeAt) == 'function')
 		return sel.getRangeAt(0);
-	}
-	catch(e)
-	{
-		try
-		{
-			return sel.createRange();
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Range.create_range(): Neither the Mozilla nor the IE way of creating the range worked. ' +
-							'When the Mozilla way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	else if (typeof(sel.createRange) == 'function')
+		return sel.createRange();
+	else {
+		throw new Error('Unable to create range: neither the IE nor the W3C ' +
+			'range creation methods are available.');
 	}
 };
 

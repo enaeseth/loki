@@ -217,4 +217,8 @@ UI.Clipboard_Capability = function Clipboard(loki)
 				get_clipboard()));
 		}
 	}
+	
+	this._add_keybinding('Ctrl C', 'copy');
+	this._add_keybinding('Ctrl X', 'cut');
+	this._add_keybinding('Ctrl V', 'paste');
 }

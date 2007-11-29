@@ -25,11 +25,12 @@ UI.Paragraphifier = function Paragraphifier(loki)
 	function possibly_paragraphify(event)
 	{
 		var sel = Util.Selection.get_selection(loki.window);
-		var rng = Util.Range.create_range(sel);
-		var container = Util.Range.get_start_container(rng);
-		
-		if (container && container.nodeName == 'BODY') {
-			loki.toggle_block('p');
+		if (sel.rangeCount == undefined || sel.rangeCount > 0) {
+			var rng = Util.Range.create_range(sel);
+			var container = Util.Range.get_start_container(rng);
+			if (container && container.nodeName == 'BODY') {
+				loki.toggle_block('p');
+			}
 		}
 		
 		if (event)
