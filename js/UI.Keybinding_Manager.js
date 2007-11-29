@@ -90,6 +90,16 @@ UI.Keybinding_Manager = function()
  */
 UI.Keybinding_Manager.Special = {
 	Alt: 'e.altKey',
+	// An explanation of the special handling of the Ctrl key:
+	//   Macs have two modifier keys used for launching shortcuts: Control
+	//   and Command. Control is only used in a UNIX/Terminal context or when
+	//   many shortcuts are needed. So, on Mac systems we'd rather use Command
+	//   for our keyboard shortcuts. However, Gecko-based browsers (specifically
+	//   Camino and Firefox) don't allow us to trap or even _detect_ Cmd+*
+	//   key combinations and will instead use their built-in behavior. However,
+	//   Safari and Opera do let us. So, use Command on non-Gecko browsers
+	//   on Macs and Control otherwise.
+	// - Eric Naeseth
 	Ctrl: '(((!Util.Browser.Mac || Util.Browser.Gecko) && e.ctrlKey) || ' +
 		'(Util.Browser.Mac && e.metaKey))',
 	Backspace: 8,
