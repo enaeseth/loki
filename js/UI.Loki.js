@@ -542,7 +542,16 @@ UI.Loki = function Loki(settings)
 			activate_contextual_menu();
 			trap_form_submission();
 		} catch (e) {
-			self.show_source_view();
+			// If we were unable to fully create the Loki WYSIWYG GUI, show the
+			// HTML source view instead.
+			try {
+				self.show_source_view();
+			} catch (desperation) {
+				// If even that doesn't work, revert all the way back to having
+				// the original textarea without any of our UI.
+				editor_root.parentNode.replaceChild(textarea, editor_root);
+			}
+			
 			throw e;
 		}
 	}
@@ -558,7 +567,7 @@ UI.Loki = function Loki(settings)
 			if (typeof(c.activate) == 'function') {
 				c.activate(self.window, self.document);
 			}
-		})
+		});
 	}
 	
 	function clear_document()
