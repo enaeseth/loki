@@ -68,6 +68,7 @@ class Loki2
 	var $_default_site_regexp = '';
 	var $_default_type_regexp = '';
 	var $_sanitize_unsecured = false;
+	var $_monopolize_clipboard = false;
 	var $_allowable_tags = null;
 	var $_external_script_path = null;
 
@@ -150,6 +151,18 @@ class Loki2
 	{
 		$this->_sanitize_unsecured = (bool) $value;
 	}
+	
+	/**
+	 * Sets whether or not Loki will block any attempts by the user to cut,
+	 * copy, or paste using the browser and instead force him or her to go
+	 * through Loki, so that Loki will be able to perform all needed cleanups.
+	 * @param bool $value true to monopolize the clipboard as such, false if no
+	 * @return void
+	 */
+	function monopolize_clipboard($value)
+	{
+		$this->_monopolize_clipboard = (bool) $value;
+	}
 
 	/**
 	 * Prints the html which needs to be placed within a form.
@@ -188,8 +201,9 @@ class Loki2
 						default_type_regexp : new RegExp('<?php echo $this->_default_type_regexp; ?>'),
 						use_https : <?php echo $this->_asset_protocol == 'https://' ? 'true' : 'false'; ?>,
 						use_reason_integration : false,
-	                    use_xhtml : true,
-						sanitize_unsecured : <?php echo (($this->_sanitize_unsecured) ? 'true' : 'false') ?>,
+						use_xhtml : true,
+						<?php $this->_bool_param('sanitize_unsecured') ?>,
+						<?php $this->_bool_param('monopolize_clipboard') ?>,
 						capabilities : <?php echo '"', addslashes($options_str), '"' ?>,
 						allowable_tags : <?php echo $this->_js_allowable_tags() ?>
 					};
@@ -430,6 +444,14 @@ class Loki2
 		
 		user_error('Cannot automatically determine the path to Loki 2; please '.
 			'define the LOKI_2_PATH constant.', E_USER_ERROR);
+	}
+	
+	function _bool_param($which)
+	{
+		$var = '_'.$which;
+		$value = $this->$var;
+		
+		echo $which.' : '.(($value) ? 'true' : 'false');
 	}
 }
 ?>
