@@ -64,6 +64,28 @@ UI.Clipboard_Capability = function Clipboard(loki)
 		paste: this._add_button('paste.gif', 'Paste', 'paste')
 	};
 	
+	this.activate = function activate(wdw, doc)
+	{
+		// Clipboard monopolization: prevent the user from directly cutting,
+		// copying, or pasting using the browser to allow us to do cleanup.
+		// The only remaining way for the user to do this is by using the
+		// Edit menu, and Safari generates "before[clipboard action]" events
+		// whenever the user merely opens the Edit menu! But clipboard isn't
+		// working yet in Safari anyway.
+		
+		if (loki.settings.monopolize_clipboard && !Util.Browser.Safari) {
+			['cut', 'copy', 'paste'].each(function(event_name) {
+				Util.Event.observe(doc.body, 'before' + event_name, function(ev) {
+					alert('Loki is unable to clean up the part of the ' +
+						'document that you tried to ' + event_name + ' when ' +
+						'it is done using the browser\'s menu. Instead, use ' +
+						'the keyboard or Loki\'s toolbar.');
+					return Util.Event.prevent_default(ev);
+				});
+			});
+		}
+	}
+	
 	this.context_changed = function context_changed()
 	{
 		selected = !this.is_selection_empty();
