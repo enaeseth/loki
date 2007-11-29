@@ -25,7 +25,7 @@ UI.Loki = function Loki(settings)
 	this.settings = settings;
 	
 	var editor_root = null;
-	var editor_domain = null;
+	var editor_domain = Util.URI.extract_domain(window.location);
 	
 	var capabilities = [];
 	var context_aware_capabilities = [];
@@ -115,6 +115,15 @@ UI.Loki = function Loki(settings)
 	function textarea_is_active()
 	{
 		return (editor_root && textarea.parentNode == editor_root);
+	}
+	
+	/**
+	 * Gets the domain under which the Loki instance is running.
+	 * @type string
+	 */
+	this.editor_domain = function editor_domain()
+	{
+		return editor_domain;
 	}
 	
 	/**
