@@ -59,6 +59,16 @@ UI.Capability = function(loki, name)
 			: !!(this._determine_relevancy || this._determine_illumination);
 	}
 	
+	this.get_selection = function get_selection()
+	{
+		return Util.Selection.get_selection(loki.window);
+	}
+	
+	this.is_selection_empty = function is_selection_empty()
+	{
+		return Util.Selection.is_collapsed(this.get_selection());
+	};
+	
 	/**
 	 * Returns true if this capability is currently at all relevant; false if
 	 * otherwise.

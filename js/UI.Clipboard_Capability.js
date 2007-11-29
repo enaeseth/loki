@@ -106,15 +106,7 @@ UI.Clipboard_Capability = function Clipboard(loki)
 		group.add_item(new UI.Menu.Item('Paste', [this, 'paste']));
 	}
 	
-	function get_selection()
-	{
-		return Util.Selection.get_selection(loki.window);
-	}
-	
-	this.is_selection_empty = function is_selection_empty()
-	{
-		return Util.Selection.is_collapsed(get_selection());
-	};
+	var get_selection = this.get_selection;
 	
 	this.cut = function cut()
 	{
