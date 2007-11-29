@@ -64,7 +64,7 @@ UI.Keybinding_Manager = function()
 					}
 				}
 			} catch (e) {
-				if (console && console.warning) {
+				if (typeof(console) != 'undefined' && console.warning) {
 					console.warning('Exception in keybinding:', e);
 				}
 			}

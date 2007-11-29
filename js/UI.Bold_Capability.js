@@ -15,12 +15,13 @@ UI.Bold_Capability = function Bold(loki)
 		this.loki.exec_command('Bold');
 	}
 	
-	this._determine_relevancy = function()
+	this._determine_illumination = function _determine_illumination()
 	{
 		return this.loki.query_command_state('Bold');
 	}
 	
-	this.masseuses.push(new UI.Semantic_Element_Masseuse(loki, 'B', 'STRONG'));
+	this.masseuses.push(new UI.Semantic_Element_Masseuse(loki, 'B', 'STRONG',
+		{fontWeight: 'bold'}));
 	this._add_button('bold.gif', 'Bold');
 	this._add_keybinding('Ctrl B');
 }

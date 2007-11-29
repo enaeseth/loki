@@ -7,8 +7,10 @@
  * @param {UI.Loki} the Loki instance to massage for
  * @param {string} the name of the non-semantic element to replace
  * @param {string} the name of the desired semantic element
+ * @param {object} styles that would be applied to an equivalent unsemantic span
  */
-UI.Semantic_Element_Masseuse = function(loki, unsemantic_name, semantic_name)
+UI.Semantic_Element_Masseuse = function(loki, unsemantic_name, semantic_name,
+	styles)
 {
 	Util.OOP.inherits(this, UI.Masseuse, loki);
 	
@@ -17,7 +19,7 @@ UI.Semantic_Element_Masseuse = function(loki, unsemantic_name, semantic_name)
 		var new_tag = (make_fake) ? unsemantic_name : semantic_name;
 		var replacement = element.ownerDocument.createElement(new_tag);
 		
-		if (element.hasAttributes && element.hasAttributes()) {
+		if (!element.hasAttributes || element.hasAttributes()) {
 			for (var name in element.attributes) {
 				if (!make_fake && name == 'loki:fake')
 					continue;
@@ -25,8 +27,11 @@ UI.Semantic_Element_Masseuse = function(loki, unsemantic_name, semantic_name)
 				var attr = element.attributes[name];
 				if (!attr.specified)
 					continue;
-
-				replacement.setAttribute(name, attr.nodeValue);
+					
+				if (typeof(attr.nodeValue) == 'string' && !attr.nodeValue)
+					continue;
+					
+				replacement.setAttribute(attr.nodeName, attr.nodeValue);
 			}
 		}
 		
@@ -45,7 +50,7 @@ UI.Semantic_Element_Masseuse = function(loki, unsemantic_name, semantic_name)
 		var old_tag = (make_fake) ? semantic_name : unsemantic_name;
 		var elements = node.getElementsByTagName(old_tag);
 		
-		for (var i = elements.length - 1; i >= 0; i++) {
+		for (var i = elements.length - 1; i >= 0; i--) {
 			var e = elements[i];
 			e.parentNode.replaceChild(replace_node(e, make_fake), e);
 		}
@@ -59,5 +64,27 @@ UI.Semantic_Element_Masseuse = function(loki, unsemantic_name, semantic_name)
 	this.unmassage_node_descendants = function(node)
 	{
 		replace_descendants(node, false);
+		
+		var elements = node.getElementsByTagName('SPAN');
+		for (var i = elements.length - 1; i >= 0; i--) {
+			var e = elements[i];
+			var c = e.cloneNode(true);
+			var matches = true;
+			
+			for (var name in styles) {
+				if (e.style[name] != styles[name]) {
+					matches = false;
+					break;
+				} else {
+					c.style[name] = '';
+				}
+			}
+			
+			if (!matches)
+				continue;
+			
+			if (typeof(c.style.cssText) == 'string' && !c.style.cssText)
+				e.parentNode.replaceChild(replace_node(c, false), e);
+		}
 	}
 }

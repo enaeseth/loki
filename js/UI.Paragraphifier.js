@@ -16,6 +16,12 @@ UI.Paragraphifier = function Paragraphifier(loki)
 	var tinyMCE = new TinyMCE();
 	tinyMCE.init(loki.window, control);
 	
+	this.activate = function activate()
+	{
+		// Create the first paragraph tag if necessary.
+		possibly_paragraphify();
+	}
+	
 	function possibly_paragraphify(event)
 	{
 		var sel = Util.Selection.get_selection(loki.window);
@@ -26,7 +32,8 @@ UI.Paragraphifier = function Paragraphifier(loki)
 			loki.toggle_block('p');
 		}
 		
-		tinyMCE.handleEvent(event);
+		if (event)
+			tinyMCE.handleEvent(event);
 		return true;
 	}
 	

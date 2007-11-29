@@ -16,7 +16,7 @@ UI.Underline_Capability = function Underline(loki)
 		this.loki.exec_command('Underline');
 	}
 	
-	this._determine_relevancy = function()
+	this._determine_illumination = function _determine_illumination()
 	{
 		return this.loki.query_command_state('Underline');
 	}
