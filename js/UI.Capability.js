@@ -17,6 +17,7 @@ UI.Capability = function(loki, name)
 	this.masseuses = [];
 	
 	this._relevant = true;
+	this._illuminated = false;
 	
 	/**
 	 * Called when the contextual menu is being built; the capability should
@@ -40,6 +41,22 @@ UI.Capability = function(loki, name)
 		if (typeof(this._determine_relevancy) == 'function') {
 			this.set_relevancy(this._determine_relevancy());
 		}
+		
+		if (typeof(this._determine_illumination) == 'function') {
+			this.set_illumination(this._determine_illumination());
+		}
+	}
+	
+	var original_context_changed = this.context_changed
+	
+	/**
+	 * @type boolean
+	 */
+	this._is_context_aware = function _is_context_aware()
+	{
+		return (this.context_changed != original_context_changed)
+			? true
+			: !!(this._determine_relevancy || this._determine_illumination);
 	}
 	
 	/**
@@ -70,11 +87,39 @@ UI.Capability = function(loki, name)
 		this.source_toolbar_items.each(set_item_status);
 	}
 	
+	/**
+	 * Returns true if this capability is currently active; false if
+	 * otherwise.
+	 * @type boolean
+	 */
+	this.is_illuminated = this.is_active = function is_illuminated()
+	{
+		return this._illuminated;
+	}
+	
+	/**
+	 * Sets the set_illumination of the capability. The default implementation
+	 * also activates/deactivates any toolbar items.
+	 * @param {boolean}	new value
+	 * @type void
+	 */
+	this.set_illumination = function set_illumination(value)
+	{
+		if (value == this._illuminated)
+			return;
+		
+		this._illuminated = value;
+		
+		function set_item_status(item) { item.set_active(value); }
+		this.toolbar_items.each(set_item_status);
+		this.source_toolbar_items.each(set_item_status);
+	}
+	
 	function add_button_to_toolbar(toolbar, image, title, method)
 	{
 		var button = new UI.Toolbar.Button(image, title);
 		
-		// note that no click listener will be added if method is null;
+		// Note that no click listener will be added if method is *null*;
 		// the default name is only substituted if it is undefined
 		if (typeof(method) == 'undefined' && this.execute) {
 			method = 'execute';

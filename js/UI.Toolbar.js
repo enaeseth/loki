@@ -106,16 +106,17 @@ UI.Toolbar.Item = function()
 	 * Returns true if the item is enabled, false otherwise.
 	 * @type boolean
 	 */
-	function is_enabled()
+	this.is_enabled = function is_enabled()
 	{
 		return this._enabled;
 	}
 	
 	/**
 	 * Sets whether or not the item is enabled.
-	 * @param {boolean}	New value
+	 * @param {boolean}	value	New value
+	 * @type void
 	 */
-	function set_enabled(value)
+	this.set_enabled = function set_enabled(value)
 	{
 		if (value == this._enabled)
 			return;
@@ -164,6 +165,7 @@ UI.Toolbar.Button = function(image, title, on_click, enabled)
 	
 	var wrapper = null;
 	var image = null;
+	var active = false;
 	
 	this.insert = function(doc, dh, container)
 	{
@@ -182,6 +184,7 @@ UI.Toolbar.Button = function(image, title, on_click, enabled)
 			var event = e || window.event;
 			if (this._enabled)
 				this.dispatch_event(new UI.Event('click'));
+			this.toolbar.loki.context_changed();
 			this.toolbar.loki.focus();
 			return Util.Event.prevent_default(event);
 		}.bind(this), true);
@@ -197,6 +200,28 @@ UI.Toolbar.Button = function(image, title, on_click, enabled)
 	this._disable = function()
 	{
 		Util.Element.add_class(wrapper, 'disabled');
+	}
+	
+	this.set_active = function set_active(value)
+	{
+		if (value == active)
+			return;
+		
+		active = value;
+		if (active)
+			activate();
+		else
+			deactivate();
+	}
+	
+	function activate()
+	{
+		Util.Element.add_class(wrapper, 'active');
+	}
+	
+	function deactivate()
+	{
+		Util.Element.remove_class(wrapper, 'active');
 	}
 }
 

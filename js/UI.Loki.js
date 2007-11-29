@@ -14,6 +14,7 @@ UI.Loki = function Loki(settings)
 	this.window = null;
 	this.document = null;
 	this.body = null;
+	var form = null;
 	var hidden_input = null;
 	var textarea = null;
 	var graphical_wrapper = null;
@@ -27,6 +28,7 @@ UI.Loki = function Loki(settings)
 	var editor_domain = null;
 	
 	var capabilities = [];
+	var context_aware_capabilities = [];
 	var keybinder = new UI.Keybinding_Manager();
 	var masseuses = [];
 	var toolbar = null;
@@ -147,7 +149,8 @@ UI.Loki = function Loki(settings)
 	{
 		this.set_html(textarea.value);
 		editor_root.replaceChild(graphical_wrapper, textarea);
-		editor_root.removeChild(hidden_input);
+		if (hidden_input.parentNode != editor_root)
+			editor_root.appendChild(hidden_input);
 		
 		switch_toolbar(source_toolbar, toolbar);
 		finish_ui_creation();
@@ -156,8 +159,8 @@ UI.Loki = function Loki(settings)
 	this.show_source_view = function show_source_view()
 	{
 		textarea.value = this.get_html();
+		editor_root.removeChild(hidden_input);
 		editor_root.replaceChild(textarea, graphical_wrapper);
-		editor_root.appendChild(hidden_input);
 		
 		switch_toolbar(toolbar, source_toolbar);
 	}
@@ -179,6 +182,7 @@ UI.Loki = function Loki(settings)
 		}
 		
 		textarea = area;
+		form = area.form;
 		
 		this.owner_document = area.ownerDocument;
 		dh = new Util.Document(this.owner_document);
@@ -327,7 +331,9 @@ UI.Loki = function Loki(settings)
 			var cap = new provider(self);
 			capabilities.push(cap);
 			
-			console.log(cap.name);
+			// Context awareness
+			if (cap._is_context_aware())
+				context_aware_capabilities.push(cap);
 			
 			// Keybindings
 			cap.keybindings.each(function (binding) {
@@ -494,6 +500,8 @@ UI.Loki = function Loki(settings)
 					if (value)
 						hidden_input.setAttribute(name, value);
 				});
+				
+				return hidden_input;
 			}
 		].each(function (component_adder) {
 			var res = component_adder();
@@ -541,6 +549,7 @@ UI.Loki = function Loki(settings)
 			activate_keybindings();
 			activate_contextual_menu();
 			trap_form_submission();
+			listen_for_context_changes();
 		} catch (e) {
 			// If we were unable to fully create the Loki WYSIWYG GUI, show the
 			// HTML source view instead.
@@ -600,13 +609,13 @@ UI.Loki = function Loki(settings)
 	
 	function activate_keybindings()
 	{
-		function evaluate_keypress()
+		function evaluate_key_press()
 		{
 			return keybinder.evaluate(arguments[0] || window.event)
 		}
 		
 		Util.Event.add_event_listener(self.document, 'keypress',
-			evaluate_keypress);
+			evaluate_key_press);
 	}
 	
 	function activate_contextual_menu()
@@ -651,15 +660,38 @@ UI.Loki = function Loki(settings)
 			} catch (ex) {
 				alert("Loki encountered an error and was unable to translate " +
 					"your document into normal HTML.\n\n" + ex);
-				return Util.Event.prevent_default(ev);
+				Util.Event.prevent_default(ev);
+				throw ex;
 			}
 			
 			return true;
 		}
 		
-		if (textarea.form) {
-			Util.Event.add_event_listener(textarea.form, 'submit',
+		if (form) {
+			Util.Event.add_event_listener(form, 'submit',
 				Util.Event.listener(stage_html));
 		}
 	}
+	
+	function listen_for_context_changes()
+	{
+		['click', 'keyup'].each(function register_cc_listener(ev_type) {
+			Util.Event.observe(self.document, ev_type, context_changed);
+		});
+		
+		context_changed();
+	}
+	
+	function context_changed()
+	{
+		function inform_capability(c)
+		{
+			c.context_changed();
+		}
+		
+		context_aware_capabilities.each(inform_capability);
+	}
+	
+	// Alias
+	this.context_changed = context_changed;
 }
