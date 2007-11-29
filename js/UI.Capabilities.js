@@ -149,11 +149,12 @@ UI.Capabilities = {
 		this.add('italic', UI.Italic_Capability);
 		this.add('underline', UI.Underline_Capability);
 		this.add('clipboard', UI.Clipboard_Capability);
+		this.add('links', UI.Link_Capability);
 		this.add('source', UI.Source_Capability);
 		// ----- END BUNDLED CAPABILITIES -----
 		
 		// ----- BEGIN BUNDLED SETS -----
-		this.put_set('default', ['bold', 'italic', 'clipboard']);
+		this.put_set('default', ['bold', 'italic', 'clipboard', 'links']);
 		// ----- END BUNDLED SETS -----
 		
 		this._bundled_capabilities_added = true;
