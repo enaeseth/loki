@@ -27,7 +27,7 @@ UI.Loki = function Loki(settings)
 	var editor_root = null;
 	var editor_domain = Util.URI.extract_domain(window.location);
 	
-	var capabilities = [];
+	var capabilities = {};
 	var context_aware_capabilities = [];
 	var keybinder = new UI.Keybinding_Manager();
 	var masseuses = [];
@@ -174,6 +174,17 @@ UI.Loki = function Loki(settings)
 		switch_toolbar(toolbar, source_toolbar);
 	}
 	
+	/**
+	 * Gets a capability instance by its selector name.
+	 * Returns undefined if the capability is not available.
+	 * @param {string}	name	the selector name of the desired capability
+	 * @type UI.Capability
+	 */
+	this.get_capability = function get_capability(name)
+	{
+		return capabilities[name];
+	}
+	
 	
 	/**
 	 * Replaces the given TEXTAREA element with the Loki interface.
@@ -201,6 +212,10 @@ UI.Loki = function Loki(settings)
 		finish_ui_creation();
 	}
 	
+	/**
+	 * Focuses on the Loki editing window.
+	 * @type void
+	 */
 	this.focus = function focus()
 	{
 		if (this.window)
@@ -335,10 +350,11 @@ UI.Loki = function Loki(settings)
 		// Initialize editing capabilities
 		
 		var selector = settings.capabilities || 'default';
+		var providers = UI.Capabilities.get(selector);
 		
-		UI.Capabilities.get(selector).each(function(provider) {
+		Util.Object.enumerate(providers, function(key, provider) {
 			var cap = new provider(self);
-			capabilities.push(cap);
+			capabilities[key] = cap;
 			
 			// Context awareness
 			if (cap._is_context_aware())
@@ -581,7 +597,7 @@ UI.Loki = function Loki(settings)
 	 */
 	function activate_capabilities()
 	{
-		capabilities.each(function (c) {
+		Util.Object.enumerate(capabilities, function(k, c) {
 			if (typeof(c.activate) == 'function') {
 				c.activate(self.window, self.document);
 			}
@@ -637,7 +653,8 @@ UI.Loki = function Loki(settings)
 			lock.acquire();
 			acquired = true;
 			try {
-				capabilities.each(function(cap) {
+				
+				Util.Object.enumerate(capabilities, function(k, cap) {
 					cap.add_menu_items(menu);
 				});
 			} catch (e) {
