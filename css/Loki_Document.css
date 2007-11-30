@@ -30,6 +30,12 @@ img.loki__named_anchor {
 	background-repeat: no-repeat;*/
 }
 
+span.loki__anchor_placeholder {
+	background: url('../images/anchor.gif');
+	width: 18px;
+	height: 20px;
+}
+
 table.loki__borderless_table {
 	border-width: 1px;
 	border-color: #BCBCBC;

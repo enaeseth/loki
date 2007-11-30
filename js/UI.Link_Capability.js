@@ -31,87 +31,87 @@ UI.Link_Capability = function Links(loki)
 		dialog.open();
 	}
 	
+	this.delete_link = function delete_link()
+	{
+		insert_link({});
+	}
+	
+	this.add_menu_items = function add_menu_items(menu)
+	{
+		var selected = this.is_selected();
+		if (!selected && this.is_selection_empty())
+			return;
+		
+		var group = menu.add_group('Link');
+		var edit_text = (selected) ? 'Edit link' : 'Create link';
+		
+		group.add_item(new UI.Menu.Item(edit_text, [this, 'execute']));
+		
+		if (selected) {
+			group.add_item(new UI.Menu.Item('Delete link',
+				[this, 'delete_link']));
+		}
+	}
+	
 	function insert_link(params)
 	{
-		var uri = params.uri;
-		var new_window = params.new_window == null ? false : params.new_window;
-		var title = params.title == null ? '' : params.title;
-		var onclick = params.onclick == null ? '' : params.onclick;
+		var uri = params.uri || '';
+		var new_window = !!params.new_window || false;
+		var title = params.title || '';
+		var onclick = params.onclick || '';
+		
 		var a_tag;
-
-		// If the selection is inside an existing link, select that link
-		var sel = Util.Selection.get_selection(self._loki.window);
+		
+		// If the selection is inside an existing link, select that link.
+		var sel = this.get_selection();
 		var rng = Util.Range.create_range(sel);
-		var ancestor = Util.Range.get_nearest_ancestor_element_by_tag_name(rng, 'A');
-		if ( ancestor != null && ancestor.getAttribute('href') != null )
-		{
-			//Util.Selection.select_node(sel, ancestor);
+		var ancestor =
+			Util.Range.get_nearest_ancestor_element_by_tag_name(rng, 'A');
+		
+		if (ancestor && ancestor.href) {
 			a_tag = ancestor;
-		}
-		else
-		{
-			// If the selection is collapsed, insert either the title (if
-			// given) or the uri, and select that, so that it is used as the
-			// link's text--otherwise, in Gecko no link will be created,
-			// and in IE, the uri will be used as link text even if a title
-			// is available.
-			// - Now we check this above, before the dialog is opened, in 
-			//   check_for_selected_text()
-			/*
-			var sel = Util.Selection.get_selection(self._loki.window);
-			var rng = Util.Range.create_range(sel);
-			if ( Util.Selection.is_collapsed(sel) )
-			{
-				var text = title == '' ? uri : title;
-				var text_node = self._loki.document.createTextNode(text);
-				Util.Range.insert_node(rng, text_node);
-				Util.Selection.select_node(sel, text_node);
-			}
-			*/
-
-			self._loki.exec_command('CreateLink', false, 'hel_temp_uri');
-			var links = self._loki.document.getElementsByTagName('A');
-			for (var i = 0; i < links.length; i++)
-			{
-				if ( links.item(i).getAttribute('href') == 'hel_temp_uri')
-				{
-					a_tag = links.item(i);
-				}
+		} else {
+			loki.exec_command('CreateLink', false, 'hel_temp_uri');
+			
+			var sources = [Util.Range.get_common_ancestor(rng), loki.document];
+			for (var i = 0; i < sources.length; i++) {
+				var links = sources[i].getElementsByTagName('A');
+				a_tag = Util.Array.find(links, function is_the_new_link(link) {
+					return link.href == 'hel_temp_uri';
+				});
+				
+				if (a_tag)
+					break;
 			}
 		}
-
-		// if URI is not given, remove the link entirely
-		if ( uri == '' )
-		{
+		
+		
+		if (!uri.length) { // If the URI is empty, remove the link.
 			Util.Node.replace_with_children(a_tag);
-		}
-		// otherwise, actually add/update link attributes
-		else
-		{
-			a_tag.setAttribute('href', uri);
-
-			if ( new_window == true )
-				a_tag.setAttribute('target', '_blank');
-			else
-				a_tag.removeAttribute('target');
-
-			if ( title != '' )
-				a_tag.setAttribute('title', title);
+		} else { // Otherwise, actually add/update the link attribuets.
+			a_tag.href = uri;
+			
+			if (new_window)
+				a_tag.target = '_blank';
 			else
 				a_tag.removeAttribute('title');
-
-			if ( onclick != '' )
+			
+			if (title)
+				a_tag.title = title;
+			else
+				a_tag.removeAttribute('title');
+			
+			if (onclick)
 				a_tag.setAttribute('loki:onclick', onclick);
 			else
 				a_tag.removeAttribute('loki:onclick');
-
+			
 			// Collapse selection to end so people can see the link and
 			// to avoid a Gecko bug that the anchor tag is only sort of
 			// selected (such that if you click the anchor toolbar button
 			// again without moving the selection at all first, the new
 			// link is not recognized).
-			var sel = Util.Selection.get_selection(self._loki.window);
-			Util.Selection.collapse(sel, false); // to end
+			Util.Selection.collapse(this.get_selection(), false); // to end
 		}
 	}
 	
@@ -166,27 +166,22 @@ UI.Link_Capability = function Links(loki)
 	
 	/**
 	 * Returns an array of the names of named anchors in the current document.
-	 * XXX: make this not suck! -EN
 	 */
 	this.get_anchor_names = function get_anchor_names()
 	{
-		var anchor_names = new Array();
-
-		var anchor_masseuse = (new UI.Anchor_Masseuse).init(loki);
-		anchor_masseuse.unmassage_body();
-
-		var anchors = this._loki.document.getElementsByTagName('A');
-		for ( var i = 0; i < anchors.length; i++ )
-		{
-			if ( anchors[i].getAttribute('name') ) // && anchors[i].href == false )
-			{
-				anchor_names.push(anchors[i].name);
-			}
+		var ac = loki.get_capability('anchors');
+		if (ac) {
+			return ac.get_anchors().pluck('name');
 		}
 		
-		anchor_masseuse.massage_body();
+		var anchors = loki.document.getElementsByTagName('A');
+		var names = [];
+		for (var i = 0; i < anchors.length; i++) {
+			if (anchors[i].name)
+				names.push(anchors[i].name);
+		}
 		
-		return anchor_names;
+		return names;
 	};
 	
 	this._determine_relevancy = function _determine_relevancy()
