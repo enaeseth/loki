@@ -202,63 +202,50 @@ Util.Document.get_head = function(doc)
  * @param	deep			boolean indicating whether to import child
  *							nodes (currently ignored in IE ... is always true)
  */
-Util.Document.import_node = function(new_document, node, deep)
-{	
-	try
-	{
-		return new_document.importNode(node, deep)
-	}
-	catch(e)
-	{
-		try
-		{
-			var handlers = {
-				// element nodes
-				1: function() {
-					var new_node = new_document.createElement(node.nodeName);
-					
-					if (node.attributes && node.attributes.length > 0) {
-						for (var i = 0, len = node.attributes.length; i < len; i++) {
-							var a = node.attributes[i];
-							if (a.specified)
-								new_node.setAttribute(a.name, a.value);
-						}
-					}
-					
-					if (deep) {
-						for (var i = 0, len = node.childNodes.length; i < len; i++) {
-							new_node.appendChild(Util.Document.import_node(new_document, node.childNodes[i], true));
-						}
-					}
-					
-					return new_node;
-				},
+Util.Document.import_node = function import_node(new_document, node, deep)
+{
+	if (typeof(new_document.importNode) == 'function') {
+		return new_document.importNode(node, deep);
+	} else {
+		var handlers = {
+			// element nodes
+			1: function import_element() {
+				var new_node = new_document.createElement(node.nodeName);
 				
-				// attribute nodes
-				2: function() {
-					var new_node = new_document.createAttribute(node.name);
-					new_node.value = node.value;
-					return new_node;
-				},
-				
-				// text nodes
-				3: function() {
-					return new_document.createTextNode(node.nodeValue);
+				if (node.attributes && node.attributes.length > 0) {
+					for (var i = 0, len = node.attributes.length; i < len; i++) {
+						var a = node.attributes[i];
+						if (a.specified)
+							new_node.setAttribute(a.name, a.value);
+					}
 				}
-			};
+				
+				if (deep) {
+					for (var i = 0, len = node.childNodes.length; i < len; i++) {
+						new_node.appendChild(Util.Document.import_node(new_document, node.childNodes[i], true));
+					}
+				}
+				
+				return new_node;
+			},
 			
-			if (typeof(handlers[node.nodeType]) == 'undefined')
-				throw new Error("Workaround cannot handle the given node's type.");
+			// attribute nodes
+			2: function import_attribute() {
+				var new_node = new_document.createAttribute(node.name);
+				new_node.value = node.value;
+				return new_node;
+			},
 			
-			return handlers[node.nodeType]();
-		}
-		catch(f)
-		{
-			throw new Error('Util.Document.import_node: Neither the W3C document.importNode method ' +
-							'nor a workaround for IE worked. When the W3C way was tried, this ' +
-							'exception was thrown: <<' + e.message + '>>. When the IE workaround ' +
-							'was tried, this exception was thrown: <<' + f.message + '>>.');
-		}
+			// text nodes
+			3: function import_text() {
+				return new_document.createTextNode(node.nodeValue);
+			}
+		};
+		
+		if (typeof(handlers[node.nodeType]) == 'undefined')
+			throw new Error("Workaround cannot handle the given node's type.");
+		
+		return handlers[node.nodeType]();
 	}
 };
 
@@ -269,12 +256,38 @@ Util.Document.import_node = function(new_document, node, deep)
  * @param	location	the location of the stylesheet to add
  * @static
  */
-Util.Document.append_style_sheet = function(doc, location)
+Util.Document.append_style_sheet = function append_style_sheet(doc, location)
 {
 	var head = Util.Document.get_head(doc);
-	head.appendChild(Util.Document.create_element(doc, 'LINK',
+	return head.appendChild(Util.Document.create_element(doc, 'LINK',
 		{href: location, rel: 'stylesheet', type: 'text/css'}));
 };
+
+/**
+ * Gets position/dimensions information of a document.
+ * @type object
+ */
+Util.Document.get_dimensions = function get_document_dimensions(doc)
+{
+	return {
+		client: {
+			width: doc.documentElement.clientWidth || doc.body.clientWidth,
+			height: doc.documentElement.clientHeight || doc.body.clientHeight
+		},
+		
+		offset: {
+			width: doc.documentElement.offsetWidth || doc.body.offsetWidth,
+			height: doc.documentElement.offsetHeight || doc.body.offsetHeight
+		},
+		
+		scroll: {
+			width: doc.documentElement.scrollWidth || doc.body.scrollWidth,
+			height: doc.documentElement.scrollHeight || doc.body.scrollHeight,
+			left: doc.documentElement.scrollLeft || doc.body.scrollLeft,
+			top: doc.documentElement.scrollTop || doc.body.scrollTop
+		}
+	};
+}
 
 /**
  * Returns an array (not a DOM NodeList!) of elements that match the given
