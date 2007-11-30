@@ -1,11 +1,19 @@
 /**
  * @class Handles the triggering of functions for specific key combinations.
  * @constructor
+ * @param {EventTarget} event_source	if provided, evaluates all keypress
+ *										events on this element
  * @author Eric Naeseth
  */
-UI.Keybinding_Manager = function()
+UI.Keybinding_Manager = function(event_source)
 {
 	var bindings = [];
+	
+	if (event_source) {
+		Util.Event.observe(event_source, 'keypress', function auto_eval(ev) {
+			this.evaluate(ev);
+		});
+	}
 	
 	/**
 	 * Adds a keybinding.
