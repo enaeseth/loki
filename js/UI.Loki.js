@@ -25,7 +25,7 @@ UI.Loki = function Loki(settings)
 	this.settings = settings;
 	
 	var editor_root = null;
-	var editor_domain = Util.URI.extract_domain(window.location);
+	var domain = null;
 	
 	var capabilities = {};
 	var context_aware_capabilities = [];
@@ -123,7 +123,9 @@ UI.Loki = function Loki(settings)
 	 */
 	this.editor_domain = function editor_domain()
 	{
-		return editor_domain;
+		if (!domain)
+			domain = Util.URI.extract_domain(window.location);
+		return domain;
 	}
 	
 	/**
@@ -705,7 +707,7 @@ UI.Loki = function Loki(settings)
 			Util.Event.observe(self.document, ev_type, context_changed);
 		});
 		
-		context_changed.delay(0.2);
+		context_changed();
 	}
 	
 	function context_changed()
