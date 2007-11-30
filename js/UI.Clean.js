@@ -280,7 +280,7 @@ UI.Clean.clean = function(root, settings)
 		// Axe form elements?
 		{
 			description : "Remove U unless there's an appropriate option set.",
-			test : function(node) { return !settings.options.test('underline') && has_tagname(node, ['U']); },
+			test : function(node) { return has_tagname(node, ['U']); },
 			action : function(node) 
 			{
 				/* buggy (actually it's not--the bug is in remove_tag--but leave this
@@ -338,7 +338,7 @@ UI.Clean.clean = function(root, settings)
 				var href = node.getAttribute('href');
 				if (href != null) {
 					node.setAttribute('href',
-						UI.Clean.cleanURI(href));
+						UI.Clean.clean_URI(href));
 				}
 			}
 		},
@@ -354,6 +354,11 @@ UI.Clean.clean = function(root, settings)
 				}
 				node.data = text;
 			}
+		},
+		{
+			description: 'Remove bubbles',
+			test: function(node) { return has_class(node, ['loki__bubble']); },
+			action: remove_node
 		}
 		// TODO: deal with this?
 		// In content pasted from Word, there may be 

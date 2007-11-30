@@ -96,8 +96,10 @@ Util.Document.create_element = function(doc, name, attrs, children)
 				dest_name = 'for';
 				break;
 			case 'style':
-				style = attrs.style;
-				continue; // note that this continues the for loop!
+				if (typeof(style) == 'object') {
+					style = attrs.style;
+					continue; // note that this continues the for loop!
+				}
 		}
 		
 		var a = attrs[name];

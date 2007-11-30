@@ -705,7 +705,7 @@ UI.Loki = function Loki(settings)
 			Util.Event.observe(self.document, ev_type, context_changed);
 		});
 		
-		context_changed();
+		context_changed.delay(0.2);
 	}
 	
 	function context_changed()
