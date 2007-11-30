@@ -1,20 +1,20 @@
 
 /**
- * @class Used by UI.Page_Link_Dialog to allow selection of an item of various
+ * @class Used by UI.Link_Dialog to allow selection of an item of various
  * types on a site.
  *
  * Replaces a ton of poorly-written code that used to exist directly in
- * UI.Page_Link_Dialog.
+ * UI.Link_Dialog.
  *
  * @author Eric Naeseth
  */
-UI.Page_Link_Selector = function(dialog)
+UI.Link_Selector = function(dialog)
 {
 	var doc = dialog._doc;
 	var dh = dialog._udoc;
 	
 	var wrapper = dh.create_element('div', {id: 'pane_wrapper'});
-	var message = new UI.Page_Link_Selector.Message_Display(wrapper);
+	var message = new UI.Link_Selector.Message_Display(wrapper);
 	var please_choose = doc.createTextNode('Please choose a site from the above box.');
 	var site = {url: null, name: null};
 	
@@ -163,7 +163,7 @@ UI.Page_Link_Selector = function(dialog)
 			types_list: null,
 			
 			links_pane: null,
-			arbiter: new UI.Page_Link_Selector.Item_Selector(dialog, wrapper),
+			arbiter: new UI.Link_Selector.Item_Selector(dialog, wrapper),
 			
 			enter: function(old_state)
 			{
@@ -269,12 +269,12 @@ UI.Page_Link_Selector = function(dialog)
 /**
  * @class Chooses the item.
  */
-UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
+UI.Link_Selector.Item_Selector = function(dialog, wrapper)
 {
 	var doc = wrapper.ownerDocument;
 	var dh = new Util.Document(doc);
 	
-	var message = new UI.Page_Link_Selector.Message_Display(wrapper);
+	var message = new UI.Link_Selector.Message_Display(wrapper);
 	var please_choose = doc.createTextNode(
 		'Please choose the type of item to which you want to link.');
 	
@@ -648,7 +648,7 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 /**
  * @class Displays an instructional or loading message.
  */
-UI.Page_Link_Selector.Message_Display = function(wrapper)
+UI.Link_Selector.Message_Display = function(wrapper)
 {
 	var doc = wrapper.ownerDocument;
 	var message = Util.Document.create_element(doc, 'p', {className: 'message'});

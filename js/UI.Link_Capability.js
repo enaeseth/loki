@@ -14,7 +14,7 @@ UI.Link_Capability = function Links(loki)
 	this.execute = function execute()
 	{
 		if (!dialog) {
-			dialog = new UI.Page_Link_Dialog();
+			dialog = new UI.Link_Dialog();
 		}
 		
 		dialog.init(loki, {

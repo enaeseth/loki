@@ -6,7 +6,7 @@
  * @class An email link dialog window. 
  *
  */
-UI.Page_Link_Dialog = function()
+UI.Link_Dialog = function()
 {
 	//Util.OOP.inherits(this, UI.Link_Dialog);
 	Util.OOP.inherits(this, UI.Dialog);
@@ -71,7 +71,7 @@ UI.Page_Link_Dialog = function()
 
 	this._populate_main = function()
 	{
-		this.item_selector = new UI.Page_Link_Selector(this);
+		this.item_selector = new UI.Link_Selector(this);
 		
 		this._append_heading();
 		this._append_tabset();
