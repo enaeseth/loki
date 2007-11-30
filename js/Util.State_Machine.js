@@ -65,7 +65,7 @@ Util.State_Machine = function(states, starting_state, name)
 		var s = this.states[name];
 		
 		s.enter = (function(old_entry) {
-			return function(old_state) {
+			return function state_entry_wrapper() {
 				if (arguments.length == 0)
 					return machine.change(this);
 				return old_entry.apply(this, arguments);
