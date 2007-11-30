@@ -106,6 +106,7 @@
 }
 
 .loki div.contextmenu ul li a {
+	cursor: default;
 	display: block;
 	padding: 0.1em 31px 0.1em 19px;
 }
