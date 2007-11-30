@@ -66,6 +66,19 @@ blockquote {
 	margin: 1em;
 }
 
+div.loki__bubble {
+	font-size: 12px;
+	font-family: Helvetica, Arial, sans-serif;
+	
+	background: #FFFEDC;
+	color: black;
+	border: 1px solid #C7C368;
+	border-radius: 2px;
+	-webkit-border-radius: 2px;
+	
+	padding: 4px;
+}
+
 .loki__hr_container {
 	position: relative;
 }
