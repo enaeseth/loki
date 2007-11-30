@@ -114,7 +114,7 @@
 	float: right;
 }
 
-.loki div.contextmenu ul li:hover {
+.loki div.contextmenu ul li.enabled:hover {
 	background-color: Highlight;
 	color: HighlightText;
 }

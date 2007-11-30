@@ -277,7 +277,7 @@ UI.Menu.Item = function MenuItem(title, action)
 	this.enabled = (typeof(options.enabled) != 'undefined')
 		? !!options.enabled
 		: true;
-	this.state = 	(typeof(options.enabled) != 'undefined')
+	this.state = (typeof(options.state) != 'undefined')
 			? options.state
 			: UI.Menu.STATE_OFF;
 	this.submenu = options.submenu || null;
@@ -304,6 +304,9 @@ UI.Menu.Item = function MenuItem(title, action)
 			case UI.Menu.STATE_MIXED:
 				Util.Element.add_class(container, 'mixed');
 		}
+		
+		Util.Element.add_class(container,
+			(this.enabled ? 'enabled' : 'disabled'));
 		
 		var link = Util.Document.create_element(container.ownerDocument,
 			'a', {className: (this.submenu ? 'has_sub' : '')}, [this.title]);
