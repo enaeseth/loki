@@ -118,6 +118,7 @@ UI.Loki = function Loki(settings)
 	{
 		return (editor_root && textarea.parentNode == editor_root);
 	}
+	this.textarea_is_active = textarea_is_active; // alias
 	
 	/**
 	 * Gets the domain under which the Loki instance is running.
@@ -235,9 +236,14 @@ UI.Loki = function Loki(settings)
 		if (typeof(command) != 'string')
 			throw new TypeError('The "command" parameter must be a string.');
 		
+		if (textarea_is_active()) {
+			throw new UI.Loki.State_Error('Cannot execute an editing command ' +
+				'when the source view is visible.');
+		}
+		
 		switch (arguments.length) {
 			case 0:
-				// actually handled by the test above
+				// actually handled by the typeof(command) test
 				throw new Error();
 				break;
 			case 1:
@@ -262,6 +268,12 @@ UI.Loki = function Loki(settings)
 	{
 		if (typeof(command) != 'string')
 			throw new TypeError('The "command" parameter must be a string.');
+		
+		if (textarea_is_active()) {
+			throw new UI.Loki.State_Error('Cannot query a command\'s state ' +
+				'when the source view is visible.');
+		}
+		
 		return this.document.queryCommandState(command);
 	}
 	
@@ -269,6 +281,11 @@ UI.Loki = function Loki(settings)
 	{
 		if (typeof(command) != 'string')
 			throw new TypeError('The "command" parameter must be a string.');
+			
+		if (textarea_is_active()) {
+			throw new UI.Loki.State_Error('Cannot query a command\'s value ' +
+				'when the source view is visible.');
+		}
 		
 		var value = this.document.queryCommandValue(command);
 		if (command == 'FormatBlock') {
@@ -728,4 +745,16 @@ UI.Loki = function Loki(settings)
 	
 	// Alias
 	this.context_changed = context_changed;
+}
+
+/**
+ * @class Indicates that Loki was not in a state appropriate for a certain
+ * action.
+ * @constructor
+ * @extends Error
+ */
+UI.Loki.State_Error = function StateError(message)
+{
+	Util.OOP.inherits(this, Error, mesasge);
+	this.name = 'UI.Loki.State_Error';
 }

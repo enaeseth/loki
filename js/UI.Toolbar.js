@@ -182,11 +182,17 @@ UI.Toolbar.Button = function(image, title, on_click, enabled)
 			
 		function toolbar_button_clicked(event)
 		{
+			var loki = this.toolbar.loki;
+			
 			if (this._enabled)
 				this.dispatch_event(new UI.Event('click'));
-			this.toolbar.loki.context_changed();
-			if (this.autofocus == undefined || this.autofocus)
-				this.toolbar.loki.focus();
+			
+			if (!loki.textarea_is_active()) {
+				loki.context_changed();
+				if (this.autofocus == undefined || this.autofocus)
+					loki.focus();
+			}
+			
 			return Util.Event.prevent_default(event);
 		}
 			
