@@ -9,6 +9,8 @@
  */
 UI.Loki = function Loki(settings)
 {
+	Util.OOP.mixin(this, UI.Event_Target);
+	
 	this.owner_document = null;
 	
 	this.window = null;
@@ -158,6 +160,7 @@ UI.Loki = function Loki(settings)
 	
 	this.show_graphical_view = function show_graphical_view()
 	{
+		this.dispatch_event(new UI.Event('begin_graphical_view_switch'));
 		this.set_html(textarea.value);
 		editor_root.replaceChild(graphical_wrapper, textarea);
 		if (hidden_input.parentNode != editor_root)
@@ -165,15 +168,18 @@ UI.Loki = function Loki(settings)
 		
 		switch_toolbar(source_toolbar, toolbar);
 		finish_ui_creation();
+		this.dispatch_event(new UI.Event('graphical_view_switch'));
 	}
 	
 	this.show_source_view = function show_source_view()
 	{
+		this.dispatch_event(new UI.Event('begin_source_view_switch'));
 		textarea.value = this.get_html();
 		editor_root.removeChild(hidden_input);
 		editor_root.replaceChild(textarea, graphical_wrapper);
 		
 		switch_toolbar(toolbar, source_toolbar);
+		this.dispatch_event(new UI.Event('source_view_switch'));
 	}
 	
 	/**
