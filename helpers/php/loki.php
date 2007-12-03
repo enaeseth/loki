@@ -93,7 +93,9 @@ class Loki2
 			? 'https://'
 			: 'http://';
 		$this->_asset_host = $_SERVER['HTTP_HOST'];
-		$this->_asset_path = LOKI_2_HTTP_PATH;
+		$this->_asset_path = ('/' != substr(LOKI_2_HTTP_PATH, -1, 1))
+			? LOKI_2_HTTP_PATH.'/'
+			: LOKI_2_HTTP_PATH;
 		$this->_asset_uri = $this->_asset_protocol . $this->_asset_host . $this->_asset_path;
 		$this->_asset_file_path = LOKI_2_PATH;
 		$this->_current_options = $current_options;
@@ -182,7 +184,7 @@ class Loki2
 		$textarea_id = 'loki__'.$this->_field_name.'__textarea';
 		?>
 		
-		<script type="application/javascript">
+		<script type="text/javascript">
 			(function init_<?= $this->_editor_id ?>() {
 				var created = false;
 				
@@ -222,7 +224,10 @@ class Loki2
 						else
 							console.error(message);
 					} else {
-						alert(message);
+						if (exc)
+							alert(message + "\n\n" + exc);
+						else
+							alert(message);
 					}
 				}
 				
@@ -279,7 +284,7 @@ class Loki2
 		{
 			// Set up hidden iframe for clipboard operations
 			?>
-			<script type="application/javascript">
+			<script type="text/javascript">
 				UI__Clipboard_Helper_Privileged_Iframe__src = 'jar:<?php echo $this->_asset_protocol . $this->_asset_host . $this->_asset_path; ?>auxil/privileged.jar!/Clipboard_Helper_Privileged_Iframe.html';
 				UI__Clipboard_Helper_Editable_Iframe__src = '<?php echo $this->_asset_protocol . $this->_asset_host . $this->_asset_path; ?>auxil/loki_blank.html';
 			</script>
@@ -300,7 +305,7 @@ class Loki2
 					return false;
 				
 				foreach ($files as $filename) {
-					echo '<script type="application/javascript" '.
+					echo '<script type="text/javascript" '.
 						'src="'.$base.$filename.'" charset="utf-8"></script>';
 				}
 			} else if ($mode == 'external') {
@@ -309,7 +314,7 @@ class Loki2
 						'helpers/php/loki_editor_scripts.php';
 				}
 				
-				echo '<script type="application/javascript" src="'.$path.'">',
+				echo '<script type="text/javascript" language="javascript" src="'.$path.'">',
 					"</script>\n";
 			} else if ($mode == 'inline') {
 				$files = $this->_get_js_files();
@@ -317,7 +322,7 @@ class Loki2
 				if (!$files)
 					return false;
 				
-				echo '<script type="application/javascript">', "\n";
+				echo '<script type="text/javascript">', "\n";
 				foreach ($files as $filename) {
 					echo "\n// file $file \n\n";
 					readfile($base.$filename);
