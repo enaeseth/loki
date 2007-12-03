@@ -131,7 +131,7 @@ UI.Capabilities = {
 		// WARNING: This function contains "magical" lines; specially-formatted
 		//          lines that dumb external scripts can detect to create lists
 		//          of bundled capabilities and/or sets. Do not edit them.
-		//          Do not insert whitespace lines between matching ones.
+		//          Do not insert whitespace lines in the magic.
 		
 		if (this._bundled_capabilities_added)
 			return;
@@ -147,6 +147,7 @@ UI.Capabilities = {
 		this.add('italic', UI.Italic_Capability);
 		this.add('underline', UI.Underline_Capability);
 		this.add('headings', UI.Heading_Capability);
+		this.add('pre', UI.Preformatting_Capability);
 		this.add('clipboard', UI.Clipboard_Capability);
 		this.add('links', UI.Link_Capability);
 		this.add('anchors', UI.Anchor_Capability);
