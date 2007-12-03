@@ -125,3 +125,9 @@ UI.Bubble.create = function create_bubble_class(prototype)
 	
 	return new_bubble;
 }
+
+UI.Bubble.create_new = function create_and_instantiate_bubble(loki, prototype)
+{
+	var bubble_class = UI.Bubble.create(prototype);
+	return new bubble_class(loki);
+}
