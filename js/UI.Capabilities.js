@@ -146,6 +146,7 @@ UI.Capabilities = {
 		this.add('bold', UI.Bold_Capability);
 		this.add('italic', UI.Italic_Capability);
 		this.add('underline', UI.Underline_Capability);
+		this.add('headings', UI.Heading_Capability);
 		this.add('clipboard', UI.Clipboard_Capability);
 		this.add('links', UI.Link_Capability);
 		this.add('anchors', UI.Anchor_Capability);
@@ -153,8 +154,8 @@ UI.Capabilities = {
 		// ----- END BUNDLED CAPABILITIES -----
 		
 		// ----- BEGIN BUNDLED SETS -----
-		this.put_set('default', ['bold', 'italic', 'clipboard', 'links',
-			'anchors']);
+		this.put_set('default', ['bold', 'italic', 'headings', 'clipboard',
+			'links', 'anchors']);
 		// ----- END BUNDLED SETS -----
 		
 		this._bundled_capabilities_added = true;
