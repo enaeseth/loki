@@ -77,6 +77,7 @@ UI.Loki = function Loki(settings)
 	{
 		this.body.innerHTML = html;
 		clean_body();
+		massage_body();
 	}
 	
 	function clean_body()
@@ -595,12 +596,12 @@ UI.Loki = function Loki(settings)
 			self.body = self.document.getElementsByTagName('BODY')[0];
 			Util.Element.set_class_array(self.body,
 				settings.body_classes || []);
-				
-			self.set_html(textarea.value);
 			
 			Util.Document.make_editable(self.document);
-			
 			activate_capabilities(switching_from_source);
+			
+			self.set_html(textarea.value);
+			
 			activate_keybindings();
 			activate_contextual_menu();
 			trap_form_submission();
