@@ -93,7 +93,9 @@ class Loki2
 		
 		$this->_asset_protocol = strpos($_SERVER['SCRIPT_URI'], 'https') === 0 ? 'https://' : 'http://';
 		$this->_asset_host = $_SERVER['HTTP_HOST'];
-		$this->_asset_path = LOKI_2_HTTP_PATH;
+		$this->_asset_path = ('/' != substr(LOKI_2_HTTP_PATH, -1, 1))
+			? LOKI_2_HTTP_PATH.'/'
+			: LOKI_2_HTTP_PATH;
 		$this->_asset_uri = $this->_asset_protocol . $this->_asset_host . $this->_asset_path;
 		$this->_asset_file_path = LOKI_2_PATH;
 		$this->_current_options = $current_options;
