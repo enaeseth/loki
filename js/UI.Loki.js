@@ -600,7 +600,7 @@ UI.Loki = function Loki(settings)
 			
 			Util.Document.make_editable(self.document);
 			
-			activate_capabilities();
+			activate_capabilities(switching_from_source);
 			activate_keybindings();
 			activate_contextual_menu();
 			trap_form_submission();
@@ -625,11 +625,11 @@ UI.Loki = function Loki(settings)
 	 * has been created.
 	 * @type void
 	 */
-	function activate_capabilities()
+	function activate_capabilities(switching_from_source)
 	{
 		Util.Object.enumerate(capabilities, function(k, c) {
 			if (typeof(c.activate) == 'function') {
-				c.activate(self.window, self.document);
+				c.activate(!switching_from_source, self.window, self.document);
 			}
 		});
 	}
