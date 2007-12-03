@@ -231,7 +231,7 @@ Util.Event.prevent_default = function(event)
  * Returns the target.
  * Taken from quirksmode.org, by Peter-Paul Koch.
  */
-Util.Event.get_target = function(e)
+Util.Event.get_target = function get_event_target(e)
 {
 	var targ;
 	//if (!e) var e = window.event;
