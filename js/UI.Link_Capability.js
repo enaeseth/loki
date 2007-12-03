@@ -10,24 +10,49 @@ UI.Link_Capability = function Links(loki)
 	Util.OOP.inherits(this, UI.Capability, loki, 'Linking');
 	
 	var dialog = null;
+	var cap = this;
+	var LinkBubble = UI.Bubble.create({
+		link: null,
+		
+		materialize: function materialize(body, link)
+		{
+			this.link = link;
+			
+			function add(e) {
+				body.appendChild(e);
+			}
+			
+			add(this._text('Link to: '));
+			add(this._link(link.title || link.href, link.href));
+			add(this._separator());
+			add(this._action('Edit', 'execute', cap));
+			add(this._separator());
+			add(this._action('Remove', 'delete_link', cap))
+		},
+		
+		dematerialize: function dematerialize()
+		{
+			this.link = null;
+		}
+	});
+	
+	var bubble = new LinkBubble(loki);
+	
+	this.activate = function activate(initial)
+	{
+		if (initial)
+			loki.bubbler.add(bubble, 'link');
+	}
 	
 	this.context_changed = (function extend_cc(original) {
 		return function context_changed() {
 			original.call(this);
 			
-			var bubble;
 			var link = get_selected_link();
-			if (link) {
-				bubble = loki.bubbler.get('link') || 
-					loki.bubbler.create('link');
-				if (bubble.link != link) {
-					bubble.link = link;
-					loki.bubbler.show(bubble, link);
-				}
-			} else {
-				bubble = loki.bubbler.get('link');
-				if (bubble)
-					loki.bubbler.close(bubble);
+			if (link && link != bubble.link) {
+				loki.bubbler.show(bubble, link);
+			} else if (!link) {
+				loki.bubbler.close(bubble);
 			}
 		};
 	})(this.context_changed);
@@ -54,7 +79,7 @@ UI.Link_Capability = function Links(loki)
 	
 	this.delete_link = function delete_link()
 	{
-		insert_link({});
+		insert_link.call(this, {});
 	}
 	
 	this.add_menu_items = function add_menu_items(menu)
@@ -183,9 +208,13 @@ UI.Link_Capability = function Links(loki)
 
 		uri = uri.replace( new RegExp('\%7E', 'g'), '~' ); //so that users of older versions of Mozilla are not confused by this substitution
 		var httpless_uri = Util.URI.strip_https_and_http(uri);
-
-		var selected_item = { uri : uri, httpless_uri : httpless_uri, new_window : new_window, title : title };
-		return selected_item;
+		
+		return {
+			uri: uri,
+			httpless_uri: httpless_uri,
+			new_window: new_window,
+			title: title
+		};
 	};
 
 	this.is_selected = function()
@@ -215,7 +244,7 @@ UI.Link_Capability = function Links(loki)
 	
 	this._determine_relevancy = function _determine_relevancy()
 	{
-		return !this.is_selection_empty();
+		return !this.is_selection_empty() || this.is_selected();
 	}
 	
 	this._determine_illumination = this.is_selected;

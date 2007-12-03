@@ -11,19 +11,34 @@ UI.Bubble_Manager = function BubbleManager(loki)
 	var next_bubble_id = 0;
 	
 	/**
-	 * Creates a new bubble.
-	 * @type UI.Bubble
+	 * Adds a bubble to this manager. 
+	 * @param {UI.Bubble}	bubble	the bubble
+	 * @param {string}		id		a unique ID for the bubble, if desired
+	 * @type boolean
 	 */
-	this.create = function create_bubble(id)
+	this.add = function add(bubble, id)
 	{
-		if (!id)
+		if (bubble.manager) {
+			var msg = 'This bubble is already managed by another manager.';
+			throw new Error(msg);
+		}
+		
+		if (!id) {
 			id = next_bubble_id++;
-		var bubble = new UI.Bubble(this, loki);
+		} else if (id in bubbles) {
+			return false;
+		}
+		
+		bubble.manager = this;
 		bubble.id = id;
 		bubbles[id] = bubble;
-		return bubble;
+		return true;
 	}
 	
+	/**
+	 * @param {string}	id
+	 * @type UI.Bubble
+	 */
 	this.get = function get(id)
 	{
 		return bubbles[id];
@@ -38,15 +53,33 @@ UI.Bubble_Manager = function BubbleManager(loki)
 	 */
 	this.show = function show_bubble(bubble, element)
 	{
-		if (typeof(bubble) != 'object' || typeof(element) != 'object') {
-			throw new TypeError();
+		if (typeof(element) != 'object') {
+			throw new TypeError('Please provide an HTML element to ' + 
+				'UI.Bubble_Manager.show().');
+		}
+		
+		if (typeof(bubble) != 'object') {
+			if (bubble in bubbles) {
+				bubble = bubbles[bubble]; // ID provided
+			} else {
+				throw new Error('No bubble exists in this manager with the ' +
+					'ID of "' + bubble + '".');
+			}
+		} else if (!bubble.manager) {
+			throw new Error('Add the bubble to this manager before trying ' +
+				'to show it.');
+		} else if (bubble.manager != this) {
+			throw new Error('Cannot show a bubble that is managed by ' +
+				'another bubble manager.');
 		}
 		
 		if (element.ownerDocument != loki.document) {
-			console.trace();
 			throw new Error('The element must be owned by the Loki editing ' +
 				'document.');
 		}
+		
+		if (bubble.visible)
+			this.close(bubble);
 		
 		function show()
 		{
@@ -66,7 +99,8 @@ UI.Bubble_Manager = function BubbleManager(loki)
 				}
 			});
 			
-			bubble.materialize(body);
+			bubble.materialize(body, element);
+			bubble.visible = true;
 			bubble.container = body;
 
 			var d = Util.Document.get_dimensions(loki.document);
@@ -93,8 +127,6 @@ UI.Bubble_Manager = function BubbleManager(loki)
 					sx: element.offsetLeft - d.scroll.left,
 					sy: element.offsetTop - d.scroll.top
 				};
-				
-				console.log({document: d, bubble: b, element: e});
 
 				if (e.sx + b.w > d.client.width || e.sx < 0) {
 					// Anchor the bubble to the bubbled element's right side.
@@ -132,15 +164,15 @@ UI.Bubble_Manager = function BubbleManager(loki)
 	this.close = function close_bubble(bubble)
 	{
 		if (typeof(bubble) != 'object') {
-			throw new TypeError();
+			throw new TypeError('No bubble to close.');
 		}
 		
+		bubble.dematerialize();
+		bubble.visible = false;
 		
 		var c = bubble.container;
 		if (c && c.parentNode)
 			c.parentNode.removeChild(c);
-		delete bubbles[bubble.id];
-		delete bubble.id;
 		return bubble;
 	}
 	
@@ -151,7 +183,7 @@ UI.Bubble_Manager = function BubbleManager(loki)
 	 */
 	this.is_managing = function is_managing(bubble)
 	{
-		if (typeof(bubble) != 'object' || typeof(bubble.container) != 'object') {
+		if (typeof(bubble) != 'object') {
 			throw new TypeError();
 		}
 		
