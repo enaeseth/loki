@@ -98,5 +98,5 @@ UI.Anchor_Capability = function Anchors(loki)
 		}
 	}
 	
-	this.masseuses.push(new AnchorMasseuse(parent));
+	this.masseuses.push(new AnchorMasseuse(this));
 }

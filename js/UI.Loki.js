@@ -36,6 +36,8 @@ UI.Loki = function Loki(settings)
 	var toolbar = null;
 	var source_toolbar = null;
 	
+	this.bubbler = null;
+	
 	var dh; // document helper for this.owner_document
 	var self = this;
 	
@@ -583,6 +585,9 @@ UI.Loki = function Loki(settings)
 			self.window = iframe.contentWindow;
 			self.document = self.window.document;
 			
+			if (!self.bubbler)
+				self.bubbler = new UI.Bubble_Manager(self);
+			
 			// Write out a blank document.
 			clear_document();
 			add_document_style_sheets();
@@ -706,6 +711,7 @@ UI.Loki = function Loki(settings)
 	{
 		function stage_html(ev)
 		{
+			self.dispatch_event(new UI.Event('submit'));
 			try {
 				hidden_input.value = self.get_html();
 			} catch (ex) {

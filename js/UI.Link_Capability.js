@@ -11,6 +11,27 @@ UI.Link_Capability = function Links(loki)
 	
 	var dialog = null;
 	
+	this.context_changed = (function extend_cc(original) {
+		return function context_changed() {
+			original.call(this);
+			
+			var bubble;
+			var link = get_selected_link();
+			if (link) {
+				bubble = loki.bubbler.get('link') || 
+					loki.bubbler.create('link');
+				if (bubble.link != link) {
+					bubble.link = link;
+					loki.bubbler.show(bubble, link);
+				}
+			} else {
+				bubble = loki.bubbler.get('link');
+				if (bubble)
+					loki.bubbler.close(bubble);
+			}
+		};
+	})(this.context_changed);
+	
 	this.execute = function execute()
 	{
 		if (!dialog) {
@@ -20,7 +41,7 @@ UI.Link_Capability = function Links(loki)
 		dialog.init(loki, {
 			anchor_names: this.get_anchor_names(),
 			base_uri: loki.settings.base_uri,
-			submit_listener: insert_link,
+			submit_listener: insert_link.bind(this),
 			selected_item: this.get_selected_item(),
 			sites_feed: loki.settings.sites_feed,
 			finder_feed: loki.settings.finder_feed,
@@ -71,13 +92,13 @@ UI.Link_Capability = function Links(loki)
 		if (ancestor && ancestor.href) {
 			a_tag = ancestor;
 		} else {
-			loki.exec_command('CreateLink', false, 'hel_temp_uri');
+			loki.exec_command('CreateLink', false, 'http://temporary/');
 			
 			var sources = [Util.Range.get_common_ancestor(rng), loki.document];
 			for (var i = 0; i < sources.length; i++) {
 				var links = sources[i].getElementsByTagName('A');
 				a_tag = Util.Array.find(links, function is_the_new_link(link) {
-					return link.href == 'hel_temp_uri';
+					return link.href == 'http://temporary/';
 				});
 				
 				if (a_tag)
@@ -85,6 +106,9 @@ UI.Link_Capability = function Links(loki)
 			}
 		}
 		
+		if (!a_tag) {
+			throw new Error('Failed to find the link that Loki just created.');
+		}
 		
 		if (!uri.length) { // If the URI is empty, remove the link.
 			Util.Node.replace_with_children(a_tag);
@@ -115,16 +139,10 @@ UI.Link_Capability = function Links(loki)
 		}
 	}
 	
-	/**
-	 * Returns info about the selected link, if any.
-	 */
-	this.get_selected_item = function()
+	function get_selected_link()
 	{
 		var sel = Util.Selection.get_selection(loki.window);
 		var rng = Util.Range.create_range(sel);
-
-		// Look around selection
-		var uri = '', new_window = null, title = '';
 		var ancestor = Util.Range.get_nearest_ancestor_element_by_tag_name(rng, 'A');
 		
 		// (Maybe temporary) hack for IE, because the above doesn't work for 
@@ -141,6 +159,17 @@ UI.Link_Capability = function Links(loki)
 		{
 			ancestor = rng.parentElement();
 		}
+		
+		return ancestor;
+	}
+	
+	/**
+	 * Returns info about the selected link, if any.
+	 */
+	this.get_selected_item = function()
+	{
+		var ancestor = get_selected_link();
+		var uri = '', new_window = null, title = '';
 
 		if ( ancestor != null )
 		{

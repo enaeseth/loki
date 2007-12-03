@@ -140,7 +140,7 @@ Util.Array.Methods = {
 
 		for (var i = 0; i < len; i++) {
 			if (i in array && test.call(thisp, array[i]))
-				return array[i]
+				return array[i];
 		}
 	},
 	
