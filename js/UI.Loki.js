@@ -170,7 +170,7 @@ UI.Loki = function Loki(settings)
 			editor_root.appendChild(hidden_input);
 		
 		switch_toolbar(source_toolbar, toolbar);
-		finish_ui_creation();
+		finish_ui_creation(true);
 		this.dispatch_event(new UI.Event('graphical_view_switch'));
 	}
 	
@@ -220,7 +220,7 @@ UI.Loki = function Loki(settings)
 		
 		create_ui();
 		add_capabilities();
-		finish_ui_creation();
+		finish_ui_creation(false);
 	}
 	
 	/**
@@ -568,7 +568,7 @@ UI.Loki = function Loki(settings)
 	 * Performs all initializations that have to be done after the IFRAME's
 	 * window and document are available.
 	 */
-	function finish_ui_creation()
+	function finish_ui_creation(switching_from_source)
 	{
 		try {
 			var iframe = self.iframe;
@@ -604,7 +604,7 @@ UI.Loki = function Loki(settings)
 			activate_keybindings();
 			activate_contextual_menu();
 			trap_form_submission();
-			listen_for_context_changes();
+			listen_for_context_changes(switching_from_source);
 		} catch (e) {
 			// If we were unable to fully create the Loki WYSIWYG GUI, show the
 			// HTML source view instead.
@@ -730,13 +730,14 @@ UI.Loki = function Loki(settings)
 		}
 	}
 	
-	function listen_for_context_changes()
+	function listen_for_context_changes(switching_from_source)
 	{
 		['click', 'keyup'].each(function register_cc_listener(ev_type) {
 			Util.Event.observe(self.document, ev_type, context_changed);
 		});
 		
-		context_changed();
+		if (!switching_from_source)
+			context_changed();
 	}
 	
 	function context_changed()
@@ -751,6 +752,14 @@ UI.Loki = function Loki(settings)
 	
 	// Alias
 	this.context_changed = context_changed;
+	
+	/**
+	 * @ignore
+	 */
+	this.toString = function loki_to_string()
+	{
+		return "[UI.Loki " + area + "]";
+	}
 }
 
 /**

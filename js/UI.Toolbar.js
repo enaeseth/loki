@@ -159,6 +159,9 @@ UI.Toolbar.Button = function(image, title, on_click, enabled)
 	this.image = image;
 	this.title = title;
 	
+	this.autofocus = true;
+	this.changes_context = true;
+	
 	if (on_click) {
 		this.add_event_listener('click', on_click);
 	}
@@ -188,8 +191,9 @@ UI.Toolbar.Button = function(image, title, on_click, enabled)
 				this.dispatch_event(new UI.Event('click'));
 			
 			if (!loki.textarea_is_active()) {
-				loki.context_changed();
-				if (this.autofocus == undefined || this.autofocus)
+				if (this.changes_context)
+					loki.context_changed();
+				if (this.autofocus)
 					loki.focus();
 			}
 			

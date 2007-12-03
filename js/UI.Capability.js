@@ -191,4 +191,12 @@ UI.Capability = function(loki, name)
 			action: method || 'execute'
 		});
 	}
+	
+	/**
+	 * @ignore
+	 */
+	this.toString = function capability_to_string()
+	{
+		return "[UI.Capability name=\"" + this.name + "\"]";
+	}
 }

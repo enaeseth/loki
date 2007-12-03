@@ -16,17 +16,14 @@ UI.Bubble = function Bubble(manager, loki)
 	var doc = loki.document;
 	var dh = new Util.Document(doc);
 	
-	this.materialize = function materialize(container)
-	{
-		container.appendChild(create_element_ns('span', {}, ['Test']));
-	}
+	this.materialize = Util.Function.unimplemented;
 	
-	function create_element(name, attributes, children)
+	this._create_element = function create_element(name, attributes, children)
 	{
 		return dh.create_element(name, attributes, children);
 	}
 	
-	function create_element_ns(name, attributes, children)
+	this._create_element_ns = function create_element_ns(name, attributes, children)
 	{
 		function make_non_selectable(attrs)
 		{
@@ -39,7 +36,7 @@ UI.Bubble = function Bubble(manager, loki)
 			return attrs;
 		}
 		
-		return create_element(name, make_non_selectable(attributes || {}),
+		return this._create_element(name, make_non_selectable(attributes || {}),
 			children);
 	}
 	
@@ -52,9 +49,4 @@ UI.Bubble = function Bubble(manager, loki)
 		
 		return true;
 	}
-}
-
-UI.Bubble.Section = function BubbleSection(bubble)
-{
-	
 }

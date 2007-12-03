@@ -6,8 +6,7 @@
  */
 UI.Bubble_Manager = function BubbleManager(loki)
 {
-	var doc = loki.document;
-	var dh = new Util.Document(doc);
+	var dh = new Util.Document(function get_doc() { return loki.document; });
 	var bubbles = {};
 	var next_bubble_id = 0;
 	
@@ -43,7 +42,8 @@ UI.Bubble_Manager = function BubbleManager(loki)
 			throw new TypeError();
 		}
 		
-		if (element.ownerDocument != doc) {
+		if (element.ownerDocument != loki.document) {
+			console.trace();
 			throw new Error('The element must be owned by the Loki editing ' +
 				'document.');
 		}
@@ -65,12 +65,12 @@ UI.Bubble_Manager = function BubbleManager(loki)
 					MozUserSelect: 'none'
 				}
 			});
-
+			
 			bubble.materialize(body);
 			bubble.container = body;
 
-			var d = dh.get_dimensions();
-			doc.body.appendChild(body);
+			var d = Util.Document.get_dimensions(loki.document);
+			loki.document.body.appendChild(body);
 
 			function insert()
 			{
@@ -93,6 +93,8 @@ UI.Bubble_Manager = function BubbleManager(loki)
 					sx: element.offsetLeft - d.scroll.left,
 					sy: element.offsetTop - d.scroll.top
 				};
+				
+				console.log({document: d, bubble: b, element: e});
 
 				if (e.sx + b.w > d.client.width || e.sx < 0) {
 					// Anchor the bubble to the bubbled element's right side.
@@ -129,12 +131,14 @@ UI.Bubble_Manager = function BubbleManager(loki)
 	 */
 	this.close = function close_bubble(bubble)
 	{
-		if (typeof(bubble) != 'object' || typeof(bubble.container) != 'object') {
+		if (typeof(bubble) != 'object') {
 			throw new TypeError();
 		}
 		
+		
 		var c = bubble.container;
-		c.parentNode.removeChild(c);
+		if (c && c.parentNode)
+			c.parentNode.removeChild(c);
 		delete bubbles[bubble.id];
 		delete bubble.id;
 		return bubble;
