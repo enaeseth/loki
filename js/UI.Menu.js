@@ -314,6 +314,7 @@ UI.Menu.Item = function MenuItem(title, action)
 		
 		Util.Event.add_event_listener(container, 'click', function(e) {
 			this.action.call(this.target);
+			menu.loki.context_changed();
 		}.bind(this), true);
 	}
 }

@@ -676,7 +676,7 @@ UI.Loki = function Loki(settings)
 	
 	function activate_contextual_menu()
 	{
-		var menu = new UI.Menu(this, 'contextmenu');
+		var menu = new UI.Menu(self, 'contextmenu');
 		var lock = new Util.Lock('Contextual menu display lock');
 		
 		function add_groups()
