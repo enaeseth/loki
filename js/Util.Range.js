@@ -904,7 +904,7 @@ Util.Range.set_end = function set_range_end(rng, end, offset)
 		}
 		catch(f)
 		{
-			throw(new Error('Util.Range.set_start(): Neither the W3C nor the IE way of setting the range\'s start worked. ' +
+			throw(new Error('Util.Range.set_end(): Neither the W3C nor the IE way of setting the range\'s start worked. ' +
 							'When the Mozilla way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
 							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
 		}

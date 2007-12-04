@@ -26,7 +26,7 @@ Util.Element = {
 		var classes = Util.Element.get_class_array(elem);
 
 		for (var i = 0; i < classes.length; i++) {
-			if (classes[i] == removable_class)
+			if (classes[i] == class_name)
 				classes.splice(i, 1);
 		}
 
