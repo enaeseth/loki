@@ -1,131 +1,138 @@
-Util.Element = function()
-{
-};
-
-// Adds a class to the list contained in the element's class attribute.
-Util.Element.add_class = function(elem, class_name)
-{
-	var classes = Util.Element.get_class_array(elem);
-	classes.push(class_name);
-	Util.Element.set_class_array(elem, classes);
-};
-
-// Removes the given class_name from the list contained in the
-// element's class attribute.
-Util.Element.remove_class = function(elem, removable_class)
-{
-	var classes = Util.Element.get_class_array(elem);
-	
-	for (var i = 0; i < classes.length; i++) {
-		if (classes[i] == removable_class)
-			classes.splice(i, 1);
-	}
-	
-	Util.Element.set_class_array(elem, classes);
-};
-
-// Returns true if the given element has the given class
-Util.Element.has_class = function(elem, class_name)
-{
-	return (Util.Element.get_all_classes(elem) + '').indexOf(class_name) > -1;
-};
-
-// Returns string containing all this element's classes, or null
-// string if no such attribute is set.
-Util.Element.get_all_classes = function(elem)
-{
-	if (elem == null)
-		return null;
-	
-	var cache = elem.getAttribute('class');
-	return (cache != null)
-		? cache
-		: elem.getAttribute('className');
-};
-
 /**
- * Returns an array whose members are the element's classes.
+ * @class Container for functions relating to document elements.
  */
-Util.Element.get_class_array = function(elem)
-{
-	return elem.className.split(/\s+/);
-};
+Util.Element = {
+	/**
+	 * Adds a class to an element.
+	 * @param {Element}	elem	the element to which the class will be added
+	 * @param {string}	class_name	the name of the class to add
+	 * @type void
+	 */
+	add_class: function add_class_to_element(elem, class_name)
+	{
+		var classes = Util.Element.get_class_array(elem);
+		classes.push(class_name);
+		Util.Element.set_class_array(elem, classes);
+	},
+	
+	/**
+	 * Removes a class from an element.
+	 * @param {Element}	elem	the element from which the class will be removed
+	 * @param {string}	class_name	the name of the class to remove
+	 * @type void
+	 */
+	remove_class: function remove_class_from_element(elem, class_name)
+	{
+		var classes = Util.Element.get_class_array(elem);
 
-// Sets the class attribute of an element to the given string which
-// contains a list of class names. It is necessary to set className
-// because for elements added using the DOM, IE requires one to set a
-// special property, className, in order for the styles associated
-// with that class to be applied. (Stuupid, eh?)
-//
-// N.B.: Consider using add_class() instead of set_all_classes() if
-// all you want to do is make an element part of a class. That way, if
-// the element is already part of another class, you won't nuke
-// it. (Cf. difference between using "element.onclick = xxx" and
-// "element.addEventListener('click', xxx, false)".)
-Util.Element.set_all_classes = function(elem, all_classes)
-{
-	elem.className = all_classes;
-};
+		for (var i = 0; i < classes.length; i++) {
+			if (classes[i] == removable_class)
+				classes.splice(i, 1);
+		}
 
-Util.Element.set_class_array = function(elem, classes)
-{
-	elem.className = classes.join(' ');
-};
-
-// Removes the given element's class attribute. For info about
-// "className", see on set_all_classes().
-Util.Element.remove_all_classes = function(elem)
-{
-	if (Util.Browser.IE) {
+		Util.Element.set_class_array(elem, classes);
+	},
+	
+	/**
+	 * Checks if an element has a particular class.
+	 * @param {Element}	elem	the element to check
+	 * @param {string}	class_name	the name of the class to check for
+	 * @return true if the element has the class, false otherwise
+	 * @type boolean
+	 */
+	has_class: function element_has_class(elem, class_name)
+	{
+		return Util.Element.get_class_array(elem).contains(class_name);
+	},
+	
+	/**
+	 * Returns a string with all of an element's classes or null.
+	 * @param {Element}	elem
+	 * @type string
+	 */
+	get_all_classes: function get_all_classes_from_element(elem)
+	{
+		return (Util.is_valid_object(elem))
+			? elem.getAttribute('class') || elem.getAttribute('className')
+			: null;
+	},
+	
+	/**
+	 * Gets all of an element's classes as an array.
+	 * @param {Element}	elem
+	 * @type array
+	 */
+	get_class_array: function get_array_of_classes_from_element(elem)
+	{
+		return (elem.className || '').split(/\s+/);
+	},
+	
+	/**
+	 * Sets all of the classes on an element.
+	 * @param {Element} elem
+	 * @param {string} class_names
+	 * @type void
+	 */
+	set_all_classes: function set_all_classes_on_element(elem, class_names)
+	{
+		elem.className = all_classes;
+	},
+	
+	/**
+	 * Sets all of the classes on an element.
+	 * @param {Element} elem
+	 * @param {array} class_names
+	 * @type void
+	 */
+	set_class_array: function set_all_classes_on_element(elem, class_names)
+	{
+		elem.className = class_names.join(' ');
+	},
+	
+	/**
+	 * Removes all of an element's classes.
+	 * @param {Element}	elem
+	 * @type void
+	 */
+	remove_all_classes: function remove_all_classes_from_element(elem)
+	{
 		elem.removeAttribute('className');
-	}
-	elem.removeAttribute('class');
-};
-
-/**
- * Either returns the prefix or empty string if there is none.
- * E.g.:  <o:p> --> 'o'
- *        <p>   --> ''
- */
-Util.Element.get_prefix = function(node)
-{
-	if ( node.prefix != null ) // W3C way
-	{
-		return node.prefix;
-	}
-	else if ( node.scopeName != null ) // IE way
-	{
-		return node.scopeName;
-	}
-	else // Gecko way
-	{
-		var tagname = node.tagName;
-		arr = tagname.split(':');
-		if ( arr.length == 2 )
-			return arr[0];
-		else
-			return '';
-	}
-};
-
-/**
- * Returns the absolute position of the element, 
- * i.e. its position relative to the window.
- *
- * Algorithm from FCK.
- */
-Util.Element.get_position = function(elem)
-{
-	var x = 0, y = 0;
+		elem.removeAttribute('class');
+	},
 	
-	// Loop through the offset chain.
-	while ( elem )
+	/**
+	 * Returns an element's name's prefix or an empty string if there is none.
+	 * (e.g. <o:p> --> 'o';  <p> --> '')
+	 * @param {Element}	elem
+	 * @type string
+	 */
+	get_prefix: function get_element_name_prefix(elem)
 	{
-		x += elem.offsetLeft == null ? elem.screenLeft : elem.offsetLeft;
-		y += elem.offsetTop == null ? elem.screenTop : elem.offsetTop;
-
-		elem = elem.offsetParent;
-	}
+		function get_gecko_prefix()
+		{
+			var parts = node.tagName.split(':');
+			return (parts.length >= 2) ? parts[0] : '';
+		}
+		
+		return node.prefix || node.scopeName || get_gecko_prefix();
+	},
 	
-	return { x : x, y : y };
+	/**
+	 * Finds the absolute position of the element; i.e. its position relative to
+	 * the window.
+	 * @param {HTMLElement} elem
+	 * @type object
+	 */
+	get_position: function get_element_position(elem)
+	{
+		var pos = {x: 0, y: 0};
+		
+		// Loop through the offset chain.
+		for (var e = elem; e; e = e.offsetParent) {
+			pos.x += e.offsetLeft || e.screenLeft;
+			pos.y += e.offsetTop || e.screenTop;
+		}
+		
+		return pos;
+	}
 };
