@@ -163,7 +163,7 @@ class Loki2
 		?>
 
 		<!--div><a href="javascript:void(0);" onclick="Util.Window.alert(document.body.innerHTML);">View virtual source</a></div-->
-		<script type="application/javascript" language="javascript">
+		<script type="text/javascript" language="javascript">
 		//document.domain = 'carleton.edu'; /// XXX: for testing; maybe remove later if not necessary
 		var loki;
 		var loki_debug = <?php echo $this->_debug ? 'true' : 'false' ?>; // set to false or remove when live
@@ -270,7 +270,7 @@ class Loki2
 		{
 			// Set up hidden iframe for clipboard operations
 			?>
-			<script type="application/javascript">
+			<script type="text/javascript">
 				UI__Clipboard_Helper_Privileged_Iframe__src = 'jar:<?php echo $this->_asset_protocol . $this->_asset_host . $this->_asset_path; ?>auxil/privileged.jar!/Clipboard_Helper_Privileged_Iframe.html';
 				UI__Clipboard_Helper_Editable_Iframe__src = '<?php echo $this->_asset_protocol . $this->_asset_host . $this->_asset_path; ?>auxil/loki_blank.html';
 			</script>
@@ -291,7 +291,7 @@ class Loki2
 					return false;
 				
 				foreach ($files as $filename) {
-					echo '<script type="application/javascript" '.
+					echo '<script type="text/javascript" '.
 						'src="'.$base.$filename.'" charset="utf-8"></script>';
 				}
 			} else if ($mode == 'external') {
@@ -300,7 +300,7 @@ class Loki2
 						'helpers/php/loki_editor_scripts.php';
 				}
 				
-				echo '<script type="application/javascript" src="'.$path.'">',
+				echo '<script type="text/javascript" src="'.$path.'">',
 					"</script>\n";
 			} else if ($mode == 'inline') {
 				$files = $this->_get_js_files();
@@ -308,7 +308,7 @@ class Loki2
 				if (!$files)
 					return false;
 				
-				echo '<script type="application/javascript">', "\n";
+				echo '<script type="text/javascript">', "\n";
 				foreach ($files as $filename) {
 					echo "\n// file $file \n\n";
 					readfile($base.$filename);
