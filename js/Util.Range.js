@@ -17,15 +17,14 @@ Util.Range = function()
  * @param	sel		the selection from which to create range.
  * @return			the created range
  */
-Util.Range.create_range = function(sel)
+Util.Range.create_range = function create_range_from_selection(sel)
 {
 	if (typeof(sel.getRangeAt) == 'function')
 		return sel.getRangeAt(0);
 	else if (typeof(sel.createRange) == 'function')
 		return sel.createRange();
 	else {
-		throw new Error('Unable to create range: neither the IE nor the W3C ' +
-			'range creation methods are available.');
+		throw new Util.Unsupported_Error('creating a range from a selection');
 	}
 };
 
@@ -37,16 +36,16 @@ Util.Range.create_range = function(sel)
  * @param	rng		the range in question
  * @return			the ancestor node which surrounds the range
  */
-Util.Range.get_common_ancestor = function(rng)
+Util.Range.get_common_ancestor = function get_range_common_ancestor(rng)
 {
-	if ( rng.commonAncestorContainer != null ) // Mozila
+	if (rng.commonAncestorContainer) // W3C
 		return rng.commonAncestorContainer;
-	else if ( rng.parentElement != null ) // IE TextRange
+	else if (rng.parentElement) // Internet Explorer TextRange
 		return rng.parentElement();
-	else if ( rng.item ) // IE controlRange
-		return rng.item(0); 
-	else
-		throw(new Error('Util.Range.get_common_ancestor(): Neither the Mozilla nor the IE way of getting the range\'s common ancestor worked.'));
+	else if (rng.item)
+		return rng.item(0);
+	
+	throw new Util.Unsupported_Error('getting a range\'s common ancestor');
 };
 
 /**
@@ -58,7 +57,7 @@ Util.Range.get_common_ancestor = function(rng)
  * @param	rng		the range in question
  * @return			the start container of the range
  */
-Util.Range.get_start_container = function(rng)
+Util.Range.get_start_container = function get_range_start_container(rng)
 {
 	// Gecko
 	try
@@ -73,20 +72,20 @@ Util.Range.get_start_container = function(rng)
 		//   (Note: if this breaks, consult the archived versions--I've
 		//   played with this a lot to get it to work right.)
 		var frag = rng.cloneContents();
-		if ( frag.firstChild == frag.lastChild &&
+		if (frag.firstChild == frag.lastChild &&
 			 frag.firstChild != null &&
 		     frag.firstChild.nodeType != Util.Node.TEXT_NODE &&
 			 frag.lastChild != null &&
-		     frag.lastChild.nodeType != Util.Node.TEXT_NODE )
+		     frag.lastChild.nodeType != Util.Node.TEXT_NODE)
 		{
 			var siblings = rng.commonAncestorContainer.childNodes;
-			for ( var i = 0; i < siblings.length; i++ )
-				if ( rng.compareNode(siblings[i]) == rng.NODE_INSIDE )
+			for (var i = 0; i < siblings.length; i++)
+				if (rng.compareNode(siblings[i]) == rng.NODE_INSIDE)
 					return siblings[i];
 		}
 
 		// Text range
-		if ( rng.startContainer.nodeType == Util.Node.TEXT_NODE ) // imitate IE below
+		if (rng.startContainer.nodeType == Util.Node.TEXT_NODE) // imitate IE below
 			return rng.startContainer.parentNode;
 		else
 			return rng.startContainer;
@@ -97,12 +96,12 @@ Util.Range.get_start_container = function(rng)
 		try
 		{
 			// Control range
-			if ( rng.item != null )
+			if (rng.item != null)
 			{
 				return rng.item(0);
 			}
 			// Text range
-			else if ( rng.parentElement != null )
+			else if (rng.parentElement != null)
 			{
 				// original, works in most circumstances:
 				//return rng.parentElement();
@@ -129,7 +128,7 @@ Util.Range.get_start_container = function(rng)
  * @param	rng		the range in question
  * @return			the end container of the range
  */
-Util.Range.get_end_container = function(rng)
+Util.Range.get_end_container = function get_range_end_container(rng)
 {
 	// Gecko
 	try
@@ -149,20 +148,20 @@ Util.Range.get_end_container = function(rng)
 		//   range if the first and last elements are identical. Previous 
 		//   versions didn't work this way.)
 		var frag = rng.cloneContents();
-		if ( frag.firstChild == frag.lastChild &&
+		if (frag.firstChild == frag.lastChild &&
 			 frag.firstChild != null &&
 		     frag.firstChild.nodeType != Util.Node.TEXT_NODE &&
 			 frag.lastChild != null &&
-		     frag.lastChild.nodeType != Util.Node.TEXT_NODE )
+		     frag.lastChild.nodeType != Util.Node.TEXT_NODE)
 		{
 			var siblings = rng.commonAncestorContainer.childNodes;
-			for ( var i = 0; i < siblings.length; i++ )
-				if ( rng.compareNode(siblings[i]) == rng.NODE_INSIDE )
+			for (var i = 0; i < siblings.length; i++)
+				if (rng.compareNode(siblings[i]) == rng.NODE_INSIDE)
 					return siblings[i];
 		}
 
 		// Text range
-		if ( rng.endContainer.nodeType == Util.Node.TEXT_NODE ) // imitate IE below
+		if (rng.endContainer.nodeType == Util.Node.TEXT_NODE) // imitate IE below
 			return rng.endContainer.parentNode;
 		else
 			return rng.endContainer;
@@ -173,12 +172,12 @@ Util.Range.get_end_container = function(rng)
 		try
 		{
 			// Control range
-			if ( rng.item != null )
+			if (rng.item != null)
 			{
 				return rng.item(rng.length - 1);
 			}
 			// Text range
-			else if ( rng.parentElement != null )
+			else if (rng.parentElement != null)
 			{
 				var rng2 = rng.duplicate();
 				rng2.collapse(false); // to end
@@ -200,39 +199,20 @@ Util.Range.get_end_container = function(rng)
  *
  * @param	rng		the range
  */
-Util.Range.delete_contents = function(rng)
+Util.Range.delete_contents = function delete_range_contents(rng)
 {
-	// W3C
-	try
-	{
+	if (Util.is_function(rng.deleteContents)) { // W3C
 		rng.deleteContents();
-	}
-	catch(e)
-	{
-		// IE
-		try
-		{
-			rng.pasteHTML('');
+	} else if (Util.is_function(rng.pasteHTML)) { // TextRange
+		rng.pasteHTML('');
+	} else if (Util.is_function(rng.item, rng.remove)) { // ControlRange
+		while (rng.length > 0) {
+			var item = rng.item(0);
+			item.parentNode.removeChild(item);
+			rng.remove(0);
 		}
-		catch(f)
-		{
-			try
-			{
-				while ( rng.length > 0 )
-				{
-					var item = rng.item(0);
-					item.parentNode.removeChild(item);
-					rng.remove(0);
-				}
-			}
-			catch(g)
-			{
-				throw(new Error('Util.Range.delete_contents(): Neither the W3C nor the Mozilla way of deleting the range\'s contents worked. ' +
-								'When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-								'When the IE TextRange way was tried, an error with the following message was thrown: <<' + f.message + '>>. ' +
-								'When the IE ControlRange way was tried, an error with the following message was thrown: <<' + g.message + '>>.'));
-			}
-		}
+	} else {
+		throw new Util.Unsupported_Error("deleting a range's contents");
 	}
 };
 
@@ -242,7 +222,7 @@ Util.Range.delete_contents = function(rng)
  * @param	rng		the range
  * @param	node	the node to insert
  */
-Util.Range.insert_node = function(rng, node)
+Util.Range.insert_node = function insert_node_in_range(rng, node)
 {
 	// W3C
 	try
@@ -272,7 +252,7 @@ Util.Range.insert_node = function(rng, node)
 			try
 			{
 				// Collapse to start
-// 				while ( rng.length > 0 )
+// 				while (rng.length > 0)
 // 					rng.remove(0);
 
 				// This will only work, I think, if node is an element
@@ -295,33 +275,21 @@ Util.Range.insert_node = function(rng, node)
  * @param	rng		the range
  * @return			a clone of rng
  */
-Util.Range.clone_range = function(rng)
+Util.Range.clone_range = function clone_range(rng)
 {
-	// W3C
-	try
-	{
+	if (Util.is_function(rng.cloneRange)) {
 		return rng.cloneRange();
-	}
-	catch(e)
-	{
-		// IE
-		try
-		{
-			return rng.duplicate();
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Range.clone_range(): Neither the W3C nor the Mozilla way of cloning the range worked. ' +
-							'When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	} else if (Util.is_function(rng.duplicate)) {
+		return rng.duplicate();
+	} else {
+		throw new Util.Unsupported_Error("cloning a range");
 	}
 };
 
 /**
  * Gets the html of the range.
  */
-Util.Range.get_html = function(rng)
+Util.Range.get_html = function get_html_of_range(rng)
 {
 	var html = '';
 	try // Gecko
@@ -335,11 +303,11 @@ Util.Range.get_html = function(rng)
 	{
 		try // IE
 		{
-			if ( rng.htmlText != null )
+			if (rng.htmlText != null)
 				html = rng.htmlText;
-			else if ( rng.length > 0 )
+			else if (rng.length > 0)
 			{
-				for ( var i = 0; i < rng.length; i++ )
+				for (var i = 0; i < rng.length; i++)
 					html += rng.item(i).outerHTML;
 			}
 		}
@@ -360,7 +328,8 @@ Util.Range.get_html = function(rng)
  * @param	rng		the starting range
  * @return			the matching ancestor, if any
  */
-Util.Range.get_nearest_bl_ancestor_element = function(rng)
+Util.Range.get_nearest_bl_ancestor_element =
+	function get_nearest_block_level_ancestor_element_of_range(rng)
 {
 	return Util.Range.get_nearest_ancestor_node(rng, Util.Node.is_block_level_element);
 };
@@ -373,11 +342,12 @@ Util.Range.get_nearest_bl_ancestor_element = function(rng)
  * @param	boolean_test	the test
  * @return					the matching ancestor, if any
  */
-Util.Range.get_nearest_ancestor_node = function(rng, boolean_test)
+Util.Range.get_nearest_ancestor_node =
+	function get_nearest_ancestor_node_of_range(rng, boolean_test)
 {
 	//var ancestor = Util.Range.get_common_ancestor(rng);
 	var ancestor = Util.Range.get_start_container(rng);
-	if ( boolean_test(ancestor) )
+	if (boolean_test(ancestor))
 	{
 		return ancestor;
 	}
@@ -398,12 +368,13 @@ Util.Range.get_nearest_ancestor_node = function(rng, boolean_test)
  * @param	tag_name		the desired tag name	
  * @return					the matching ancestor, if any
  */
-Util.Range.get_nearest_ancestor_element_by_tag_name = function(rng, tag_name)
+Util.Range.get_nearest_ancestor_element_by_tag_name =
+	function get_nearest_ancestor_element_of_range_by_tag_name(rng, tag_name)
 {
 	var boolean_test = function(node)
 	{
-		return ( node.nodeType == Util.Node.ELEMENT_NODE &&
-			     node.tagName == tag_name );
+		return (node.nodeType == Util.Node.ELEMENT_NODE &&
+			     node.tagName == tag_name);
 	};
 	return Util.Range.get_nearest_ancestor_node(rng, boolean_test);
 };
@@ -418,24 +389,24 @@ Util.Range.get_nearest_ancestor_element_by_tag_name = function(rng, tag_name)
  * @param	rng		the range whose children to clone
  * @return			an array of clones of the given range's children
  */
-Util.Range.get_cloned_children = function(rng)
+Util.Range.get_cloned_children = function clone_children_of_range(rng)
 {
 	var child_nodes = new Array();
 	try
 	{
 		var doc_frag = rng.cloneContents();
 		var node_list = doc_frag.childNodes;
-		for ( var i = 0; i < node_list.length; i++ )
-			child_nodes.push( node_list.item(i) );
+		for (var i = 0; i < node_list.length; i++)
+			child_nodes.push(node_list.item(i));
 	}
 	catch(e)
 	{
 		try
 		{
-			if ( rng.item ) // if this is a controlRange collection rather than a textRange Object
+			if (rng.item) // if this is a controlRange collection rather than a textRange Object
 			{
-				for ( var i = 0; i < rng.length; i++ )
-					child_nodes.push( rng.item(i).cloneNode(true) );
+				for (var i = 0; i < rng.length; i++)
+					child_nodes.push(rng.item(i).cloneNode(true));
 			}
 		}
 		catch(f)
@@ -451,7 +422,7 @@ Util.Range.get_cloned_children = function(rng)
 /**
  * Returns the text contained in the given range.
  */
-Util.Range.get_text = function(rng)
+Util.Range.get_text = function get_range_text(rng)
 {
 	var text;
 	try // Gecko
@@ -462,7 +433,7 @@ Util.Range.get_text = function(rng)
 	{
 		try // IE
 		{
-			if ( rng.text != null ) // text range
+			if (rng.text != null) // text range
 				text = rng.text;
 			else // control range
 				text = ''; // XXX is this desirable?
@@ -478,19 +449,19 @@ Util.Range.get_text = function(rng)
 };
 
 // XXX: These two functions might only work for Gecko right now (and only need to)
-Util.Range.is_at_end_of_block = function(rng, block)
+Util.Range.is_at_end_of_block = function is_range_at_end_of_block(rng, block)
 {
 	var ret =
 		Util.Node.get_rightmost_descendent(block) == 
 		Util.Node.get_rightmost_descendent(rng.startContainer) &&
 		// either the start container is not a text node, or 
 		// the range (i.e. cursor) is at the end of the text node
-		( //rng.startContainer.nodeType != Util.Node.TEXT_NODE ||
-		  rng.startOffset == rng.startContainer.length ); // added - 1 // 
+		(//rng.startContainer.nodeType != Util.Node.TEXT_NODE ||
+		  rng.startOffset == rng.startContainer.length); // added - 1 // 
 	return ret;
 };
 
-Util.Range.is_at_beg_of_block = function(rng, block)
+Util.Range.is_at_beg_of_block = function is_range_at_beginning_of_block(rng, block)
 {
 	var ret =
 		// the start container is on the path to the leftmost descendent of the current block
@@ -498,39 +469,39 @@ Util.Range.is_at_beg_of_block = function(rng, block)
 		Util.Node.get_leftmost_descendent(rng.startContainer) &&
 		// either the start container is not a text node, or 
 		// the range (i.e. cursor) is at the beginning of the text node
-		( rng.startContainer.nodeType != Util.Node.TEXT_NODE ||
-		  rng.startOffset == 0 );
+		(rng.startContainer.nodeType != Util.Node.TEXT_NODE ||
+		  rng.startOffset == 0);
 	return ret;
 };
 
-Util.Range.is_at_end_of_text = function(rng)
+Util.Range.is_at_end_of_text = function is_range_at_end_of_text(rng)
 {
 	return (rng.endContainer.nodeType == Util.Node.TEXT_NODE && rng.endOffset == rng.endContainer.length);
 };
 
-Util.Range.is_at_beg_of_text = function(rng)
+Util.Range.is_at_beg_of_text = function is_range_of_beginning_of_text(rng)
 {
 	return (rng.startContainer.nodeType == Util.Node.TEXT_NODE && rng.startOffset == 0);
 }
 
-Util.Range.intersects_node = function(rng, node)
+Util.Range.intersects_node = function range_intersects_node(rng, node)
 {
-	try
-	{
+	if (Util.is_function(rng.intersectsNode)) { // Gecko < 1.9
 		return rng.intersectsNode(node);
-	}
-	catch(e)
-	{
-		try
-		{
-			throw('not implemented');
+	} else if (Util.is_function(node.ownerDocument.createRange)) { // W3C
+		var node_range = node.ownerDocument.createRange();
+		
+		try {
+			node_range.selectNode(node);
+		} catch (e) {
+			node_range.selectNodeContents(node);
 		}
-		catch(f)
-		{
-			throw('Util.Range.intersects_node(): Neither the Gecko nor the IE way worked. ' +
-				  'When the Gecko way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-				  'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.');
-		}
+		
+		return (range.compareBoundaryPoints(Range.END_TO_START, node_range) == -1
+			&& range.compareBoundaryPoints(Range.START_TO_END, node_range) == 1);
+	} else {
+		throw new Util.Unsupported_Error('testing whether a node intersects ' +
+			' a range');
 	}
 }
 
@@ -538,7 +509,8 @@ Util.Range.intersects_node = function(rng, node)
 /**
  * Returns a list of all descendant nodes that match boolean_test.
  */
-Util.Range.get_descendant_nodes = function(rng, boolean_test)
+Util.Range.get_descendant_nodes =
+	function get_range_descendant_nodes(rng, boolean_test)
 {
 	var matches = [];
 
@@ -546,10 +518,10 @@ Util.Range.get_descendant_nodes = function(rng, boolean_test)
 	// according to their position in the document
 	var search = function(node)
 	{
-		for ( var i = 0; i < node.childNodes.length; i++ )
+		for (var i = 0; i < node.childNodes.length; i++)
 		{
 			search(node.childNodes[i]);
-			if ( Util.Range.intersects_node(rng, node.childNodes[i]) && boolean_test(node) )
+			if (Util.Range.intersects_node(rng, node.childNodes[i]) && boolean_test(node))
 				matches.push(node.childNodes[i]);
 		}
 	}
@@ -561,9 +533,8 @@ Util.Range.get_descendant_nodes = function(rng, boolean_test)
 };
 
 // XXX doesn't work
-Util.Range.get_elements_within_range = function(rng, boolean_test)
-{
-};
+Util.Range.get_elements_within_range = Util.Function.unimplemented;
+//Util.Range.get_elements_within_range = function(rng, boolean_test)
 
 /**
  * Compares the boundary points of the two given ranges.
@@ -587,41 +558,42 @@ Util.Range.SAME = 0;
 Util.Range.RIGHT = 1;
 Util.Range.compare_boundary_points = function(rng1, rng2, how)
 {
-	try
-	{
-		if ( how == Util.Range.START_TO_START )
+	if (!Util.is_valid_object(rng1, rng2)) {
+		throw new TypeError('Two range objects must be passed to ' +
+			'Util.Range.compare_boundary_points.');
+	}
+	
+	if (!Util.is_number(how)) {
+		throw new TypeError('A Util.Range comparison constant must be passed ' +
+			'to Util.Range.compare_boundary_points.')
+	}
+	
+	var real_how;
+	if (Util.is_function(rng1.compareBoundaryPoints)) { // W3C
+		if (how == Util.Range.START_TO_START)
 			real_how = rng1.START_TO_START;
-		else if ( how == Util.Range.START_TO_END )
+		else if (how == Util.Range.START_TO_END)
 			real_how = rng1.START_TO_END;
-		else if ( how == Util.Range.END_TO_START )
+		else if (how == Util.Range.END_TO_START)
 			real_how = rng1.END_TO_START;
-		else if ( how == Util.Range.END_TO_END )
+		else if (how == Util.Range.END_TO_END)
 			real_how = rng1.END_TO_END;
 
 		return rng1.compareBoundaryPoints(real_how, rng2);
-	}
-	catch(e)
-	{
-		try
-		{
-			if ( how == Util.Range.START_TO_START )
-				real_how = "StartToStart";
-			else if ( how == Util.Range.START_TO_END )
-				real_how = "StartToEnd";
-			else if ( how == Util.Range.END_TO_START )
-				real_how = "EndToStart";
-			else if ( how == Util.Range.END_TO_END )
-				real_how = "EndToEnd";
+	} else if (Util.is_function(rng1.compareEndPoints)) { // IE
+		if (how == Util.Range.START_TO_START)
+			real_how = "StartToStart";
+		else if (how == Util.Range.START_TO_END)
+			real_how = "StartToEnd";
+		else if (how == Util.Range.END_TO_START)
+			real_how = "EndToStart";
+		else if (how == Util.Range.END_TO_END)
+			real_how = "EndToEnd";
 
-			return rng1.compareEndPoints(real_how, rng2);
-		}
-		catch(f)
-		{
-			alert('error in Util.Range.compare_boundary_points: ' + f.message);
-			throw('Util.Range.compare_boundary_points(): Neither the Gecko nor the IE way worked. ' +
-				  'When the Gecko way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-				  'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.');
-		}
+		return rng1.compareEndPoints(real_how, rng2);
+	} else {
+		throw new Util.Unsupported_Error("comparing two ranges' boundary " +
+			"points");
 	}
 };
 
@@ -669,9 +641,9 @@ Util.Range.select_node_contents = function(rng, node)
 				mb('Util.Range.select_node_contents: moveToElementText failed: ' + g.message);
 				/// copied from Util.Selection.select_node
 				// XXX this does not actually select anything:
-				if ( node.createTextRange != null )
+				if (node.createTextRange != null)
 					var rng = node.createTextRange();
-				else if ( node.ownerDocument.body.createControlRange != null )
+				else if (node.ownerDocument.body.createControlRange != null)
 					var rng = node.ownerDocument.body.createControlRange();
 				else
 					throw('Util.Selection.select_node_contents: node has neither createTextRange() nor createControlRange()--absolutely everything has failed.');
@@ -700,14 +672,14 @@ Util.Range.get_intersecting_blocks = function(rng)
 	// Determine start and end blocks
 	var start_container = Util.Range.get_start_container(rng);
 	var b1;
-	if ( Util.Node.is_block_level_element(start_container) )
+	if (Util.Node.is_block_level_element(start_container))
 		b1 = start_container;
 	else
 		b1 = Util.Node.get_nearest_bl_ancestor_element(start_container);
 
 	var end_container = Util.Range.get_end_container(rng);
 	var b2;
-	if ( Util.Node.is_block_level_element(end_container) )
+	if (Util.Node.is_block_level_element(end_container))
 		b2 = end_container;
 	else
 		b2 = Util.Node.get_nearest_bl_ancestor_element(end_container);
@@ -715,7 +687,7 @@ Util.Range.get_intersecting_blocks = function(rng)
 	// Determine b2_and_ancestors
 	var b2_and_ancestors = [];
 	var cur_block = b2;
-	while ( cur_block != null && cur_block.nodeName != 'BODY' && cur_block.nodeName != 'TD' )
+	while (cur_block != null && cur_block.nodeName != 'BODY' && cur_block.nodeName != 'TD')
 	{
 		b2_and_ancestors.push(cur_block);
 		cur_block = cur_block.parentNode;
@@ -725,8 +697,8 @@ Util.Range.get_intersecting_blocks = function(rng)
 
 	function is_b2_or_ancestor(block)
 	{
-		for ( var i = 0; i < b2_and_ancestors.length; i++ )
-			if ( block == b2_and_ancestors[i] )
+		for (var i = 0; i < b2_and_ancestors.length; i++)
+			if (block == b2_and_ancestors[i])
 			{
 				mb('found match in is_b2_ancestor: block', block);
 				return true;
@@ -746,10 +718,10 @@ Util.Range.get_intersecting_blocks = function(rng)
 	function look_for_closest_branch_common_to_b1_and_b2(branch, b1_or_ancestor)
 	{
 		// Try this branch
-		for ( var i = 0; i < branch.childNodes.length; i++ )
+		for (var i = 0; i < branch.childNodes.length; i++)
 		{
 			var cur = branch.childNodes[i];
-			if ( is_b2_or_ancestor(cur) )
+			if (is_b2_or_ancestor(cur))
 			{
 				var b2_or_ancestor = cur;
 				return { branch : branch, b1_or_ancestor : b1_or_ancestor, b2_or_ancestor : b2_or_ancestor };
@@ -765,14 +737,14 @@ Util.Range.get_intersecting_blocks = function(rng)
 	{
 		var blocks = [];
 		var start = false;
-		for ( var i = 0; i < branch.childNodes.length; i++ )
+		for (var i = 0; i < branch.childNodes.length; i++)
 		{
 			var cur = branch.childNodes[i];
-			if ( cur == b1_or_ancestor )
+			if (cur == b1_or_ancestor)
 				start = true;
-			if ( start )
+			if (start)
 				blocks.push(cur);
-			if ( cur == b2_or_ancestor )
+			if (cur == b2_or_ancestor)
 			{
 				start = false;
 				break;
@@ -788,7 +760,7 @@ Util.Range.get_intersecting_blocks = function(rng)
 	return get_intersecting_blocks(ret.branch, ret.b1_or_ancestor, ret.b2_or_ancestor);
 };
 
-Util.Range.set_start = function(rng, start, offset)
+Util.Range.set_start = function set_range_start(rng, start, offset)
 {
 	try // W3C
 	{
@@ -854,7 +826,7 @@ Util.Range.set_start = function(rng, start, offset)
 	}
 };
 
-Util.Range.set_end = function(rng, end, offset)
+Util.Range.set_end = function set_range_end(rng, end, offset)
 {
 	try // W3C
 	{
@@ -938,6 +910,3 @@ Util.Range.set_end = function(rng, end, offset)
 		}
 	}
 };
-
-
-

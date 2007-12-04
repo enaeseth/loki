@@ -11,24 +11,18 @@ Util.Selection.TEXT_TYPE = 2;
  * @param	window_obj	the window object whose selection is desired
  * @return				the current selection
  */
-Util.Selection.get_selection = function(window_obj)
+Util.Selection.get_selection = function get_window_selection(window_obj)
 {
-	try
-	{
-		return window_obj.getSelection();
+	if (typeof(window_obj) != 'object') {
+		throw new TypeError('Must pass an object to get_selection().');
 	}
-	catch(e)
-	{
-		try
-		{
-			return window_obj.document.selection;
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Selection.get_selection(): Neither the Mozilla nor the IE way of getting the selection worked. ' +
-							'When the Mozilla way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	
+	if (typeof(window_obj.getSelection) == 'function') {
+		return window_obj.getSelection();
+	} else if (window_obj.document.selection) {
+		return window_obj.document.selection;
+	} else {
+		throw new Util.Unsupported_Error('getting a window\'s selection');
 	}
 };
 
@@ -39,7 +33,7 @@ Util.Selection.get_selection = function(window_obj)
  * @param	sel				the selection
  * @param	new_node		the node to insert
  */
-Util.Selection.paste_node = function(sel, new_node)
+Util.Selection.paste_node = function paste_node_at_selection(sel, new_node)
 {
 	// Remember node or last child of node, for selection manipulation below
 	if ( new_node.nodeType == Util.Node.DOCUMENT_FRAGMENT_NODE )
