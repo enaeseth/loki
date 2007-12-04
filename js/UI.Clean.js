@@ -311,7 +311,7 @@ UI.Clean.clean = function(root, settings)
 				var href = node.getAttribute('href');
 				if (href != null) {
 					node.setAttribute('href',
-						UI.Clean.clean_URI(href));
+						UI.Clean.cleanURI(href));
 				}
 			}
 		},
@@ -382,7 +382,7 @@ UI.Clean.clean = function(root, settings)
 	}
 };
 
-UI.Clean.clean_URI = function(uri)
+UI.Clean.cleanURI = function(uri)
 {
 	var local = Util.URI.extract_domain(uri) ==
 		Util.URI.extract_domain(window.location);
@@ -392,7 +392,7 @@ UI.Clean.clean_URI = function(uri)
 		: uri;
 }
 
-UI.Clean.clean_HTML = function(html, settings)
+UI.Clean.cleanHtml = function(html, settings)
 {
     // empty elements (as defined by HTML 4.01)
     var empty_elems = '(br|area|link|img|param|hr|input|col|base|meta)';
