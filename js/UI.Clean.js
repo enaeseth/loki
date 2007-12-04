@@ -11,33 +11,6 @@
  */
 UI.Clean = new Object;
 
-// List originally taken from <http://hacks.oreilly.com/pub/h/4110>, by 
-// Mark Pilgrim <http://diveintomark.org/projects/greasemonkey/>
-UI.Clean.special_char_replacements = 
-{
-	"\xa0": " ",
-	"\xa9": "(c)",
-	"\xae": "(r)",
-	"\xb7": "*",
-	"\u2018": "'",
-	"\u2019": "'",
-	"\u201c": '"',
-	"\u201d": '"',
-	"\u2026": "?",
-	"\u2002": " ",
-	"\u2003": " ",
-	"\u2009": " ",
-	"\u2013": "-",
-	"\u2014": "--",
-	"\u2122": "(tm)",
-	"\u2026": " . . . "
-};
-UI.Clean.special_char_regexps = {};
-for (var k in UI.Clean.special_char_replacements)
-{
-	UI.Clean.special_char_regexps[k] = new RegExp(k, 'g');
-}
-
 /**
  * Cleans the children of the given root.
  *
@@ -340,19 +313,6 @@ UI.Clean.clean = function(root, settings)
 					node.setAttribute('href',
 						UI.Clean.clean_URI(href));
 				}
-			}
-		},
-		{
-			description : 'Convert curly quotes and such to normal ones',
-			test : function(node) { return node.nodeType == Util.Node.TEXT_NODE; },
-			action : function(node) 
-			{
-				var text = node.data;
-				for (var k in UI.Clean.special_char_replacements)
-				{
-					text = text.replace(UI.Clean.special_char_regexps[k], UI.Clean.special_char_replacements[k]);
-				}
-				node.data = text;
 			}
 		},
 		{
