@@ -84,7 +84,7 @@ Util.Element = {
 	 * @param {array} class_names
 	 * @type void
 	 */
-	set_class_array: function set_all_classes_on_element(elem, class_names)
+	set_class_array: function set_array_of_classes_on_element(elem, class_names)
 	{
 		elem.className = class_names.join(' ');
 	},

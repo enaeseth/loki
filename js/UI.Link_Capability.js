@@ -14,7 +14,7 @@ UI.Link_Capability = function Links(loki)
 	var LinkBubble = UI.Bubble.create({
 		link: null,
 		
-		materialize: function materialize(body, link)
+		materialize: function materialize_link_bubble(body, link)
 		{
 			this.link = link;
 			
@@ -30,7 +30,7 @@ UI.Link_Capability = function Links(loki)
 			add(this._action('Remove', 'delete_link', cap))
 		},
 		
-		dematerialize: function dematerialize()
+		dematerialize: function dematerialize_link_bubble()
 		{
 			this.link = null;
 		}
@@ -45,7 +45,7 @@ UI.Link_Capability = function Links(loki)
 	}
 	
 	this.context_changed = (function extend_cc(original) {
-		return function context_changed() {
+		return function link_context_changed() {
 			original.call(this);
 			
 			var link = get_selected_link();
@@ -82,7 +82,7 @@ UI.Link_Capability = function Links(loki)
 		insert_link.call(this, {});
 	}
 	
-	this.add_menu_items = function add_menu_items(menu)
+	this.add_menu_items = function add_link_menu_items(menu)
 	{
 		var selected = this.is_selected();
 		if (!selected && this.is_selection_empty())
@@ -191,7 +191,7 @@ UI.Link_Capability = function Links(loki)
 	/**
 	 * Returns info about the selected link, if any.
 	 */
-	this.get_selected_item = function()
+	this.get_selected_item = function get_selected_link_info()
 	{
 		var ancestor = get_selected_link();
 		var uri = '', new_window = null, title = '';
@@ -217,7 +217,7 @@ UI.Link_Capability = function Links(loki)
 		};
 	};
 
-	this.is_selected = function()
+	this.is_selected = function is_a_link_selected()
 	{
 		return this.get_selected_item().uri != '';
 	};
@@ -242,7 +242,7 @@ UI.Link_Capability = function Links(loki)
 		return names;
 	};
 	
-	this._determine_relevancy = function _determine_relevancy()
+	this._determine_relevancy = function determine_link_relevancy()
 	{
 		return !this.is_selection_empty() || this.is_selected();
 	}

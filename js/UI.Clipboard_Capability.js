@@ -90,9 +90,11 @@ UI.Clipboard_Capability = function Clipboard(loki)
 	{
 		selected = !this.is_selection_empty();
 		
-		[buttons.cut, buttons.copy].each(function (button) {
+		function enable_clipboard_button(button) {
 			button.set_enabled(selected);
-		});
+		}
+		
+		[buttons.cut, buttons.copy].each(enable_clipboard_button);
 	}
 	
 	this.add_menu_items = function add_menu_items(menu)

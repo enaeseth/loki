@@ -11,12 +11,12 @@ UI.Underline_Capability = function Underline(loki)
 {
 	Util.OOP.inherits(this, UI.Capability, loki, 'Underlined text');
 	
-	this.execute = function()
+	this.execute = function execute_underline()
 	{
 		this.loki.exec_command('Underline');
 	}
 	
-	this._determine_illumination = function _determine_illumination()
+	this._determine_illumination = function determine_underline_illumination()
 	{
 		return this.loki.query_command_state('Underline');
 	}

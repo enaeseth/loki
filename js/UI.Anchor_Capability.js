@@ -93,7 +93,7 @@ UI.Anchor_Capability = function Anchors(loki)
 		dialog.open();
 	}
 	
-	this._determine_illumination = function determine_illumination()
+	this._determine_illumination = function determine_anchor_illumination()
 	{
 		return !!this.get_selected_anchor_placeholder();
 	}

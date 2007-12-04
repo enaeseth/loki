@@ -9,7 +9,7 @@ UI.Preformatting_Capability = function Preformatted(loki)
 {
 	Util.OOP.inherits(this, UI.Capability, loki, 'Pre-formatted text');
 	
-	this.execute = function execute()
+	this.execute = function execute_preformatting()
 	{
 		loki.toggle_block('pre');
 	}

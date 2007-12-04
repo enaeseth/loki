@@ -10,12 +10,12 @@ UI.Bold_Capability = function Bold(loki)
 {
 	Util.OOP.inherits(this, UI.Capability, loki, 'Strong (bold) text');
 	
-	this.execute = function()
+	this.execute = function execute_bold()
 	{
 		this.loki.exec_command('Bold');
 	}
 	
-	this._determine_illumination = function _determine_illumination()
+	this._determine_illumination = function determine_bold_illumination()
 	{
 		return this.loki.query_command_state('Bold');
 	}

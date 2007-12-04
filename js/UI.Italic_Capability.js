@@ -11,12 +11,12 @@ UI.Italic_Capability = function Italic(loki)
 {
 	Util.OOP.inherits(this, UI.Capability, loki, 'Emphasized (italic) text');
 	
-	this.execute = function()
+	this.execute = function execute_italic()
 	{
 		this.loki.exec_command('Italic');
 	}
 	
-	this._determine_illumination = function _determine_illumination()
+	this._determine_illumination = function determine_italic_illumination()
 	{
 		return this.loki.query_command_state('Italic');
 	}
