@@ -3,6 +3,38 @@
  */
 Util.Element = {
 	/**
+	 * Gets an element's computed styles.
+	 * @param {Window}	window	the element's window
+	 * @param {Element}	elem	the element whose computed style is desired
+	 * @type object
+	 */
+	get_computed_style: function get_element_computed_style(window, elem)
+	{
+		if (!Util.is_valid_object(window, elem)) {
+			throw new TypeError('Valid window and element objects must be ' +
+				'provided to Util.Element.get_computed_style.');
+		}
+		
+		if (Util.is_function(window.getComputedStyle)) {
+			return window.getComputedStyle(elem, null);
+		} else {
+			return elem.currentStyle;
+		}
+	},
+	
+	/**
+	 * Tests whether or not an element is at block-level.
+	 * Cf. Util.Node.is_block_level_element; this uses different logic.
+	 * @param {Window}	window	the element's window
+	 * @param {Element}	elem	the element whose block level status is desired
+	 * @type boolen
+	 */
+	is_block_level: function is_block_level_element(window, elem)
+	{
+		return Util.Element.get_computed_style(window, elem).display == 'block';
+	},
+	
+	/**
 	 * Adds a class to an element.
 	 * @param {Element}	elem	the element to which the class will be added
 	 * @param {string}	class_name	the name of the class to add
