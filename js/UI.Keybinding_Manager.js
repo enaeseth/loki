@@ -118,5 +118,6 @@ UI.Keybinding_Manager.Special = {
 	Home: 36,
 	PageUp: 33,
 	PageDown: 34,
+	Shift: 'e.shiftKey',
 	Tab: 9
 };

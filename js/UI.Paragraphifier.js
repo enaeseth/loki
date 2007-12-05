@@ -54,5 +54,5 @@ UI.Paragraphifier = function Paragraphifier(loki)
 	
 	this._add_keybinding(Util.Function.optimist, possibly_paragraphify);
 	this._add_keybinding('Delete || Backspace', delete_special_elements);
-	this._add_keybinding('Enter', fix_enter_for_ie);
+	this._add_keybinding('Shift Enter', fix_enter_for_ie);
 }
