@@ -312,6 +312,7 @@ Util.Array.Methods = {
 		return array.reduce(function perform_filtration(matches, element) {
 			if (test.call(thisp, element))
 				matches.push(element);
+			return matches;
 		}, []);
 	},
 	
