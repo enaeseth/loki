@@ -78,6 +78,24 @@ Util.Element = {
 	},
 	
 	/**
+	 * Checks if an element has all of the given classes.
+	 * @param {Element}	elem	the element to check
+	 * @param {mixed}	classes	either a string or an array of class names
+	 * @return true if the element has all of the classes, false if otherwise
+	 * @type boolean
+	 */
+	has_classes: function element_has_classes(elem, classes)
+	{
+		if (Util.is_string(classes))
+			classes = classes.split(/s+/);
+		
+		var element_classes = Util.Element.get_class_array(elem);
+		return classes.every(function check_one_element_class(class_name) {
+			return element_classes.contains(class_name);
+		});
+	},
+	
+	/**
 	 * Returns a string with all of an element's classes or null.
 	 * @param {Element}	elem
 	 * @type string
@@ -96,7 +114,9 @@ Util.Element = {
 	 */
 	get_class_array: function get_array_of_classes_from_element(elem)
 	{
-		return (elem.className || '').split(/\s+/);
+		return (elem.className && elem.className.length > 0)
+			? elem.className.split(/\s+/)
+			: [];
 	},
 	
 	/**
@@ -118,7 +138,10 @@ Util.Element = {
 	 */
 	set_class_array: function set_array_of_classes_on_element(elem, class_names)
 	{
-		elem.className = class_names.join(' ');
+		if (class_names.length == 0)
+			Util.Element.remove_all_classes(elem);
+		else
+			elem.className = class_names.join(' ');
 	},
 	
 	/**
