@@ -42,7 +42,7 @@ Util.Range.get_common_ancestor = function get_range_common_ancestor(rng)
 		return rng.commonAncestorContainer;
 	else if (rng.parentElement) // Internet Explorer TextRange
 		return rng.parentElement();
-	else if (rng.item)
+	else if (rng.item) // Internet Explorer ControlRange
 		return rng.item(0);
 	
 	throw new Util.Unsupported_Error('getting a range\'s common ancestor');
@@ -556,7 +556,8 @@ Util.Range.END_TO_END = 5;
 Util.Range.LEFT = -1;
 Util.Range.SAME = 0;
 Util.Range.RIGHT = 1;
-Util.Range.compare_boundary_points = function(rng1, rng2, how)
+Util.Range.compare_boundary_points =
+	function compare_range_boundary_points(rng1, rng2, how)
 {
 	if (!Util.is_valid_object(rng1, rng2)) {
 		throw new TypeError('Two range objects must be passed to ' +
