@@ -236,9 +236,83 @@ Util.Array.Methods = {
 	
 	contains: function contains(array, item)
 	{
+		if (Util.is_function(array.indexOf)) {
+			return -1 != array.indexOf(item);
+		}
+		
 		return !!array.find(function(element) {
 			return item == element;
 		});
+	},
+	
+	/**
+	 * Returns true if the function test returns true when given any element
+	 * in array.
+	 * @param {array}	array	the array to examine
+	 * @param {function}	test	the test to apply to the array's elements
+	 * @param {object}	thisp	an optional "this" context in which the test
+	 *							function will be called
+	 * @type boolean
+	 */
+	some: function some(array, test)
+	{
+		var thisp = arguments[2] || null;
+		
+		for (var i = 0; i < array.length; i++) {
+			if (i in array) {
+				if (test.call(thisp, array[i])) {
+					// Found one that works.
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	},
+	
+	/**
+	 * Returns true if the function test returns true when executed for each
+	 * element in array.
+	 * @param {array}	array	the array to examine
+	 * @param {function}	test	the test to apply to the array's elements
+	 * @param {object}	thisp	an optional "this" context in which the test
+	 *							function will be called
+	 * @type boolean
+	 */
+	every: function every(array, test)
+	{
+		var thisp = arguments[2] || null;
+		
+		for (var i = 0; i < array.length; i++) {
+			if (i in array) {
+				if (!test.call(thisp, array[i])) {
+					// Found one that doesn't work.
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	},
+	
+	/**
+	 * Returns all of the elements of the array that passed the given test.
+	 * @param {array}	array	the array to filter
+	 * @param {function}	test	a function that will be called for each
+	 *								element in the array to determine whether
+	 *								or not it should be included
+	 * @param {object}	thisp	an optional "this" context in which the test
+	 *							function will be called
+	 * @type array
+	 */
+	filter: function filter(array, test)
+	{
+		var thisp = arguments[2] || null;
+		
+		return array.reduce(function perform_filtration(matches, element) {
+			if (test.call(thisp, element))
+				matches.push(element);
+		}, []);
 	},
 	
 	remove: function remove(array, item)
@@ -299,6 +373,22 @@ for (var name in Util.Array.Methods) {
 	
 	Util.Array[name] = Util.Array.Methods[name];
 	
-	var new_name = (name == 'for_each') ? 'each' : transform_name(name);
-	Array.prototype[new_name] = Util.Array.Methods[name].methodize();
+	var new_name;
+	switch (name) {
+		case 'map':
+		case 'reduce':
+		case 'filter':
+		case 'every':
+		case 'some':
+			if (!Util.is_function(Array.prototype[name]))
+				Array.prototype[name] = Util.Array.Methods[name].methodize();
+			break;
+		case 'for_each':
+			Array.prototype.each = (Array.prototype.forEach ||
+					Util.Array.Methods.for_each.methodize());
+			break;
+		default:
+			new_name = transform_name(name);
+			Array.prototype[new_name] = Util.Array.Methods[name].methodize();
+	}
 }
