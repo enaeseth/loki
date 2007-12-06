@@ -280,6 +280,20 @@ UI.Loki = function Loki(settings)
 		return this.document.queryCommandState(command);
 	}
 	
+	var block_value_substitutions = 
+	{
+		// IE: Mozilla
+		'Normal': 'p',
+		'Formatted': 'pre',
+		'Heading 1': 'h1',
+		'Heading 2': 'h2',
+		'Heading 3': 'h3',
+		'Heading 4': 'h4',
+		'Heading 5': 'h5',
+		'Heading 6': 'h6',
+		'Preformatted': 'pre',
+		'Address': 'address'
+	};
 	this.query_command_value = function query_command_value(command)
 	{
 		if (typeof(command) != 'string')
@@ -291,27 +305,10 @@ UI.Loki = function Loki(settings)
 		}
 		
 		var value = this.document.queryCommandValue(command);
-		if (command == 'FormatBlock') {
-			var mappings = 
-			{
-				// IE : Mozilla
-				'Normal' : 'p',
-				'Formatted' : 'pre',
-				'Heading 1' : 'h1',
-				'Heading 2' : 'h2',
-				'Heading 3' : 'h3',
-				'Heading 4' : 'h4',
-				'Heading 5' : 'h5',
-				'Heading 6' : 'h6',
-				'Preformatted' : 'pre',
-				'Address' : 'address'
-			};
-			
-			if (mappings[value])
-				value = mappings[value];
-		}
 		
-		return value;
+		return (command == 'FormatBlock')
+			? (block_value_substitutions[value] || value)
+			: value;
 	}
 	
 	/**
@@ -738,17 +735,15 @@ UI.Loki = function Loki(settings)
 		});
 		
 		if (!switching_from_source)
-			context_changed();
+			context_changed.delay(.05 /* 50ms */);
 	}
 	
 	function context_changed()
 	{
-		function inform_capability(c)
-		{
-			c.context_changed();
+		var len = context_aware_capabilities.length;
+		for (var i = 0; i < len; i++) {
+			context_aware_capabilities[i].context_changed();
 		}
-		
-		context_aware_capabilities.each(inform_capability);
 	}
 	
 	// Alias
