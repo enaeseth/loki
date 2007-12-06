@@ -113,6 +113,14 @@ UI.Clean.clean = function(root, settings)
 			? had_attrs
 			: false;
 	}
+	
+	/**
+	 * Checks whether the given node is an element node.
+	 */
+	function is_element(node)
+	{
+		return (node.nodeType == Util.Node.ELEMENT_NODE);
+	}
 
 	/**
 	 * Checks whether the given node has one of the given tagnames.
@@ -233,9 +241,77 @@ UI.Clean.clean = function(root, settings)
 			action : remove_attributes
 		},
 		{
+			description : 'Remove all tags that have Office namespace prefixes.',
+			test : function(node) { return has_prefix(node, ['o', 'O', 'w', 'W', 'st1', 'ST1']); },
+			action : remove_tag
+		},
+		{
+			description: 'Remove empty Word paragraphs',
+			test: function is_empty_word_paragraph(node) {
+				// Check node type and tag
+				if (!node.tagName || node.tagName != 'P') {
+					return false;
+				}
+				
+				// Check for a Word class
+				if (!(/(^|\b)Mso/.test(node.className)))
+					return false;
+				
+				// Check for the paragraph to only contain non-breaking spaces
+				var pattern = new RegExp("^(\xA0| )+$", "");
+				for (var i = 0; i < node.childNodes.length; i++) {
+					var child = node.childNodes[i];
+					if (child.nodeType == Util.Node.ELEMENT_NODE) {
+						if (!is_empty_word_paragraph(child)) // recurse
+							return false;
+					}
+					
+					if (child.nodeType == Util.Node.TEXT_NODE) {
+						if (!pattern.test(child.data)) {
+							return false;
+						}
+					}
+				}
+				
+				return true;
+			},
+			action: remove_node
+		},
+		{
 			description : 'Remove all classes that include Mso (from Word) or O (from Powerpoint) in them.',
-			test : function(node) { return has_class(node, ['O', 'Mso']); },
-			action : remove_class
+			test : is_element,
+			action : function strip_ms_office_classes(node)
+			{
+				var office_pattern = /^(Mso|O)/;
+				var classes = Util.Element.get_class_array(node);
+				var length = classes.length;
+				
+				for (var i = 0; i < length; i++) {
+					if (office_pattern.test(classes[i]))
+						classes.splice(i, 1); // remove the class
+				}
+				
+				if (classes.length != length)
+					Util.Element.set_class_array(node, classes);
+			}
+		},
+		{
+			description: 'Remove Microsoft Word section DIV\'s',
+			test: function is_ms_word_section_div(node) {
+				if (!has_tagname(node, ['DIV']))
+					return false;
+			
+				var pattern = /^Section\d+$/;
+				var classes = Util.Element.get_class_array(node);
+				
+				for (var i = 0; i < classes.length; i++) {
+					if (!pattern.test(classes[i]))
+						return false;
+				}
+				
+				return true;
+			},
+			action: remove_tag
 		},
 		{
 			description : 'Remove all miscellaneous bad tags.',
@@ -272,11 +348,6 @@ UI.Clean.clean = function(root, settings)
 				*/
 				remove_tag(node);
 			}
-		},
-		{
-			description : 'Remove all tags that have Office namespace prefixes.',
-			test : function(node) { return has_prefix(node, ['o', 'O', 'w', 'W', 'st1', 'ST1']); },
-			action : remove_tag
 		},
 		{
 			description : 'Remove width and height attrs on images and tables.',
