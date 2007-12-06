@@ -484,21 +484,35 @@ Util.Range.is_at_beg_of_text = function is_range_of_beginning_of_text(rng)
 	return (rng.startContainer.nodeType == Util.Node.TEXT_NODE && rng.startOffset == 0);
 }
 
+/**
+ * @see Util.Range.surrounded_by_node
+ */
 Util.Range.intersects_node = function range_intersects_node(rng, node)
 {
+	var doc = node.ownerDocument;
+	var node_rng;
+	
 	if (Util.is_function(rng.intersectsNode)) { // Gecko < 1.9
 		return rng.intersectsNode(node);
-	} else if (Util.is_function(node.ownerDocument.createRange)) { // W3C
-		var node_range = node.ownerDocument.createRange();
+	} else if (Util.is_function(doc.createRange)) { // W3C
+		node_rng = doc.createRange();
 		
 		try {
-			node_range.selectNode(node);
+			node_rng.selectNode(node);
 		} catch (e) {
-			node_range.selectNodeContents(node);
+			node_rng.selectNodeContents(node);
 		}
 		
-		return (range.compareBoundaryPoints(Range.END_TO_START, node_range) == -1
-			&& range.compareBoundaryPoints(Range.START_TO_END, node_range) == 1);
+		return (rng.compareBoundaryPoints(Range.END_TO_START, node_rng) == -1
+			&& rng.compareBoundaryPoints(Range.START_TO_END, node_rng) == 1);
+	} else if (Util.is_function(doc.body.createTextRange)) {
+		// This *might* work. -Eric
+		
+		node_rng = doc.body.createTextRange();
+		node_rng.moveToNodeText(node);
+		
+		return (rng.compareEndPoints('EndToStart', node_rng) == -1 &&
+			rng.compareEndPoints('StartToEnd', node_rng) == 1);
 	} else {
 		throw new Util.Unsupported_Error('testing whether a node intersects ' +
 			' a range');
@@ -661,12 +675,44 @@ Util.Range.select_node_contents = function(rng, node)
 };
 
 /**
+ * Determines whether or not the range is entirely surrounded by the given
+ * element.
+ * @param {Range}	rng	range
+ * @param {Element}	elem	element
+ */
+Util.Range.surrounded_by_node = 
+	function range_surrounded_by_node(rng, elem)
+{
+	var n_rng;
+	var doc = elem.ownerDocument;
+	
+	if (Util.is_function(doc.createRange)) {
+		n_rng = doc.createRange();
+		n_rng.selectNode(elem);
+	} else if (Util.is_function(doc.body.createTextRange)) {
+		n_rng = doc.body.createTextRange();
+		n_rng.moveToNodeText(elem);
+	}
+	
+	Util.Range.START_TO_START = 2;
+	Util.Range.START_TO_END = 3;
+	Util.Range.END_TO_START = 4;
+	Util.Range.END_TO_END = 5;
+	Util.Range.LEFT = -1;
+	Util.Range.SAME = 0;
+	Util.Range.RIGHT = 1;
+	
+	return (Util.Range.compare_boundary_points(rng, n_rng, START_TO_START) >= 0
+		&& Util.Range.compare_boundary_points(rng, n_rng, END_TO_END) <= 0);
+}
+
+/**
  * Gets all blocks that this range encompasses in whole or part,
  * but that do not surround the range. In other words, gets the 
  * blocks that you probably intend to work on when performing a 
  * block-level operation on a range.
  */
-Util.Range.get_intersecting_blocks = function(rng)
+Util.Range.get_intersecting_blocks = function get_range_intersecting_blocks(rng)
 {
 	// INIT
 
