@@ -37,6 +37,8 @@ UI.Semantic_Element_Masseuse = function(loki, unsemantic_name, semantic_name,
 		
 		if (make_fake)
 			replacement.setAttribute('loki:fake', 'true');
+		else
+			replacement.removeAttribute('loki:fake'); // not redundant
 		
 		while (element.firstChild != null) {
 			replacement.appendChild(element.removeChild(element.firstChild));
