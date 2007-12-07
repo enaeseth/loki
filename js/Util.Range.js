@@ -615,62 +615,19 @@ Util.Range.compare_boundary_points =
 /**
  * A good explanation of what this does from <http://www.dotvoid.com/view.php?id=11>:
  * 
- * Sets the startContainer and endContainer to the supplied refNode node 
+ * Sets the startContainer and endContainer to the supplied node 
  * with a startOffset of 0 and an endOffset of the number of child nodes 
  * the node contains or the number of characters that the node contains.
  */
-Util.Range.select_node_contents = function(rng, node)
+Util.Range.select_node_contents = function range_select_node_contents(rng, node)
 {
-	try // Gecko
-	{
+	if (Util.is_function(rng.selectNodeContents)) {
 		rng.selectNodeContents(node);
-	}
-	catch(e) // IE
-	{
-		// XXX This seems to more or less work ... but I'm don't think it's actually the
-		// same as for Gecko--could cause problems later.
-		try
-		{
-			mb('Util.Range.select_node_contents: rng, node', [rng, node]);
-			try // only works for elements that actually have text
-			{
-				// Taken, superficially modified, from 
-				// <http://codespeak.net/pipermail/kupu-checkins/2004-May/001269.html>:
-				//
-				// select the contents of a node:
-				// a bit nasty, when moveToElementText is called it will move the selection start
-				// to just before the element instead of inside it, and since IE doesn't reserve
-				// an index for the element itself as well the way to get it inside the element is
-				// by moving the start one pos and then moving it back (yuck!)
-				rng.moveToElementText(node);
-				/*
-				rng.moveStart('character', 1);
-				rng.moveStart('character', -1);
-				rng.moveEnd('character', -1);
-				rng.moveEnd('character', 1);
-				*/
-				mb('Util.Range.select_node_contents: moveToElementText succeeded');
-			}
-			catch(g) // works for other nodes
-			{
-				mb('Util.Range.select_node_contents: moveToElementText failed: ' + g.message);
-				/// copied from Util.Selection.select_node
-				// XXX this does not actually select anything:
-				if (node.createTextRange != null)
-					var rng = node.createTextRange();
-				else if (node.ownerDocument.body.createControlRange != null)
-					var rng = node.ownerDocument.body.createControlRange();
-				else
-					throw('Util.Selection.select_node_contents: node has neither createTextRange() nor createControlRange()--absolutely everything has failed.');
-			}
-		}
-		catch(f)
-		{
-			alert('error in Util.Range.select_node_contents: ' + f.message);
-			throw('Util.Range.select_node_contents(): Neither the W3C nor the IE way worked. ' +
-				  'When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-				  'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.');
-		}
+	} else if (Util.is_function(rng.moveToElementText)) {
+		rng.moveToElementText(node);
+	} else {
+		throw new Util.Unsupported_Error("selecting a node's contents with a " +
+			"range");
 	}
 };
 
@@ -688,19 +645,21 @@ Util.Range.surrounded_by_node =
 	
 	if (Util.is_function(doc.createRange)) {
 		n_rng = doc.createRange();
-		n_rng.selectNode(elem);
+		try {
+			n_rng.selectNode(node);
+		} catch (e) {
+			n_rng.selectNodeContents(node);
+		}
 	} else if (Util.is_function(doc.body.createTextRange)) {
 		n_rng = doc.body.createTextRange();
 		n_rng.moveToNodeText(elem);
+	} else {
+		throw new Util.Unsupported_Error('checking if a range is entirely ' +
+			'enclosed by an element');
 	}
 	
-	Util.Range.START_TO_START = 2;
-	Util.Range.START_TO_END = 3;
-	Util.Range.END_TO_START = 4;
-	Util.Range.END_TO_END = 5;
-	Util.Range.LEFT = -1;
-	Util.Range.SAME = 0;
-	Util.Range.RIGHT = 1;
+	var START_TO_START = Util.Range.START_TO_START;
+	var END_TO_END = Util.Range.END_TO_END;
 	
 	return (Util.Range.compare_boundary_points(rng, n_rng, START_TO_START) >= 0
 		&& Util.Range.compare_boundary_points(rng, n_rng, END_TO_END) <= 0);
