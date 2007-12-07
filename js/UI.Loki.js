@@ -597,7 +597,7 @@ UI.Loki = function Loki(settings)
 	 */
 	function finish_ui_creation(switching_from_source)
 	{
-		try {
+		//try {
 			var iframe = self.iframe;
 			var ready = (iframe && iframe.contentWindow &&
 				iframe.contentWindow.document &&
@@ -641,6 +641,7 @@ UI.Loki = function Loki(settings)
 				// If even that doesn't work, revert all the way back to having
 				// the original textarea without any of our UI.
 				editor_root.parentNode.replaceChild(textarea, editor_root);
+				throw desperation;
 			}
 			
 			throw e;
@@ -708,9 +709,7 @@ UI.Loki = function Loki(settings)
 		function add_groups()
 		{
 			lock.acquire();
-			acquired = true;
 			try {
-				
 				Util.Object.enumerate(capabilities, function(k, cap) {
 					cap.add_menu_items(menu);
 				});
@@ -752,14 +751,13 @@ UI.Loki = function Loki(settings)
 		}
 		
 		if (form) {
-			Util.Event.add_event_listener(form, 'submit',
-				Util.Event.listener(stage_html));
+			Util.Event.observe(form, 'submit', stage_html);
 		}
 	}
 	
 	function listen_for_context_changes(switching_from_source)
 	{
-		['click', 'keyup'].each(function register_cc_listener(ev_type) {
+		['mouseup', 'keyup'].each(function register_cc_listener(ev_type) {
 			Util.Event.observe(self.document, ev_type, context_changed);
 		});
 		
@@ -787,7 +785,15 @@ UI.Loki = function Loki(settings)
 	 */
 	this.toString = function loki_to_string()
 	{
-		return "[UI.Loki for " + (area.id || area.name) + "]";
+		return "[object UI.Loki for " + (area.id || area.name) + "]";
+	}
+	
+	/**
+	 * @ignore
+	 */
+	this.toSource = function loki_to_source()
+	{
+		return "(new UI.Loki(" + settings.toSource() + "))";
 	}
 }
 
