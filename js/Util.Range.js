@@ -646,9 +646,9 @@ Util.Range.surrounded_by_node =
 	if (Util.is_function(doc.createRange)) {
 		n_rng = doc.createRange();
 		try {
-			n_rng.selectNode(node);
+			n_rng.selectNode(elem);
 		} catch (e) {
-			n_rng.selectNodeContents(node);
+			n_rng.selectNodeContents(elem);
 		}
 	} else if (Util.is_function(doc.body.createTextRange)) {
 		n_rng = doc.body.createTextRange();
