@@ -597,7 +597,7 @@ UI.Loki = function Loki(settings)
 	 */
 	function finish_ui_creation(switching_from_source)
 	{
-		//try {
+		try {
 			var iframe = self.iframe;
 			var ready = (iframe && iframe.contentWindow &&
 				iframe.contentWindow.document &&
@@ -641,7 +641,8 @@ UI.Loki = function Loki(settings)
 				// If even that doesn't work, revert all the way back to having
 				// the original textarea without any of our UI.
 				editor_root.parentNode.replaceChild(textarea, editor_root);
-				throw desperation;
+				// Don't throw this inner exception; just throw the original
+				// reason why the UI couldn't be created.
 			}
 			
 			throw e;
