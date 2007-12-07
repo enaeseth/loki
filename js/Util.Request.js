@@ -1,6 +1,5 @@
 /**
  * @class  Asynchronus HTTP requests (an XMLHttpRequest wrapper).
- *         Deprecates Util.HTTP_Reader.
  * @author Eric Naeseth
  */
 Util.Request = function(url, options)
