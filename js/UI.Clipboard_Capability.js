@@ -108,20 +108,17 @@ UI.Clipboard_Capability = function Clipboard(loki)
 		group.add_item(new UI.Menu.Item('Paste', [this, 'paste']));
 	}
 	
-	var get_selection = this.get_selection;
-	
 	this.cut = function cut()
 	{
 		this.copy();
-		Util.Range.delete_contents(Util.Range.create_range(get_selection()));
+		Util.Range.delete_contents(loki.get_selected_range());
 		loki.focus();
 	}
 	
 	this.copy = function copy()
 	{
 		// Get the HTML being copied
-		var sel = get_selection();
-		var rng = Util.Range.create_range(sel);
+		var rng = loki.get_selected_range();
 		var html = Util.Range.get_html(rng);
 		
 		// Unmassage and clean the HTML
@@ -152,8 +149,7 @@ UI.Clipboard_Capability = function Clipboard(loki)
 	
 	this.paste = function paste()
 	{
-		var sel = get_selection();
-		var rng = Util.Range.create_range(sel);
+		var rng = loki.get_selected_range();
 		
 		function clean(html)
 		{

@@ -109,8 +109,7 @@ UI.Link_Capability = function Links(loki)
 		var a_tag;
 		
 		// If the selection is inside an existing link, select that link.
-		var sel = this.get_selection();
-		var rng = Util.Range.create_range(sel);
+		var rng = loki.get_selected_range();
 		var ancestor =
 			Util.Range.get_nearest_ancestor_element_by_tag_name(rng, 'A');
 		
@@ -160,14 +159,13 @@ UI.Link_Capability = function Links(loki)
 			// selected (such that if you click the anchor toolbar button
 			// again without moving the selection at all first, the new
 			// link is not recognized).
-			Util.Selection.collapse(this.get_selection(), false); // to end
+			Util.Selection.collapse(loki.get_selection(), false); // to end
 		}
 	}
 	
 	function get_selected_link()
 	{
-		var sel = Util.Selection.get_selection(loki.window);
-		var rng = Util.Range.create_range(sel);
+		var rng = loki.get_selected_range();
 		var ancestor = Util.Range.get_nearest_ancestor_element_by_tag_name(rng, 'A');
 		
 		// (Maybe temporary) hack for IE, because the above doesn't work for 

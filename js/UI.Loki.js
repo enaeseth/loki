@@ -41,6 +41,9 @@ UI.Loki = function Loki(settings)
 	var dh; // document helper for this.owner_document
 	var self = this;
 	
+	var selection;
+	var selected_range;
+	
 	/**
 	 * Returns the HTML of the document currently being edited.
 	 *
@@ -228,10 +231,36 @@ UI.Loki = function Loki(settings)
 	 * Focuses on the Loki editing window.
 	 * @type void
 	 */
-	this.focus = function focus()
+	this.focus = function focus_on_loki()
 	{
 		if (this.window)
 			this.window.focus();
+	}
+	
+	/**
+	 * Gets the current selection object of the Loki editing window.
+	 * @type Selection
+	 */
+	this.get_selection = function get_loki_selection()
+	{
+		if (!selection) {
+			selection = Util.Selection.get_selection(this.window);
+		}
+		
+		return selection;
+	}
+	
+	/**
+	 * Gets the range that is currently selected in the Loki editing window.
+	 * @type Range
+	 */
+	this.get_selected_range = function get_loki_selected_range()
+	{
+		if (!selected_range) {
+			selected_range = Util.Range.create_range(this.get_selection());
+		}
+		
+		return selected_range;
 	}
 	
 	this.exec_command = function exec_command(command, iface, value)
@@ -740,6 +769,10 @@ UI.Loki = function Loki(settings)
 	
 	function context_changed()
 	{
+		// Invalidate selection and selected range.
+		selection = null;
+		selected_range = null;
+		
 		var len = context_aware_capabilities.length;
 		for (var i = 0; i < len; i++) {
 			context_aware_capabilities[i].context_changed();
@@ -754,7 +787,7 @@ UI.Loki = function Loki(settings)
 	 */
 	this.toString = function loki_to_string()
 	{
-		return "[UI.Loki " + area + "]";
+		return "[UI.Loki for " + (area.id || area.name) + "]";
 	}
 }
 

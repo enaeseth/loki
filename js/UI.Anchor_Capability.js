@@ -47,8 +47,7 @@ UI.Anchor_Capability = function Anchors(loki)
 	
 	this._select = function select(anchor)
 	{
-		var sel = this.get_selection();
-		Util.Selection.select_node(sel, anchor);
+		Util.Selection.select_node(loki.get_selection(), anchor);
 	}
 	
 	this.activate = function activate(first_time)
@@ -101,7 +100,7 @@ UI.Anchor_Capability = function Anchors(loki)
 	this.insert_anchor = function insert_anchor(info)
 	{
 		var dummy = this.create_placeholder(info);
-		var sel = this.get_selection();
+		var sel = loki.get_selection();
 		Util.Selection.collapse(sel, /* to its beginning */ true);
 		Util.Selection.paste_node(sel, dummy);
 	}
@@ -116,7 +115,7 @@ UI.Anchor_Capability = function Anchors(loki)
 		}
 		
 		// Move cursor.
-		var sel = this.get_selection();
+		var sel = loki.get_selection();
 		Util.Selection.select_node(sel, anchor);
 		Util.Selection.collapse(sel, /* to its end */ false);
 		
@@ -126,7 +125,7 @@ UI.Anchor_Capability = function Anchors(loki)
 	
 	this.get_selected_anchor_placeholder = function get_sel_anchor_placeholder()
 	{
-		var range = Util.Range.create_range(this.get_selection());
+		var range = loki.get_selected_range();
 		
 		var img = Util.Range.get_nearest_ancestor_element_by_tag_name(range,
 			'IMG');
