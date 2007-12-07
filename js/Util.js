@@ -39,7 +39,7 @@ var Util = {
 	is_valid_object: function is_non_null_object()
 	{
 		for (var i = 0; i < arguments.length; i++) {
-			if (typeof(objects[i]) != 'object' || objects[i] == null)
+			if (typeof(arguments[i]) != 'object' || arguments[i] == null)
 				return false;
 		}
 		
@@ -54,7 +54,7 @@ var Util = {
 	is_null: function is_null()
 	{
 		for (var i = 0; i < arguments.length; i++) {
-			if (objects[i] != null)
+			if (arguments[i] != null)
 				return false;
 		}
 		
@@ -64,7 +64,7 @@ var Util = {
 	is_blank: function is_blank()
 	{
 		for (var i = 0; i < arguments.length; i++) {
-			if (typeof(objects[i]) != 'undefined' || objects[i] != null)
+			if (typeof(arguments[i]) != 'undefined' || arguments[i] != null)
 				return false;
 		}
 		
