@@ -15,10 +15,18 @@ Util.Element = {
 				'provided to Util.Element.get_computed_style.');
 		}
 		
+		if (!elem.nodeType || elem.nodeType != Util.Node.ELEMENT_NODE) {
+			throw new TypeError('An element node must be provided to ' + 
+				'Util.Element.get_computed_style');
+		}
+		
 		if (Util.is_function(window.getComputedStyle)) {
 			return window.getComputedStyle(elem, null);
-		} else {
+		} else if (Util.is_valid_object(elem.currentStyle)) {
 			return elem.currentStyle;
+		} else {
+			throw new Util.Unsupported_Error('getting an element\'s computed ' +
+				'style');
 		}
 	},
 	
