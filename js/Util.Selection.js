@@ -13,7 +13,7 @@ Util.Selection.TEXT_TYPE = 2;
  */
 Util.Selection.get_selection = function get_window_selection(window_obj)
 {
-	if (typeof(window_obj) != 'object') {
+	if (!Util.is_valid_object(window_obj)) {
 		throw new TypeError('Must pass an object to get_selection().');
 	}
 	
@@ -70,46 +70,6 @@ Util.Selection.paste_node = function paste_node_at_selection(sel, new_node)
 	}
 };
 
-Util.Selection.paste_node__experimental_do_not_use = function(sel, to_be_inserted)
-{
-	//var range = this._create_range(sel);
-	var range = Util.Range.create_range(sel);
-	// remove the current selection
-	sel.removeAllRanges();
-	range.deleteContents();
-	var node = range.startContainer;
-	var pos = range.startOffset;
-	//range = this._create_range();
-	//var range = Util.Range.create_range(sel);
-	range = node.ownerDocument.createRange();
-	switch (node.nodeType)
-	{
-	case 3: // Node.TEXT_NODE
-			// we have to split it at the caret position.
-		if (to_be_inserted.nodeType == 3)
-		{
-			// do optimized insertion
-			node.insertData(pos, to_be_inserted.data);
-			range.setEnd(node, pos + to_be_inserted.length);
-			range.setStart(node, pos + to_be_inserted.length);
-		}
-		else
-		{
-			node = node.splitText(pos);
-			node.parentNode.insertBefore(to_be_inserted, node);
-			range.setStart(node, 0);
-			range.setEnd(node, 0);
-		}
-		break;
-	case 1: // Node.ELEMENT_NODE
-		node = node.childNodes[pos];
-		node.parentNode.insertBefore(to_be_inserted, node);
-		range.setStart(node, 0);
-		range.setEnd(node, 0);
-		break;
-	}
-	sel.addRange(range);
-};
 /**
  * Removes all ranges from the given selection.
  *
@@ -146,7 +106,7 @@ Util.Selection.select_range = function(sel, rng)
 	// Mozilla
 	try
 	{
-		sel.removeAllRanges(); // should this be here? (yes, I think)
+		sel.removeAllRanges();
 		sel.addRange(rng);
 	}
 	catch(e)
