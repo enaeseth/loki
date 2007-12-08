@@ -636,6 +636,7 @@ Util.Range.select_node_contents = function range_select_node_contents(rng, node)
  * element.
  * @param {Range}	rng	range
  * @param {Element}	elem	element
+ * @type boolean
  */
 Util.Range.surrounded_by_node = 
 	function range_surrounded_by_node(rng, elem)
@@ -663,6 +664,39 @@ Util.Range.surrounded_by_node =
 	
 	return (Util.Range.compare_boundary_points(rng, n_rng, START_TO_START) >= 0
 		&& Util.Range.compare_boundary_points(rng, n_rng, END_TO_END) <= 0);
+}
+
+/**
+ * Determines whether or not the range contains the entirety of the given node.
+ * @param {Range}	rng	range
+ * @param {Node}	node	node
+ * @type boolean
+ */
+Util.Range.contains_node = function range_contains_node(rng, node)
+{
+	var n_rng;
+	var doc = node.ownerDocument;
+	
+	if (Util.is_function(doc.createRange)) {
+		n_rng = doc.createRange();
+		try {
+			n_rng.selectNode(node);
+		} catch (e) {
+			n_rng.selectNodeContents(node);
+		}
+	} else if (Util.is_function(doc.body.createTextRange)) {
+		n_rng = doc.body.createTextRange();
+		n_rng.moveToNodeText(node);
+	} else {
+		throw new Util.Unsupported_Error('checking if a node is entirely ' +
+			'enclosed by a range');
+	}
+	
+	var START_TO_START = Util.Range.START_TO_START;
+	var END_TO_END = Util.Range.END_TO_END;
+	
+	return (Util.Range.compare_boundary_points(n_rng, rng, START_TO_START) >= 0
+		&& Util.Range.compare_boundary_points(n_rng, rng, END_TO_END) <= 0);
 }
 
 /**
