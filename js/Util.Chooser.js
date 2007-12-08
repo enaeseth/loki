@@ -3,6 +3,7 @@
  * @class Allows items and sets of those items to be easily chosen using
  * a simple string selector.
  * @constructor
+ * @author Eric Naeseth
  */
 Util.Chooser = function Chooser()
 {
@@ -100,6 +101,8 @@ Util.Chooser = function Chooser()
 		
 		this.items[name] = item;
 		this.sets.all.push(name);
+		
+		return item;
 	}
 	
 	/**

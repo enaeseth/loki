@@ -1,6 +1,7 @@
 /**
  * @class Manages the collection of Loki's capabilities.
  * @author Eric Naeseth
+ * @extends Util.Chooser
  */
 UI.Capabilities = new Util.Chooser();
 
@@ -17,15 +18,6 @@ UI.Capabilities._add_bundled = function add_bundled_capabilities()
 	//          of bundled capabilities and/or sets. Do not edit them.
 	//          Do not insert whitespace lines in the magic.
 	
-	if (this._bundled_capabilities_added)
-		return;
-		
-	// Add the inherent capabilities. Note that these *must* exist outside
-	// the magic zone below.
-	this.inherent_abilities = {
-		'paragraphs': UI.Paragraphifier
-	};
-	
 	// ----- BEGIN BUNDLED CAPABILITIES -----
 	this.add('bold', UI.Bold_Capability);
 	this.add('italic', UI.Italic_Capability);
@@ -33,6 +25,7 @@ UI.Capabilities._add_bundled = function add_bundled_capabilities()
 	this.add('headings', UI.Heading_Capability);
 	this.add('pre', UI.Preformatting_Capability);
 	this.add('clipboard', UI.Clipboard_Capability);
+	this.add('styles', UI.Style_Capability);
 	this.add('links', UI.Link_Capability);
 	this.add('anchors', UI.Anchor_Capability);
 	this.add('source', UI.Source_Capability);
@@ -40,8 +33,6 @@ UI.Capabilities._add_bundled = function add_bundled_capabilities()
 	
 	// ----- BEGIN BUNDLED SETS -----
 	this.put_set('default', ['bold', 'italic', 'headings', 'clipboard',
-		'links', 'anchors']);
+		'styles', 'links', 'anchors']);
 	// ----- END BUNDLED SETS -----
-	
-	this._bundled_capabilities_added = true;
 };
