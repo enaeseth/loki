@@ -79,7 +79,7 @@ UI.Bubble = function Bubble(loki)
 		var bubble = this;
 		var l = this._create_element_ns('a', {
 			className: 'loki__bubble__action',
-			href: '#',
+			href: '#'
 		}, [text]);
 		
 		Util.Event.observe(l, 'click', function bubble_action_link_clicked(e) {

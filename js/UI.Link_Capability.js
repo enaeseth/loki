@@ -71,7 +71,7 @@ UI.Link_Capability = function Links(loki)
 			sites_feed: loki.settings.sites_feed,
 			finder_feed: loki.settings.finder_feed,
 			default_site_regexp: loki.settings.default_site_regexp,
-			default_type_regexp: loki.settings.default_type_regexp,
+			default_type_regexp: loki.settings.default_type_regexp
 		});
 		
 		dialog.open();
