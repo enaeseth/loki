@@ -19,11 +19,58 @@ Util.Range = function()
  */
 Util.Range.create_range = function create_range_from_selection(sel)
 {
-	if (typeof(sel.getRangeAt) == 'function')
-		return sel.getRangeAt(0);
-	else if (typeof(sel.createRange) == 'function')
+	// Safari only provides ranges for non-collapsed selections, but still
+	// populates the (anchor|focus)(Node|Offset) properties of the selection.
+	// Using this, if necessary, we can build our own range object.
+	
+	if (Util.is_function(sel.getRangeAt) && Util.is_number(sel.rangeCount)) {
+		if (sel.rangeCount > 0) {
+			return sel.getRangeAt(0);
+		}
+		
+		// Try and roll our own.
+		if (sel.anchorNode && sel.anchorNode.ownerDocument.createRange) {
+			var doc = sel.anchorNode.ownerDocument;
+			var range = doc.createRange();
+			
+			// The old Netscape selection object and DOM Range objects differ in
+			// how they class the boundaries of the span of nodes. Selections
+			// look at where the user started and finished dragging the mouse
+			// while ranges look at which end is actually prior to the other in
+			// the document. Because it is an error to set the start and end
+			// "backwards" on a DOM range, we have to determine this manually.
+			
+			function create_range(node, offset)
+			{
+				var r = doc.createRange();
+				r.setStart(node, offset);
+				r.collapse(true);
+				return r;
+			}
+			
+			var anchor_rng = create_range(sel.anchorNode, sel.anchorOffset);
+			var focus_rng = create_range(sel.focusNode, sel.focusOffset);
+			
+			var natural = anchor_rng.compareBoundaryPoints(Range.START_TO_END,
+				focus_range) < 0;
+			
+			if (natural) {
+				range.setStart(sel.anchorNode, sel.anchorOffset);
+				range.setEnd(sel.focusNode, sel.focusOffset);
+			} else {
+				range.setStart(sel.focusNode, sel.focusOffset);
+				range.setEnd(sel.anchorNode, sel.anchorOffset);
+			}
+			
+			return range;
+		} else {
+			throw new Util.Unsupported_Error('getting a range from a ' +
+				'collapsed selection');
+		}
+	} else if (typeof(sel.createRange) == 'function') {
+		// Internet Explorer TextRange
 		return sel.createRange();
-	else {
+	} else {
 		throw new Util.Unsupported_Error('creating a range from a selection');
 	}
 };
@@ -345,17 +392,12 @@ Util.Range.get_nearest_bl_ancestor_element =
 Util.Range.get_nearest_ancestor_node =
 	function get_nearest_ancestor_node_of_range(rng, boolean_test)
 {
-	//var ancestor = Util.Range.get_common_ancestor(rng);
+	// XXX: Do we really want this? -Eric
 	var ancestor = Util.Range.get_start_container(rng);
-	if (boolean_test(ancestor))
-	{
+	
+	if (boolean_test(ancestor)) {
 		return ancestor;
-	}
-	else
-	{
-		//messagebox("Util.Range.get_nearest_ancestor_node: just before recursing with boolean_test; <br />\n" +
-			  //"ancestor.outerHTML is " + ancestor.outerHTML + "<br />\n" +
-			  //"ancestor == null is " + (ancestor == null ? 'true' : 'false'));
+	} else {
 		return Util.Node.get_nearest_ancestor_node(ancestor, boolean_test);
 	}
 };
@@ -371,11 +413,11 @@ Util.Range.get_nearest_ancestor_node =
 Util.Range.get_nearest_ancestor_element_by_tag_name =
 	function get_nearest_ancestor_element_of_range_by_tag_name(rng, tag_name)
 {
-	var boolean_test = function(node)
+	function boolean_test(node)
 	{
 		return (node.nodeType == Util.Node.ELEMENT_NODE &&
 			     node.tagName == tag_name);
-	};
+	}
 	return Util.Range.get_nearest_ancestor_node(rng, boolean_test);
 };
 
