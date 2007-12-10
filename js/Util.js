@@ -69,5 +69,5 @@ var Util = {
 		}
 		
 		return true;
-	},
+	}
 };
