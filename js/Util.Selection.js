@@ -236,6 +236,9 @@ Util.Selection.collapse = function(sel, to_start)
  */
 Util.Selection.is_collapsed = function(sel)
 {
+	if (!Util.is_undefined(sel.isCollapsed))
+		return sel.isCollapsed;
+	
 	var rng;
 	
 	try {
