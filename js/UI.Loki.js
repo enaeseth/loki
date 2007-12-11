@@ -793,12 +793,9 @@ UI.Loki = function Loki(settings)
 			return node;
 		}
 		
-		var target;
-		if (!body.hasChildNodes()) {
-			target = create_initial_paragraph();
-		} else {
-			target = find_target();
-		}
+		var target = (!body.hasChildNodes())
+			? create_initial_paragraph()
+			: find_target();
 		
 		var range;
 		if (Util.is_function(self.document.createRange)) {
@@ -824,7 +821,7 @@ UI.Loki = function Loki(settings)
 			// Retrieve the currently selected range. We must do this here
 			// because of a fact about Safari (at least Safari/Mac): when the
 			// editing document does not have focus, we cannot access its
-			// selection in any meaningful way: we can't get the anchor or focus
+			// selection in any meaningful way; we can't get the anchor or focus
 			// nodes or access any ranges. To work around this, we use the new
 			// design of Loki that caches the selection and range to our
 			// advantage: we retrieve the selected range in this event
