@@ -57,7 +57,7 @@ if (!defined('LOKI_2_PATH')) {
 class Loki2
 {
 	var $_asset_path;
-	var $_current_options;
+	var $_current_options = 'default';
 
 	var $_field_name;
 	var $_field_value;
@@ -65,6 +65,7 @@ class Loki2
 	var $_editor_obj;
 	var $_user_is_admin;
 	var $_feeds = array();
+	var $_styles = null;
 	var $_default_site_regexp = '';
 	var $_default_type_regexp = '';
 	var $_sanitize_unsecured = false;
@@ -117,6 +118,16 @@ class Loki2
 	function set_feed($feed_name, $feed_url)
 	{
 		$this->_feeds[$feed_name] = $feed_url;
+	}
+	
+	/**
+	 * Sets the included paragraph styles.
+	 * @param	string	$selector	Paragraph style selector string
+	 * @return void
+	 */
+	function set_styles($selector)
+	{
+		$this->_styles = $selector;
 	}
 
 	/**
@@ -206,6 +217,7 @@ class Loki2
 						use_xhtml : true,
 						<?php $this->_bool_param('sanitize_unsecured') ?>,
 						<?php $this->_bool_param('monopolize_clipboard') ?>,
+						<?php $this->_o_string_param('styles') ?>
 						capabilities : <?php echo '"', addslashes($options_str), '"' ?>,
 						allowable_tags : <?php echo $this->_js_allowable_tags() ?>
 					};
@@ -457,6 +469,15 @@ class Loki2
 		$value = $this->$var;
 		
 		echo $which.' : '.(($value) ? 'true' : 'false');
+	}
+	
+	function _o_string_param($which)
+	{
+		$var = '_'.$which;
+		
+		if (!empty($this->$var)) {
+			echo $which.' : "'.addslashes($this->$var).'",';
+		}
 	}
 }
 ?>
