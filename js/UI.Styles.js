@@ -22,7 +22,9 @@ UI.Styles.add = (function extend(add_to_chooser) {
 			identifier: identifier,
 			name: name,
 			tag: tag.toUpperCase(),
-			classes: options.classes || [],
+			classes: (Util.is_string(options.classes)
+				? options.classes.split(/\s+/)
+				: options.classes || []),
 			category: options.category || null,
 			nestable: !!options.nestable,
 			
