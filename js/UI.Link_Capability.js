@@ -16,6 +16,10 @@ UI.Link_Capability = function Links(loki)
 		
 		materialize: function materialize_link_bubble(body, link)
 		{
+			var bub_link = this._link(link.title || link.href, link.href);
+			if (link.title)
+				bub_link.title = link.href;
+			
 			this.link = link;
 			
 			function add(e) {
@@ -23,7 +27,7 @@ UI.Link_Capability = function Links(loki)
 			}
 			
 			add(this._text('Link to: '));
-			add(this._link(link.title || link.href, link.href));
+			add(bub_link);
 			add(this._separator());
 			add(this._action('Edit', 'execute', cap));
 			add(this._separator());
@@ -116,18 +120,12 @@ UI.Link_Capability = function Links(loki)
 		if (ancestor && ancestor.href) {
 			a_tag = ancestor;
 		} else {
-			loki.exec_command('CreateLink', false, 'http://temporary/');
+			loki.exec_command('CreateLink', false, 'http://temporary.loki/');
 			
-			var sources = [Util.Range.get_common_ancestor(rng), loki.document];
-			for (var i = 0; i < sources.length; i++) {
-				var links = sources[i].getElementsByTagName('A');
-				a_tag = Util.Array.find(links, function is_the_new_link(link) {
-					return link.href == 'http://temporary/';
-				});
-				
-				if (a_tag)
-					break;
-			}
+			var links = loki.document.getElementsByTagName('A');
+			a_tag = Util.Array.find(links, function is_the_new_link(link) {
+				return link.href == 'http://temporary.loki/';
+			});
 		}
 		
 		if (!a_tag) {
@@ -182,7 +180,6 @@ UI.Link_Capability = function Links(loki)
 		{
 			ancestor = rng.parentElement();
 		}
-		
 		return ancestor;
 	}
 	
