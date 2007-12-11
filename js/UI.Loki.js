@@ -6,6 +6,7 @@
  * @class A WYSIWYG HTML editor.
  *
  * @param {object}	settings	Loki settings
+ * @see UI.Loki.replace_textarea()
  */
 UI.Loki = function Loki(settings)
 {
@@ -658,6 +659,9 @@ UI.Loki = function Loki(settings)
 		});
 	}
 	
+	/*
+	 * Creates the initial HTML document structure for the editing document.
+	 */
 	function clear_document()
 	{
 		var doc = self.document;
@@ -669,6 +673,10 @@ UI.Loki = function Loki(settings)
 		doc.close();
 	}
 	
+	/*
+	 * Adds the internal Loki document stylesheet and any stylesheets requested
+	 * by the Loki installer.
+	 */
 	function add_document_style_sheets()
 	{
 		var add = Util.Document.append_style_sheet.curry(self.document);
@@ -686,6 +694,10 @@ UI.Loki = function Loki(settings)
 		});
 	}
 	
+	/*
+	 * Connects the keybinder to actual keyboard events in the Loki editing
+	 * document.
+	 */
 	function activate_keybindings()
 	{
 		function evaluate_key_press()
@@ -697,6 +709,9 @@ UI.Loki = function Loki(settings)
 			evaluate_key_press);
 	}
 	
+	/*
+	 * Adds the necessary listeners for creating the Loki contextual menu.
+	 */
 	function activate_contextual_menu()
 	{
 		var menu = new UI.Menu(self, 'contextmenu');
@@ -730,6 +745,12 @@ UI.Loki = function Loki(settings)
 			editor_root);
 	}
 	
+	/*
+	 * Loki creates a hidden input element on the original <textarea>'s form
+	 * into which it places the HTML when the form is submitted. To do this, it
+	 * must respond to the form's submit event. This method adds an appropriate
+	 * event listener.
+	 */
 	function trap_form_submission()
 	{
 		function stage_html(ev)
@@ -738,6 +759,13 @@ UI.Loki = function Loki(settings)
 			try {
 				hidden_input.value = self.get_html();
 			} catch (ex) {
+				// If an exception occured in get_html, it almost certainly
+				// occurred during the cleanup process, and we're stuck in a
+				// quagmire because we can't submit the document. It could
+				// (and probably does) contain Loki-specific tags and attributes
+				// that would first need to be cleaned up. All we can really do
+				// is trap the form error and block the form submission.
+				
 				alert("Loki encountered an error and was unable to translate " +
 					"your document into normal HTML.\n\n" + ex);
 				Util.Event.prevent_default(ev);
@@ -814,6 +842,10 @@ UI.Loki = function Loki(settings)
 		}
 	}
 	
+	/*
+	 * Traps events caused by the user changing the document selection and
+	 * raises a context change notification. 
+	 */
 	function listen_for_context_changes(switching_from_source)
 	{
 		function handle_user_activity(event)
@@ -853,6 +885,12 @@ UI.Loki = function Loki(settings)
 		}
 	}
 	
+	/**
+	 * Informs all interested capabilities that the Loki editing context
+	 * was changed. This function should be called whenever the context changes.
+	 * @type void
+	 * @method
+	 */
 	function context_changed()
 	{
 		var len = context_aware_capabilities.length;
