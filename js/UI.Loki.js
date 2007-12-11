@@ -243,10 +243,6 @@ UI.Loki = function Loki(settings)
 	 */
 	this.get_selection = function get_loki_selection()
 	{
-		if (!selection) {
-			selection = Util.Selection.get_selection(this.window);
-		}
-		
 		return selection;
 	}
 	
@@ -256,10 +252,6 @@ UI.Loki = function Loki(settings)
 	 */
 	this.get_selected_range = function get_loki_selected_range()
 	{
-		if (!selected_range) {
-			selected_range = Util.Range.create_range(this.get_selection());
-		}
-		
 		return selected_range;
 	}
 	
@@ -622,6 +614,8 @@ UI.Loki = function Loki(settings)
 			self.body = self.document.getElementsByTagName('BODY')[0];
 			Util.Element.set_class_array(self.body,
 				settings.body_classes || []);
+				
+			selection = Util.Selection.get_selection(iframe.contentWindow);
 			
 			Util.Document.make_editable(self.document);
 			activate_capabilities(switching_from_source);
@@ -631,6 +625,7 @@ UI.Loki = function Loki(settings)
 			activate_keybindings();
 			activate_contextual_menu();
 			trap_form_submission();
+			setup_document_and_selection();
 			listen_for_context_changes(switching_from_source);
 		} catch (e) {
 			// If we were unable to fully create the Loki WYSIWYG GUI, show the
@@ -756,22 +751,103 @@ UI.Loki = function Loki(settings)
 		}
 	}
 	
+	function setup_document_and_selection()
+	{
+		var body = self.body;
+		
+		function create_initial_paragraph()
+		{
+			var p = self.document.createElement('P');
+			var text = self.document.createTextNode('');
+			p.appendChild(text);
+			body.insertBefore(p, body.firstChild);
+			return text;
+		}
+		
+		function find_target()
+		{
+			var queue = [body];
+			var node;
+			
+			while (node = queue.shift()) { // assignment intentional
+				if (node.nodeType == Util.Node.TEXT_NODE)
+					return node;
+				
+				if (node.hasChildNodes()) {
+					queue.append(node.childNodes);
+				}
+			}
+			
+			// still nothing? try finding paragraphs
+			var paras = self.document.getElementsByTagName('P');
+			node = self.document.createTextNode('');
+			if (paras && paras.length) {
+				var p = paras[0];
+				p.insertBefore(node, p.firstChild);
+			} else {
+				// no paragraphs? last resort
+				body.insertBefore(node, body.firstChild);
+			}
+			
+			return node;
+		}
+		
+		var target;
+		if (!body.hasChildNodes()) {
+			target = create_initial_paragraph();
+		} else {
+			target = find_target();
+		}
+		
+		var range;
+		if (Util.is_function(self.document.createRange)) {
+			range = self.document.createRange();
+			range.setStart(target, 0);
+			range.collapse(true);
+		} else if (Util.is_function(body.createTextRange)) {
+			range = body.createTextRange();
+			range.moveToElementText(target.parentNode);
+			range.collapse(true);
+		}
+		
+		if (range) {
+			Util.Selection.select_range(selection, range);
+			selected_range = Util.Range.create_range(selection);
+		}
+	}
+	
 	function listen_for_context_changes(switching_from_source)
 	{
+		function handle_user_activity(event)
+		{
+			// Retrieve the currently selected range. We must do this here
+			// because of a fact about Safari (at least Safari/Mac): when the
+			// editing document does not have focus, we cannot access its
+			// selection in any meaningful way: we can't get the anchor or focus
+			// nodes or access any ranges. To work around this, we use the new
+			// design of Loki that caches the selection and range to our
+			// advantage: we retrieve the selected range in this event
+			// listener when we know that the editing window has focus.
+			
+			selected_range = Util.Range.create_range(selection);
+			
+			if (event)
+				context_changed(event);
+		}
+		
 		['mouseup', 'keyup'].each(function register_cc_listener(ev_type) {
-			Util.Event.observe(self.document, ev_type, context_changed);
+			Util.Event.observe(self.document, ev_type, handle_user_activity);
 		});
 		
-		if (!switching_from_source)
+		if (!switching_from_source) {
+			self.window.focus();
+			handle_user_activity(null);
 			context_changed.delay(.05 /* 50ms */);
+		}
 	}
 	
 	function context_changed()
 	{
-		// Invalidate selection and selected range.
-		selection = null;
-		selected_range = null;
-		
 		var len = context_aware_capabilities.length;
 		for (var i = 0; i < len; i++) {
 			context_aware_capabilities[i].context_changed();

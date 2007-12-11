@@ -119,7 +119,7 @@ Util.Range.get_start_container = function get_range_start_container(rng)
 		//   (Note: if this breaks, consult the archived versions--I've
 		//   played with this a lot to get it to work right.)
 		var frag = rng.cloneContents();
-		if (frag.firstChild == frag.lastChild &&
+		if (frag && frag.firstChild == frag.lastChild &&
 			 frag.firstChild != null &&
 		     frag.firstChild.nodeType != Util.Node.TEXT_NODE &&
 			 frag.lastChild != null &&
@@ -195,7 +195,7 @@ Util.Range.get_end_container = function get_range_end_container(rng)
 		//   range if the first and last elements are identical. Previous 
 		//   versions didn't work this way.)
 		var frag = rng.cloneContents();
-		if (frag.firstChild == frag.lastChild &&
+		if (frag && frag.firstChild == frag.lastChild &&
 			 frag.firstChild != null &&
 		     frag.firstChild.nodeType != Util.Node.TEXT_NODE &&
 			 frag.lastChild != null &&

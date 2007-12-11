@@ -101,27 +101,21 @@ Util.Selection.remove_all_ranges = function(sel)
 /**
  * Sets the selection to be the current range
  */
-Util.Selection.select_range = function(sel, rng)
+Util.Selection.select_range = function select_range(sel, rng)
 {
-	// Mozilla
-	try
-	{
+	if (!Util.is_valid_object(sel)) {
+		throw new TypeError('A selection must be provided to select_range().');
+	} else if (!Util.is_valid_object(rng)) {
+		throw new TypeError('A range must be provided to select_range().');
+	}
+	
+	if (Util.is_function(sel.addRange, sel.removeAllRanges)) {
 		sel.removeAllRanges();
 		sel.addRange(rng);
-	}
-	catch(e)
-	{
-		// IE
-		try
-		{
-			rng.select();
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Selection.remove_all_ranges(): Neither the W3C nor the IE way of removing all ranges from the given selection worked. ' +
-							'When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	} else if (Util.is_function(rng.select)) {
+		rng.select();
+	} else {
+		throw new Util.Unsupported_Error('selecting a range');
 	}
 };
 
