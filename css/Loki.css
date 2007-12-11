@@ -121,11 +121,11 @@
 }
 
 .loki div.contextmenu ul .on {
-	background: url('check.gif') 3px center no-repeat;
+	background: url('../images/menu/check.gif') 3px center no-repeat;
 }
 
 .loki div.contextmenu ul .has_sub {
-	background: url('submenu.gif') right center no-repeat;
+	background: url('../images/menu/submenu.gif') right center no-repeat;
 }
 
 .loki .contextmenu ul .disabled
