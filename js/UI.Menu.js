@@ -141,7 +141,6 @@ UI.Menu = function Menu(loki, style_classes)
 			
 			if (menu.element) {
 				hide_context();
-				return Util.Event.prevent_default(event);
 			}
 			
 			if (on_show && !on_show(menu))

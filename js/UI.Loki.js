@@ -711,6 +711,7 @@ UI.Loki = function Loki(settings)
 				});
 			} catch (e) {
 				lock.release();
+				return false;
 			}
 			
 			return true;
@@ -837,6 +838,15 @@ UI.Loki = function Loki(settings)
 		
 		['mouseup', 'keyup'].each(function register_cc_listener(ev_type) {
 			Util.Event.observe(self.document, ev_type, handle_user_activity);
+		});
+		
+		// Observe mousedown so that we can detect context changes when the user
+		// clicks somewhere with the right mouse button to call up a contextual
+		// menu.
+		Util.Event.observe(self.document, 'mousedown', function mouse_down(ev) {
+			if (ev.button & 2) {
+				handle_user_activity(ev);
+			}
 		});
 		
 		if (!switching_from_source) {
