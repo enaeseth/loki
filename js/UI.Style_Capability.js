@@ -48,12 +48,17 @@ UI.Style_Capability = function Styles(loki)
 		var group = menu.add_group('Style');
 		
 		Util.Object.enumerate(styles, function add_style_menu_item(id, style) {
+			var active = (style.identifier in active_styles);
+			var state = (active)
+				? UI.Menu.STATE_ON
+				: UI.Menu.STATE_OFF;
+			
 			group.add_item(new UI.Menu.Item(style.name, [this, function() {
-				if (style.identifier in active_styles)
+				if (active)
 					this.remove(style)
 				else
 					this.apply(style);
-			}]));
+			}], {state: state}));
 		}, this);
 	}
 	
