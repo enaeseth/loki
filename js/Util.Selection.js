@@ -254,77 +254,7 @@ Util.Selection.is_collapsed = function(sel)
 		throw("Util.Selection.is_selection_collapsed: Couldn't determine whether selection is collapsed.");
 };
 
-/**
- * Gets the given selection's nearest ancestor which maches the given
- * test. (Sort of imitates FCK code.)
- *
- * @param	sel				the selection
- * @param	boolean_test	the test
- * @return					the matching ancestor, if any
- */
-Util.Selection.get_nearest_ancestor_node = function(sel, boolean_test)
-{
-	Util.Object.print_r(sel);
 
-/*
-	var container = Util.Selection.get_selected_element(sel);
-	if ( container === null )
-	{
-		try { container = sel.getRangeAt(0).startContainer; } catch(e) {}
-	}
-	
-	
-
-
-	// Gecko
-	var oContainer = this.GetSelectedElement() ;
-	if ( ! oContainer && FCK.EditorWindow )
-	{
-		try		{ oContainer = FCK.EditorWindow.getSelection().getRangeAt(0).startContainer ; }
-		catch(e){}
-	}
-
-	return false ;
-
-	// IE
-	var oContainer ;
-
-	if ( FCK.EditorDocument.selection.type == "Control" )
-	{
-		oContainer = this.GetSelectedElement() ;
-	}
-	else
-	{
-		var oRange  = FCK.EditorDocument.selection.createRange() ;
-		oContainer = oRange.parentElement() ;
-	}
-
-	while ( oContainer )
-	{
-		if ( oContainer.nodeType == 1 && oContainer.tagName == nodeTagName ) return true ;
-		oContainer = oContainer.parentNode ;
-	}
-
-
-	return false ;
-
-
-
-	var ancestor = Util.Range.get_common_ancestor(rng);
-	if ( boolean_test(ancestor) )
-	{
-		return ancestor;
-	}
-	else
-	{
-		// TEMP: commented out 2005-05-23
-		//alert("Util.Range.get_nearest_ancestor_node: just before recursing with boolean_test; \n" +
-			  //"ancestor.outerHTML is " + ancestor.outerHTML + "\n" +
-			  //"ancestor == null is " + (ancestor == null ? 'true' : 'false'));
-		return Util.Node.get_nearest_ancestor_node(ancestor, boolean_test);
-	}
-*/
-};
 
 /**
  * Returns the selected element, if any. Otherwise returns null.
