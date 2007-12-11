@@ -14,22 +14,20 @@ UI.Style_Capability = function Styles(loki)
 	var styles = UI.Styles.get(loki.settings.styles);
 	var doc_lookup_table = {};
 	
-	var range;
-	var applied_styles;
+	var selected_range;
+	var applied_styles; // The hierarchy of styles applicable in context
 	var start_container;
 	var end_container;
+	var active_styles = {}; // A flag map of the styles applicable in context
 	
-	Util.Object.enumerate(styles, function (identifier, style) {
+	Util.Object.enumerate(styles, function process_style(identifier, style) {
 		var tag = style.tag;
 		
 		if (!(tag in doc_lookup_table)) {
 			doc_lookup_table[tag] = [];
 		}
 		
-		doc_lookup_table[tag].push({
-			classes: style.classes,
-			style: style
-		});
+		doc_lookup_table[tag].push(style);
 		
 		style.chosen(loki, this);
 	}, this);
@@ -45,9 +43,18 @@ UI.Style_Capability = function Styles(loki)
 		return (applied_styles || []);
 	}
 	
-	this.activate = function activate()
-	{
+	this.add_menu_items = function add_style_menu_items(menu)
+	{		
+		var group = menu.add_group('Style');
 		
+		Util.Object.enumerate(styles, function add_style_menu_item(id, style) {
+			group.add_item(new UI.Menu.Item(style.name, [this, function() {
+				if (style.identifier in active_styles)
+					this.remove(style)
+				else
+					this.apply(style);
+			}]));
+		}, this);
 	}
 	
 	this.context_changed = function context_changed()
@@ -69,17 +76,8 @@ UI.Style_Capability = function Styles(loki)
 		start_container = get_range_container(selected_range, 'start');
 		end_container = get_range_container(selected_range, 'end');
 		
-		var queue = [start_container];
-		/*
-		while (queue.length) {
-			for (var n = queue.shift(); n; n = n.nextSibling) {
-				if (n.hasChildNodes()) {
-					queue.push(n.firstChild);
-				}
-			}
-		}
-		*/
 		applied_styles = [];
+		var new_active_styles = {};
 		for (var e = start_container; e; e = e.parentNode) {
 			var e_style = get_style(e);
 			if (!e_style)
@@ -87,6 +85,17 @@ UI.Style_Capability = function Styles(loki)
 			
 			if (Util.Range.surrounded_by_node(selected_range, e)) {
 				// We have a winner!
+				
+				if (!(e_style.identifier in new_active_styles)) {
+					if (e_style.identifier in active_styles) {
+						delete active_styles[e_style.identifier];
+					} else {
+						e_style.selected();
+					}
+					
+					new_active_styles[e_style.identifier] = true;
+				}
+				
 				applied_styles.push({
 					style: e_style,
 					container: e
@@ -94,19 +103,106 @@ UI.Style_Capability = function Styles(loki)
 			}
 		}
 		
-		console.debug(applied_styles);
-		this.apply(null);
+		// active_styles is now really the styles that were previously active
+		// but no longer are
+		for (var style_id in active_styles) {
+			styles[style_id].deselected();
+		}
+		
+		active_styles = new_active_styles;
 	}
 	
-	this.apply = function apply(style)
+	function reselect(range)
 	{
-		console.debug(collect(start_container, end_container));
+		(function reselector() {
+			Util.Selection.select_range(loki.get_selection(), range);
+		}).defer();
+	}
+	
+	function collapse_style_identifier(style)
+	{
+		if (Util.is_string(style)) {
+			if (style in styles) {
+				return styles[style];
+			} else {
+				throw new Error('No style with the identifier "' + style + '"' +
+					' is available.');
+			}
+		} else if (Util.is_valid_object(style) && Util.is_string(style.tag)) {
+			return style;
+		} else {
+			throw new Error('Please provide a valid style.');
+		}
+	}
+	
+	function find_conflicting_style(style)
+	{
+		var category = style.category;
+		
+		if (!category) {
+			// Nothing can conflict.
+			return null;
+		}
+		
+		for (var i = 0; i < applied_styles.length; i++) {
+			var applied_style = applied_styles[i].style;
+			if (applied_style != style && applied_style.category == category) {
+				return applied_styles[i];
+			}
+		}
+		
+		return null;
+	}
+	
+	function get_applied_container(style)
+	{
+		for (var i = 0; i < applied_styles.length; i++) {
+			if (applied_styles[i].style == style)
+				return applied_styles[i].container;
+		}
+		
+		return null;
+	}
+	
+	this.apply = function apply_paragraph_style(style)
+	{
+		style = collapse_style_identifier(style);
+		var conflict = find_conflicting_style(style);
+		
+		if (!conflict) {
+			wrap(collect(start_container, end_container), style);
+		} else {
+			rewrap(collect(start_container, end_container), style);
+		}
+		
+		reselect(selected_range);
+	}
+	
+	this.remove = function remove_paragraph_style(style)
+	{
+		style = collapse_style_identifier(style);
+		
+		var container = get_applied_container(style);
+		if (!container) {
+			throw new Error('The style "' + style.name + '" does not appear ' +
+				' to actually be applied.');
+		}
+		
+		rewrap(collect(start_container, end_container), null);
+		
+		reselect(selected_range);
+	}
+	
+	function is_paragraph(node)
+	{
+		return (node.nodeType == Util.Node.ELEMENT_NODE &&
+			node.nodeName == 'P');
 	}
 	
 	function get_paragraph(node)
 	{
 		for (var n = node; n != null; n = n.parentNode) {
-			if (n.nodeType == Util.Node.ELEMENT_NODE && n.nodeName == 'P')
+			if (is_paragraph(n))
 				return n;
 		}
 		
@@ -117,11 +213,6 @@ UI.Style_Capability = function Styles(loki)
 	{
 		var nodes = [];
 		
-		function is_para(n)
-		{
-			return (n.nodeType == Util.Node.ELEMENT_NODE && n.nodeName == 'P')
-		}
-		
 		function contained(node)
 		{
 			return Util.Range.contains_node(selected_range, node);
@@ -129,7 +220,7 @@ UI.Style_Capability = function Styles(loki)
 		
 		function get_next(node)
 		{
-			if (!is_para(n) && node.hasChildNodes() && !contained(node)) {
+			if (!is_paragraph(n) && node.hasChildNodes() && !contained(node)) {
 				return node.firstChild;
 			} else if (node.nextSibling) {
 				return node.nextSibling;
@@ -199,7 +290,7 @@ UI.Style_Capability = function Styles(loki)
 		var len = possibles.length;
 		var found;
 
-		var lookup;
+		var lookup = {};
 		var node_classes = Util.Element.get_class_array(node);
 		for (var c = 0; c < node_classes.length; c++) {
 			lookup[node_classes[c]] = true;
@@ -224,36 +315,6 @@ UI.Style_Capability = function Styles(loki)
 		return null;
 	}
 	
-	function get_relevant_style_container(style, node)
-	{
-		var relevant_style;
-		var info = null;
-		
-		while (node) {
-			if (node.tagName == 'BODY')
-				break;
-			
-			if (relevant_style = get_style(node)) { // assignment intentional
-				var conflicting = (relevant_style.category == style.category);
-				
-				if (conflicting || (!conflicting && !info)) {
-					info = {
-						style: relevant_style,
-						node: node,
-						conflicting: conflicting
-					};
-				}
-				
-				if (conflicting)
-					return info; // hopefully there can only be one conflict!
-			}
-			
-			node = node.parentNode;
-		}
-		
-		return info;
-	}
-	
 	/**
 	 * Creates a new container for the application of the given style.
 	 * @param {object}	style	the style
@@ -262,9 +323,14 @@ UI.Style_Capability = function Styles(loki)
 	 */
 	function create_style_container(style)
 	{
-		return Util.Document.create_element(loki.document, style.tag,
-			{className: style.classes}
-		);
+		if (!style)
+			return null;
+			
+		var props = (style.classes && style.classes.length > 0)
+			? {className: style.classes}
+			: null;
+		
+		return Util.Document.create_element(loki.document, style.tag, props);
 	}
 	
 	function wrap(elements, style)
@@ -272,7 +338,7 @@ UI.Style_Capability = function Styles(loki)
 		var new_container = create_style_container(style);
 		
 		var first_el = elements[0];
-		first_el.insertBefore(new_container, first_el);
+		first_el.parentNode.insertBefore(new_container, first_el);
 		
 		for (var i = 0; i < elements.length; i++) {
 			new_container.appendChild(elements[i]);
@@ -299,6 +365,15 @@ UI.Style_Capability = function Styles(loki)
 		{
 			for (var i = 0; i < elements.length; i++) {
 				new_container.appendChild(elements[i]);
+			}
+		}
+		
+		function add_before(target)
+		{
+			var p = target.parentNode;
+			
+			for (var i = 0; i < elements.length; i++) {
+				p.insertBefore(elements[i], target);
 			}
 		}
 		
@@ -332,25 +407,39 @@ UI.Style_Capability = function Styles(loki)
 			}
 			
 			new_container = create_style_container(style);
-			old_container.parentNode.insertBefore(new_container, old_container);
-			add_to_new();
+			if (new_container) {
+				old_container.parentNode.insertBefore(new_container,
+					old_container);
+				add_to_new();
+			} else {
+				add_before(old_container);
+			}
 		} else if (!after) {
 			// Ending at the last child of the old container.
 			
 			new_container = create_style_container(style);
-			var reference = old_container.nextSibling; // ok if null; see spec
-			old_container.parentNode.insertBefore(new_container, reference);
-			add_to_new();
+			var reference = old_container.nextSibling;
+			if (new_container) {
+				old_container.parentNode.insertBefore(new_container,
+					reference); // OK even if reference is null; see W3C spec.
+				add_to_new();
+			} else {
+				add_before(reference);
+			}
 		} else {
 			// Working somewhere in the middle of the old container.
 			
 			new_container = create_style_container(style);
 			var aft_container = old_container.cloneNode(false);
 			var reference = old_container.nextSibling; // ok if null; see spec
-			old_container.parentNode.insertBefore(new_container, reference);
-			old_container.parentNode.insertBefore(aft_container, reference);
+			if (new_container) {
+				old_container.parentNode.insertBefore(new_container, reference);
+				add_to_new();
+			} else {
+				add_before(reference);
+			}
 			
-			add_to_new();
+			old_container.parentNode.insertBefore(aft_container, reference);
 			for (var ae = after; ae; ae = ae.nextSibling) {
 				aft_container.appendChild(ae);
 			}
@@ -363,8 +452,12 @@ UI.Style_Capability = function Styles(loki)
 	{
 		if (!Util.is_valid_object(el) || !el.tagName)
 			throw new TypeError();
+			
+		if (!new_style) {
+			return remove(el);
+		}
 		
-		var new_container = create_style_container(style);
+		var new_container = create_style_container(new_style);
 		while (el.firstChild) {
 			new_container.appendChild(el.firstChild);
 		}
