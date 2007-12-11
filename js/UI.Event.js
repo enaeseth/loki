@@ -29,7 +29,7 @@ UI.Event_Target = {
 	 *						handle_event)
 	 * @type void
 	 */
-	add_event_listener: function(type, listener, context)
+	add_event_listener: function add_event_listener(type, listener, context)
 	{
 		if (!this._es_event_listeners) {
 			this._es_event_listeners = {};
@@ -53,7 +53,8 @@ UI.Event_Target = {
 	 *								registered
 	 * @type void
 	 */
-	remove_event_listener: function(type, listener, context)
+	remove_event_listener: function remove_event_listener(type, listener,
+		context)
 	{
 		if (!this._es_event_listeners) {
 			throw new Error('The event listener dictionary is gone!');
@@ -78,7 +79,7 @@ UI.Event_Target = {
 	 * @param {UI.Event}	the event to dispatch
 	 * @type void
 	 */
-	dispatch_event: function(event)
+	dispatch_event: function dispatch_event(event)
 	{
 		if (!this._es_event_listeners) {
 			this._es_event_listeners = {};
@@ -126,7 +127,7 @@ UI.Event_Target = {
  * @constructor
  * @param	{array}
  */
-UI.Event_Dispatch_Error = function(exceptions)
+UI.Event_Dispatch_Error = function EventDispatchError(exceptions)
 {
 	Util.OOP.inherits(this, Error,
 		'One or more errors occurred in event handlers.');
