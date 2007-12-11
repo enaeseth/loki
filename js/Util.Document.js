@@ -267,7 +267,7 @@ Util.Document.append_style_sheet = function append_style_sheet(doc, location)
 
 /**
  * Gets position/dimensions information of a document.
- * @type object
+ * @return {object} an object describing the document's dimensions
  */
 Util.Document.get_dimensions = function get_document_dimensions(doc)
 {
