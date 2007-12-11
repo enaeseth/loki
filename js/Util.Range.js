@@ -67,7 +67,7 @@ Util.Range.create_range = function create_range_from_selection(sel)
 			throw new Util.Unsupported_Error('getting a range from a ' +
 				'collapsed selection');
 		}
-	} else if (typeof(sel.createRange) == 'function') {
+	} else if (sel.createRange) {
 		// Internet Explorer TextRange
 		return sel.createRange();
 	} else {
@@ -250,9 +250,9 @@ Util.Range.delete_contents = function delete_range_contents(rng)
 {
 	if (Util.is_function(rng.deleteContents)) { // W3C
 		rng.deleteContents();
-	} else if (Util.is_function(rng.pasteHTML)) { // TextRange
+	} else if (rng.pasteHTML) { // TextRange
 		rng.pasteHTML('');
-	} else if (Util.is_function(rng.item, rng.remove)) { // ControlRange
+	} else if (rng.item && rng.remove) { // ControlRange
 		while (rng.length > 0) {
 			var item = rng.item(0);
 			item.parentNode.removeChild(item);
@@ -326,7 +326,7 @@ Util.Range.clone_range = function clone_range(rng)
 {
 	if (Util.is_function(rng.cloneRange)) {
 		return rng.cloneRange();
-	} else if (Util.is_function(rng.duplicate)) {
+	} else if (rng.duplicate) {
 		return rng.duplicate();
 	} else {
 		throw new Util.Unsupported_Error("cloning a range");
@@ -547,7 +547,7 @@ Util.Range.intersects_node = function range_intersects_node(rng, node)
 		
 		return (rng.compareBoundaryPoints(Range.END_TO_START, node_rng) == -1
 			&& rng.compareBoundaryPoints(Range.START_TO_END, node_rng) == 1);
-	} else if (Util.is_function(doc.body.createTextRange)) {
+	} else if (doc.body.createTextRange) {
 		// This *might* work. -Eric
 		
 		node_rng = doc.body.createTextRange();
@@ -637,7 +637,7 @@ Util.Range.compare_boundary_points =
 			real_how = rng1.END_TO_END;
 
 		return rng1.compareBoundaryPoints(real_how, rng2);
-	} else if (Util.is_function(rng1.compareEndPoints)) { // IE
+	} else if (rng1.compareEndPoints) { // IE
 		if (how == Util.Range.START_TO_START)
 			real_how = "StartToStart";
 		else if (how == Util.Range.START_TO_END)
@@ -665,7 +665,7 @@ Util.Range.select_node_contents = function range_select_node_contents(rng, node)
 {
 	if (Util.is_function(rng.selectNodeContents)) {
 		rng.selectNodeContents(node);
-	} else if (Util.is_function(rng.moveToElementText)) {
+	} else if (rng.moveToElementText) {
 		rng.moveToElementText(node);
 	} else {
 		throw new Util.Unsupported_Error("selecting a node's contents with a " +
@@ -693,7 +693,7 @@ Util.Range.surrounded_by_node =
 		} catch (e) {
 			n_rng.selectNodeContents(elem);
 		}
-	} else if (Util.is_function(doc.body.createTextRange)) {
+	} else if (doc.body.createTextRange) {
 		n_rng = doc.body.createTextRange();
 		n_rng.moveToNodeText(elem);
 	} else {
@@ -726,7 +726,7 @@ Util.Range.contains_node = function range_contains_node(rng, node)
 		} catch (e) {
 			n_rng.selectNodeContents(node);
 		}
-	} else if (Util.is_function(doc.body.createTextRange)) {
+	} else if (doc.body.createTextRange) {
 		n_rng = doc.body.createTextRange();
 		n_rng.moveToNodeText(node);
 	} else {

@@ -112,7 +112,7 @@ Util.Selection.select_range = function select_range(sel, rng)
 	if (Util.is_function(sel.addRange, sel.removeAllRanges)) {
 		sel.removeAllRanges();
 		sel.addRange(rng);
-	} else if (Util.is_function(rng.select)) {
+	} else if (rng.select) {
 		rng.select();
 	} else {
 		throw new Util.Unsupported_Error('selecting a range');
