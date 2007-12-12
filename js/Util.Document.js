@@ -206,7 +206,7 @@ Util.Document.get_head = function(doc)
  */
 Util.Document.import_node = function import_node(new_document, node, deep)
 {
-	if (typeof(new_document.importNode) == 'function') {
+	if (new_document.importNode) {
 		return new_document.importNode(node, deep);
 	} else {
 		var handlers = {

@@ -49,7 +49,7 @@ Util.Selection.paste_node = function paste_node_at_selection(sel, new_node)
 	Util.Range.insert_node(rng, new_node);
 
 	// IE
-	if ( document.all ) // XXX bad
+	if ( Util.Browser.IE )
 	{
 		rng.collapse(false);
 		rng.select();
@@ -75,26 +75,15 @@ Util.Selection.paste_node = function paste_node_at_selection(sel, new_node)
  *
  * @param	sel		the selection
  */
-Util.Selection.remove_all_ranges = function(sel)
+Util.Selection.remove_all_ranges = function clear_selection(sel)
 {
-	// Mozilla
-	try
-	{
+	if (sel.removeAllRanges) {
+		// Mozilla
 		sel.removeAllRanges();
-	}
-	catch(e)
-	{
-		// IE
-		try
-		{
-			sel.empty();
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Selection.remove_all_ranges(): Neither the W3C nor the IE way of removing all ranges from the given selection worked. ' +
-							'When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	} else if (sel.empty && !Util.is_boolean(sel.empty)) {
+		sel.empty();
+	} else {
+		throw new Util.Unsupported_Error('clearing a selection');
 	}
 };
 
