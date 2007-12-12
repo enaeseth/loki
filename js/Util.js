@@ -16,6 +16,11 @@ var Util = {
 		return true;
 	},
 	
+	is_boolean: function is_boolean()
+	{
+		return Util.is('boolean', arguments);
+	},
+	
 	is_function: function is_function()
 	{
 		return Util.is('function', arguments);
