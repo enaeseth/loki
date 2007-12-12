@@ -7,6 +7,8 @@
  *
  * @param {object}	settings	Loki settings
  * @see UI.Loki.replace_textarea()
+ * @author Eric Naeseth
+ * @author Nathanael Fillmore
  */
 UI.Loki = function Loki(settings)
 {
