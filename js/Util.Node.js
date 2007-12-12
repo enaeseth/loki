@@ -469,5 +469,41 @@ Util.Node.next_element_sibling = function(node)
 	})
 };
 
+/**
+ * @return {String} a string that describes the node
+ */
+Util.Node.get_debug_string = function get_node_debug_string(node)
+{
+	var str;
+	
+	switch (node.nodeType) {
+		case Util.Node.ELEMENT_NODE:
+			str = '<' + node.nodeName;
+			
+			Util.Object.enumerate(Util.Element.get_attributes(node),
+				function append_attribute(name, value) {
+					str += ' ' + name + '="' + value + '"';
+				}
+			);
+			
+			str += '>';
+			break;
+		case Util.Node.TEXT_NODE:
+			str = '"' +
+				node.nodeValue.toString().replace(/^\s+|\s+$/g, '') + '"';
+			break;
+		case Util.Node.DOCUMENT_NODE:
+			str = '[Document';
+			if (node.location)
+				str += ' ' + node.location;
+			str += ']';
+			break;
+		default:
+			str = '[' + node.nodeName + ']';
+	}
+	
+	return str;
+}
+
 // end file Util.Node.js
 

@@ -43,6 +43,47 @@ Util.Element = {
 	},
 	
 	/**
+	 * Returns the attributes of an element.
+	 * @param {Element}	elem
+	 * @return {object}	an object whose keys are attribute names and whose
+	 *					values are the corresponding values
+	 */
+	get_attributes: function get_element_attributes(elem)
+	{
+		var attrs = {};
+		
+		if (!Util.is_valid_object(elem)) {
+			throw new TypeError('Cannot get the attributes of a non-object.');
+		}
+		
+		if (elem.nodeType != Util.Node.ELEMENT_NODE || !elem.hasAttributes())
+			return attrs;
+		
+		for (var i = 0; i < elem.attributes.length; i++) {
+			var a = elem.attributes[i];
+			if (!a.specified || a.nodeName in attrs)
+				continue;
+				
+			var v = (a.nodeValue.toString)
+				? a.nodeValue.toString()
+				: a.nodeValue;
+			
+			switch (a.nodeName) {
+				case 'class':
+					attrs.className = v;
+					break;
+				case 'for':
+					attrs.htmlFor = v;
+					break;
+				default:
+					attrs[a.nodeName] = v;
+			}
+		}
+		
+		return attrs;
+	},
+	
+	/**
 	 * Adds a class to an element.
 	 * @param {Element}	elem	the element to which the class will be added
 	 * @param {string}	class_name	the name of the class to add
