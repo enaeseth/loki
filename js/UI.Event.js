@@ -2,12 +2,26 @@
  * @class Base class for a Loki UI event.
  * @constructor
  * @author Eric Naeseth
- * @param {string}	the event's type
+ * @param {string}	type	the event's type
  */
-UI.Event = function(type)
+UI.Event = function Event(type)
 {
+	/**
+	 * The event's type.
+	 * @type string
+	 */
 	this.type = type;
+	
+	/**
+	 * The event's target; the object on which the event was dispatched.
+	 * @type object
+	 */
 	this.target = null;
+	
+	/**
+	 * The timestamp of when the event was dispatched.
+	 * @type Date
+	 */
 	this.timestamp = new Date();
 }
 
