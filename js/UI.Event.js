@@ -23,6 +23,22 @@ UI.Event = function Event(type)
 	 * @type Date
 	 */
 	this.timestamp = new Date();
+	
+	/**
+	 * Signals to the event dispatcher that no further handlers should be called
+	 * for this event.
+	 * @return {void}
+	 */
+	this.stop_propagation = function stop_event_propagation()
+	{
+		this._propagation_stopped = true;
+	}
+	
+	/**
+	 * Internal flag that is set when propagation is stopped.
+	 * @type boolean
+	 */
+	this._propagation_stopped = false;
 }
 
 /**
@@ -126,6 +142,9 @@ UI.Event_Target = {
 				} catch (e) {
 					exceptions.push(e);
 				}
+				
+				if (event._propagation_stopped)
+					break;
 			}
 		} finally {
 			event.target = old_target; // reset the event's target

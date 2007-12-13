@@ -42,11 +42,6 @@ UI.Key_Event = function KeyEvent(loki, source)
 	 */
 	this._state = 0;
 	
-	this.stop_propagation = function stop_propagation()
-	{
-		this._state |= UI.Key_Event._PROPAGATION_STOPPED;
-	}
-	
 	this.prevent_default = function prevent_default()
 	{
 		this.state != UI.Key_Event._DEFAULT_PREVENTED;
@@ -59,11 +54,9 @@ UI.Key_Event = function KeyEvent(loki, source)
 }
 
 /** @ignore */
-UI.Key_Event._PROPAGATION_STOPPED = 1;
+UI.Key_Event._DEFAULT_PREVENTED = 1;
 /** @ignore */
-UI.Key_Event._DEFAULT_PREVENTED = 2;
-/** @ignore */
-UI.Key_Event._BROWSER_HANDLING_ALLOWED = 4;
+UI.Key_Event._BROWSER_HANDLING_ALLOWED = 2;
 
 /**
  * Useful key code constants. These are placed both on UI.Key_Event itself and
