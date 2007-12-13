@@ -629,7 +629,9 @@ UI.Loki = function Loki(settings)
 			activate_contextual_menu();
 			trap_form_submission();
 			setup_document_and_selection();
-			listen_for_context_changes(switching_from_source);
+			
+			listen_for_special_keys();
+			listen_for_mouse_context_changes(switching_from_source);
 		} catch (e) {
 			// If we were unable to fully create the Loki WYSIWYG GUI, show the
 			// HTML source view instead.
@@ -695,6 +697,9 @@ UI.Loki = function Loki(settings)
 			add(sheet);
 		});
 	}
+	
+	/*
+	 * 
 	
 	/*
 	 * Connects the keybinder to actual keyboard events in the Loki editing
@@ -845,39 +850,25 @@ UI.Loki = function Loki(settings)
 	}
 	
 	/*
-	 * Traps events caused by the user changing the document selection and
-	 * raises a context change notification. 
+	 * Traps the keyboard events that could possibly result in context changes,
+	 * paragraph formation, or insertion or deletion of text or elements.
+	 * Raises UI.Key_Event events for the special keydown events.
 	 */
-	function listen_for_context_changes(switching_from_source)
+	function listen_for_special_keys()
 	{
-		function handle_user_activity(event)
-		{
-			// Retrieve the currently selected range. We must do this here
-			// because of a fact about Safari (at least Safari/Mac): when the
-			// editing document does not have focus, we cannot access its
-			// selection in any meaningful way; we can't get the anchor or focus
-			// nodes or access any ranges. To work around this, we use the new
-			// design of Loki that caches the selection and range to our
-			// advantage: we retrieve the selected range in this event
-			// listener when we know that the editing window has focus.
-			
-			selected_range = Util.Range.create_range(selection);
-			
-			if (event)
-				context_changed(event);
-		}
 		
-		['mouseup', 'keyup'].each(function register_cc_listener(ev_type) {
-			Util.Event.observe(self.document, ev_type, handle_user_activity);
-		});
-		
-		// Observe mousedown so that we can detect context changes when the user
-		// clicks somewhere with the right mouse button to call up a contextual
-		// menu.
-		Util.Event.observe(self.document, 'mousedown', function mouse_down(ev) {
-			if (ev.button & 2) {
-				handle_user_activity(ev);
-			}
+	}
+	
+	/*
+	 * Traps events caused by the user changing the document selection with the
+	 * mouse raises a context change notification. Context changes caused by the
+	 * keyboard are dealt with in listen_for_special_keys.
+	 */
+	function listen_for_mouse_context_changes(switching_from_source)
+	{
+		// Listen for mouseup to catch the carat being moved 
+		['mousedown', 'mouseup'].each(function register_cc_listener(ev_type) {
+			Util.Event.observe(self.document, 'mouseup', handle_user_activity);
 		});
 		
 		if (!switching_from_source) {
@@ -885,6 +876,27 @@ UI.Loki = function Loki(settings)
 			handle_user_activity(null);
 			context_changed.delay(.05 /* 50ms */);
 		}
+	}
+	
+	/*
+	 * Responds to a change (or possible change) in the selection / carat
+	 * position in the editing document.
+	 */
+	function handle_user_activity(event)
+	{
+		// Retrieve the currently selected range. We must do this here
+		// because of a fact about Safari (at least Safari/Mac): when the
+		// editing document does not have focus, we cannot access its
+		// selection in any meaningful way; we can't get the anchor or focus
+		// nodes or access any ranges. To work around this, we use the new
+		// design of Loki that caches the selection and range to our
+		// advantage: we retrieve the selected range in this event
+		// listener when we know that the editing window has focus.
+		
+		selected_range = Util.Range.create_range(selection);
+		
+		if (event)
+			context_changed(event);
 	}
 	
 	/**
@@ -909,7 +921,7 @@ UI.Loki = function Loki(settings)
 	 */
 	this.toString = function loki_to_string()
 	{
-		return "[object UI.Loki for " + (area.id || area.name) + "]";
+		return "Loki editor for " + (area.id || area.name);
 	}
 	
 	/**

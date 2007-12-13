@@ -83,8 +83,11 @@ UI.Keybinding_Manager = function(event_source)
 						return_value = false;
 				}
 			} catch (e) {
-				if (typeof(console) != 'undefined' && console.warning) {
-					console.warning('Exception in keybinding:', e);
+				if (typeof(console) != 'undefined') {
+					if (typeof(console.warn) == 'function') // Firebug
+						console.warn('Exception in keybinding:', e);
+					else if (typeof(console.log) == 'function')
+						console.log('Exception in keybinding: ' + e);
 				}
 			}
 			

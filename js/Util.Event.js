@@ -81,13 +81,12 @@ Util.Event.observe = function(target, type, listener, context)
 		} else {
 			target.addEventListener(type, listener, false);
 		}
-	} else if (typeof(target.attachEvent == 'function')) {
+	} else if (target.attachEvent) {
 		target.attachEvent('on' + type, function ie_event_listener_proxy() {
 			listener.call(context, (arguments[0] || window.event));
 		});
 	} else {
-		throw new Error('Browser does not support either of the modern event ' +
-			'listening API\'s.');
+		throw new Util.Unsupported_Error('modern event handling');
 	}
 }
 
@@ -123,7 +122,7 @@ Util.Event.remove_event_listener = function(node, type, listener)
  * Tests whether the given keyboard event matches the provided key code.
  * @param {Event}	e	the keyboard event
  * @param {integer} key_code	the key code
- * @type boolean
+ * @return {boolean} true if the given event represented the code, false if not
  */
 Util.Event.matches_keycode = function matches_keycode(e, key_code)
 {
