@@ -44,12 +44,12 @@ UI.Key_Event = function KeyEvent(loki, source)
 	
 	this.prevent_default = function prevent_default()
 	{
-		this.state != UI.Key_Event._DEFAULT_PREVENTED;
+		this.state |= UI.Key_Event._DEFAULT_PREVENTED;
 	}
 	
 	this.allow_browser_handling = function allow_browser_handling()
 	{
-		this.state != UI.Key_Event._ALLOW_BROWSER_HANDLING;
+		this.state |= UI.Key_Event._BROWSER_HANDLING_ALLOWED;
 	}
 }
 

@@ -699,9 +699,6 @@ UI.Loki = function Loki(settings)
 	}
 	
 	/*
-	 * 
-	
-	/*
 	 * Connects the keybinder to actual keyboard events in the Loki editing
 	 * document.
 	 */
@@ -856,7 +853,26 @@ UI.Loki = function Loki(settings)
 	 */
 	function listen_for_special_keys()
 	{
+		function key_depressed(event)
+		{
+			if (!UI.Key_Event._handles_code(event.keyCode))
+				return;
+			
+			var key_event = new UI.Key_Event(self, event);
+			self.dispatch_event(key_event);
+			
+			if (!(key_event._state & UI.Key_Event._DEFAULT_PREVENTED)) {
+				UI.Special_Key_Handler.handle_event(key_event);
+			}
+			
+			if (!(key_event._state & UI.Key_Event._BROWSER_HANDLING_ALLOWED)) {
+				return Util.Event.prevent_default(event);
+			}
+			
+			return true;
+		}
 		
+		Util.Event.observe(self.document, 'keydown', key_depressed);
 	}
 	
 	/*

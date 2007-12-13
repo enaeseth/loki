@@ -44,7 +44,7 @@ UI.Style_Capability = function Styles(loki)
 	}
 	
 	this.add_menu_items = function add_style_menu_items(menu)
-	{		
+	{
 		var group = menu.add_group('Style');
 		
 		Util.Object.enumerate(styles, function add_style_menu_item(id, style) {
@@ -67,7 +67,8 @@ UI.Style_Capability = function Styles(loki)
 		var selection = loki.get_selection();
 		
 		if (Util.is_function(selection.getRangeAt)) {
-			selected_range = loki.get_selected_range(); // OK to use default behavior
+			// OK to use default behavior.
+			selected_range = loki.get_selected_range();
 		} else if (Util.is_function(selection.createRangeCollection)) {
 			// We're using IE; make sure we get a text range.
 			var ie_range_col = selection.createRangeCollection();
@@ -223,14 +224,14 @@ UI.Style_Capability = function Styles(loki)
 			return Util.Range.contains_node(selected_range, node);
 		}
 		
-		function get_next(node)
+		function get_next(n)
 		{
-			if (!is_paragraph(n) && node.hasChildNodes() && !contained(node)) {
-				return node.firstChild;
-			} else if (node.nextSibling) {
-				return node.nextSibling;
-			} else if (node.parentNode) {
-				return node.parentNode.nextSibling;
+			if (!is_paragraph(n) && n.hasChildNodes() && !contained(n)) {
+				return n.firstChild;
+			} else if (n.nextSibling) {
+				return n.nextSibling;
+			} else if (n.parentNode) {
+				return n.parentNode.nextSibling;
 			} else {
 				return null;
 			}
