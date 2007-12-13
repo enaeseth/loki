@@ -44,7 +44,7 @@ Util.OOP = {
 	 * is that methods inherited from the parent can't set properties accessible
 	 * by methods defined in the child.
 	 */
-	inherits: function object_inherits_from(child, parent)
+	inherits: function object_inherits_from(child, parent_class)
 	{
 		var parent_prototype = null;
 		var nargs = arguments.length;
@@ -52,14 +52,14 @@ Util.OOP = {
 		if (nargs < 2) {
 			throw new TypeError('Must provide a child and a parent class.');
 		} else if (nargs == 2) {
-			parent_prototype = new parent;
+			parent_prototype = new parent_class;
 		} else {
 			// XXX: Is there really no better way to do this?!
 			//      Something involving parent.constructor maybe?
 			var arg_list = $R(2, nargs).map(function (i) {
 				return 'arguments[' + String(i) + ']';
-			});
-			eval('parent_prototype = new parent(' + arg_list.join(', ') + ')')
+			}).join(', ');
+			eval('parent_prototype = new parent_class(' + arg_list + ')');
 		}
 
 		Util.OOP.mixin(child, parent_prototype);
