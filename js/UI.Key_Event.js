@@ -98,9 +98,9 @@ UI.Key_Event._handles_code = function key_event_handles_code(code)
 	if (!this._handling_map) {
 		this._handling_map = {};
 		for (var name in UI.Key_Event.Codes) {
-			this._handling_map[UI.Key_Event.Codes[name]] = true;
+			this._handling_map[UI.Key_Event.Codes[name]] = name;
 		}
 	}
 	
-	return this._handling_map[code] || false;
+	return (this._handling_map[code] && true)|| false;
 }
