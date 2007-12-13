@@ -29,18 +29,19 @@ class Loki2ScriptFinder
 	
 	function _insert_filename($file)
 	{
-		for ($i = 0; $i < count($this->files); $i++) {
-			if ($this->_compare_filenames($this->files[$i], $file) < 0)
-				continue;
-
-			for ($j = (count($this->files) - 1); $j >= $i; $j--) {
-				$this->files[$j + 1] = $this->files[$j];
+		$lo = 0;
+		$hi = count($this->files);
+		
+		while ($lo < $hi) {
+			$mid = (int) (($lo + $hi) / 2);
+			if ($this->_compare_filenames($file, $this->files[$mid]) < 0) {
+				$hi = $mid;
+			} else {
+				$lo = $mid + 1;
 			}
-
-			break;
 		}
-
-		$this->files[$i] = $file;
+		
+		array_splice($this->files, $lo, 0, $file);
 	}
 	
 	/**
