@@ -96,6 +96,120 @@ Util.Range.get_common_ancestor = function get_range_common_ancestor(rng)
 };
 
 /**
+ * Returns the boundaries of the range. Uses somewhat different logic than
+ * get_start_container; always returns a container and and offset for each
+ * end of the range.
+ *
+ * Note that behavior regarding selections inside of an <input type="text">
+ * element is undefined because its text does not exist as a child node of
+ * the input element. Gecko won't even allow you to get anything out of the
+ * window's selection. WebKit will pull a text node out of thin air for our
+ * use. IE's TextRange objects won't be usable for coming up with the
+ * representation that we need and get_boundaries will throw an error.
+ * 
+ * @param {Range}	rng	the range whose boundaries are desired
+ * @return {object}
+ */
+Util.Range.get_boundaries = function get_range_boundaries(rng)
+{
+	if (!Util.is_valid_object(rng)) {
+		throw new TypeError('Must provide a valid object to ' +
+			'Util.Range.get_boundaries().');
+	}
+	
+	var dupe; // duplicate of a range
+	var parent; // some node's parent element
+	
+	function get_boundary(side)
+	{
+		if (rng[side + 'Container']) {
+			// W3C range
+			
+			return {
+				node: rng[side + 'Container'],
+				offset: rng[side + 'Offset']
+			};
+		} else if (rng.duplicate && rng.parentElement) {
+			// IE text range
+			
+			dupe = rng.duplicate();
+			dupe.collapse((side == 'start') ? true : false);
+			
+			// Find the text node in which the now-collapsed selection lies
+			// by trying to move its starting point (i.e. the whole thing)
+			// back really far, seeing how many characters were actually
+			// moved, and then traversing the range's parent element's
+			// text node children to find the text node that it refers to.
+			
+			parent = dupe.parentElement();
+			var offset = Math.abs(dupe.move('character', -0xFFFFFF));
+			var travelled = 0;
+			
+			for (var i = 0; i < parent.childNodes.length; i++) {
+				var child = parent.childNodes[i];
+				
+				if (child.nodeType != Util.Node.TEXT_NODE) {
+					// not interested
+					continue
+				}
+				
+				var cl = child.nodeValue.length;
+				if (travelled + cl < offset) {
+					// The offset doesn't lie with this text node. Add its
+					// length to the distance we've travelled and move on.
+					travelled += cl;
+					continue;
+				}
+				
+				// Found it!
+				return {
+					node: child,
+					offset: offset - travelled
+				};
+			}
+			
+			// Didn't find it? Perhaps we were inside of an input element or
+			// something.
+			throw new Error('Unable to find the text "' + rng.text + '" ' +
+				'inside of ' + Util.Node.get_debug_string(parent) + '.');
+		} else if (rng.item) {
+			// IE control range
+			
+			// Note that this code is UNTESTED because I could not get
+			// Internet Explorer to produce a control selection.
+			
+			var interesting_index = (side == 'start') ? 0 : (rng.length - 1);
+			var node = rng.item(interesting_index);
+			
+			// Find the offset that this node occurs at within its parent
+			// element.
+			parent = node.parentNode;
+			
+			for (var i = 0; i < parent.childNodes.length; i++) {
+				if (childNodes[i] == node) {
+					return {
+						node: parent,
+						offset: i
+					};
+				}
+			}
+			
+			// The loop didn't find anything? wtf?
+			throw new Error('Could not find the node ' +
+				Util.Node.get_debug_string(node) + ' within its parent ' +
+				Util.Node.get_debug_string(parent) + '! (This is very odd.)');
+		} else {
+			throw new Util.Unsupported_Error('ranges');
+		}
+	}
+	
+	return {
+		start: get_boundary('start'),
+		end: get_boundary('end')
+	};
+}
+
+/**
  * Returns the start container of the given range (if
  * the given range is a text range) or starting element
  * (i.e., first contained node, if the given range is a control 
