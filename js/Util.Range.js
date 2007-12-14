@@ -105,7 +105,7 @@ Util.Range.get_common_ancestor = function get_range_common_ancestor(rng)
  * the input element. Gecko won't even allow you to get anything out of the
  * window's selection. WebKit will pull a text node out of thin air for our
  * use. IE's TextRange objects won't be usable for coming up with the
- * representation that we need and get_boundaries will throw an error.
+ * representation that we need.
  * 
  * @param {Range}	rng	the range whose boundaries are desired
  * @return {object}
@@ -122,6 +122,22 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 	
 	function get_boundary(side)
 	{
+		// Find the offset that this node occurs at within its parent
+		// element.
+		function get_offset_of_node(parent, node)
+		{
+			for (var i = 0; i < parent.childNodes.length; i++) {
+				if (parent.childNodes[i] == node) {
+					return i;
+				}
+			}
+			
+			// The loop didn't find anything? wtf?
+			throw new Error('Could not find the node ' +
+				Util.Node.get_debug_string(node) + ' within its parent ' +
+				Util.Node.get_debug_string(parent) + '! (This is very odd.)');
+		}
+		
 		if (rng[side + 'Container']) {
 			// W3C range
 			
@@ -141,16 +157,42 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 			// moved, and then traversing the range's parent element's
 			// text node children to find the text node that it refers to.
 			
+			// Establish a base by finding the position of the parent.
 			parent = dupe.parentElement();
-			var offset = Math.abs(dupe.move('character', -0xFFFFFF));
+			var parent_range =
+				parent.ownerDocument.body.createTextRange();
+			parent_range.moveToElementText(parent);
+			var base = Math.abs(parent_range.move('character',
+				-0xFFFFFF));
+			
+			var offset = (Math.abs(dupe.move('character', -0xFFFFFF))
+				- base);
 			var travelled = 0;
 			
 			for (var i = 0; i < parent.childNodes.length; i++) {
 				var child = parent.childNodes[i];
 				
-				if (child.nodeType != Util.Node.TEXT_NODE) {
-					// not interested
-					continue
+				if (child.nodeType == Util.Node.ELEMENT_NODE) {
+					// IE counts each interspersed element as occupying
+					// one character. We have to correct for this when
+					// ending within a text node, but it conveniently
+					// allows us to find when we're stopping at an
+					// element.
+					
+					if (travelled < offset) {
+						// Not this element; move on.
+						travelled++;
+						continue;
+					}
+					
+					// Found it! It's an element!
+					return {
+						node: parent,
+						offset: get_offset_of_node(parent, child)
+					}
+				} else if (child.nodeType != Util.Node.TEXT_NODE) {
+					// Not interested.
+					continue;
 				}
 				
 				var cl = child.nodeValue.length;
@@ -168,10 +210,11 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 				};
 			}
 			
-			// Didn't find it? Perhaps we were inside of an input element or
-			// something.
-			throw new Error('Unable to find the text "' + rng.text + '" ' +
-				'inside of ' + Util.Node.get_debug_string(parent) + '.');
+			// End of the parent
+			return {
+				node: parent,
+				offset: parent.childNodes.length
+			};
 		} else if (rng.item) {
 			// IE control range
 			
@@ -180,24 +223,12 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 			
 			var interesting_index = (side == 'start') ? 0 : (rng.length - 1);
 			var node = rng.item(interesting_index);
-			
-			// Find the offset that this node occurs at within its parent
-			// element.
 			parent = node.parentNode;
 			
-			for (var i = 0; i < parent.childNodes.length; i++) {
-				if (childNodes[i] == node) {
-					return {
-						node: parent,
-						offset: i
-					};
-				}
-			}
-			
-			// The loop didn't find anything? wtf?
-			throw new Error('Could not find the node ' +
-				Util.Node.get_debug_string(node) + ' within its parent ' +
-				Util.Node.get_debug_string(parent) + '! (This is very odd.)');
+			return {
+				node: parent,
+				offset: get_offset_of_node(parent, node)
+			};
 		} else {
 			throw new Util.Unsupported_Error('ranges');
 		}
