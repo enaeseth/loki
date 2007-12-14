@@ -853,26 +853,13 @@ UI.Loki = function Loki(settings)
 	 */
 	function listen_for_special_keys()
 	{
-		function key_depressed(event)
+		function default_action(event)
 		{
-			if (!UI.Key_Event._handles_code(event.keyCode))
-				return;
-			
-			var key_event = new UI.Key_Event(self, event);
-			self.dispatch_event(key_event);
-			
-			if (!(key_event._state & UI.Key_Event._DEFAULT_PREVENTED)) {
-				UI.Special_Key_Handler.handle_event(key_event);
-			}
-			
-			if (!(key_event._state & UI.Key_Event._BROWSER_HANDLING_ALLOWED)) {
-				return Util.Event.prevent_default(event);
-			}
-			
-			return true;
+			UI.Special_Key_Handler.handle_event(event);
 		}
 		
-		Util.Event.observe(self.document, 'keydown', key_depressed);
+		UI.Key_Event.translate(self.document, self, default_action,
+			context_changed);
 	}
 	
 	/*

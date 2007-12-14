@@ -14,19 +14,21 @@ UI.Special_Key_Handler = {
 		var handler = this._default_handlers[key_name];
 		if (handler) {
 			this[handler](event);
+		} else {
+			event.allow_browser_handling();
 		}
 	},
 	
 	/** @ignore */
 	handle_enter: function handle_enter(event)
 	{
-		
+		// Prevent anything from happening until support for this is written.
 	},
 	
 	/** @ignore */
 	handle_delete: function handle_delete(event)
 	{
-		event.allow_browser_handling();
+		// Prevent anything from happening until support for this is written.
 	},
 	
 	/** @ignore */
