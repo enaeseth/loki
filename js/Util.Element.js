@@ -84,6 +84,98 @@ Util.Element = {
 	},
 	
 	/**
+	 * Tests if the element is "basically empty".
+	 * An element is basically empty if:
+	 *    - It contains no image, horizontal rule, or table elements, and
+	 *    - It contains no non-whitespace (spaces, tabs, or line breaks) text.
+	 * @param {Element}	elem	the element whose emptiness will be tested
+	 * @return {boolean}	true if the element is basically empty, false if not
+	 *
+	 * Logic from TinyMCE.
+	 */
+	is_basically_empty: function element_is_basically_empty(elem)
+	{
+		if (elem.nodeType != Util.Node.ELEMENT_NODE) {
+			throw new TypeError('Must provide an element node to ' +
+				'Util.Element.is_basically_empty(); instead got ' +
+				Util.Node.get_debug_string(elem));
+		}
+		
+		var doc = elem.ownerDocument;
+		var non_whitespace = /[^ \t\r\n]/;
+		var acceptable_tags;
+		
+		if (doc.createTreeWalker && NodeFilter) {
+			// Browser supports DOM Level 2 Traversal; use it in the hope that
+			// it will be faster than the other branch which uses string
+			// manipulations.
+			
+			// This map must stay in sync with the pattern in the next branch.
+			acceptable_tags = {IMG: true, HR: true, TABLE: true};
+			
+			var filter = {
+				acceptNode: function accept_node_for_emptiness_check(node) {
+					switch (node.nodeType) {
+						case Util.Node.TEXT_NODE:
+							// Allow text nodes through if they have
+							// non-whitespace characters so that the code below
+							// can safely return false whenever it receives a
+							// text node.
+							return (non_whitespace.test(node.nodeValue))
+								? NodeFilter.FILTER_ACCEPT
+								: NodeFilter.FILTER_REJECT
+						case Util.Node.ELEMENT_NODE:
+							// Similarly, allow elements through only if they're
+							// one of the acceptable tags so that the code below
+							// will know what to do instantly. But, skip a non-
+							// acceptable element instead of rejecting it
+							// outright so that any of its descendant text nodes
+							// can be processed.
+							return (node.tagName in acceptable_tags)
+								? NodeFilter.FILTER_ACCEPT
+								: NodeFilter.FILTER_SKIP;
+						default:
+							// No other types should be making it through
+							// because of our choice of whatToShow below, but
+							// be defensive anyway.
+							return NodeFilter.FILTER_SKIP;
+					}
+				}
+			};
+			
+			var walker = doc.createTreeWalker(elem,
+				NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, filter, false);
+			
+			// Because of our filtering above, if we get any next node back
+			// (the next node can be any node below our root, which is the
+			// element being tested), we know that the element is not empty.
+			// If we get nothing back, that means that the tree walker went
+			// through all of the ancestors without finding a node that our
+			// filter accepted, and thus the element is empty.
+			return !walker.nextNode();
+		} else {
+			// No traversal support. Look at the element's inner HTML.
+			
+			// This pattern must be kept in sync with the map in the previous
+			// branch.
+			acceptable_tags = /^<(img|hr|table)$/ig;
+			
+			var html = elem.innerHTML;
+			
+			// Preserve our acceptable tags from being eliminated on the next
+			// replacement.
+			html = html.replace(acceptable_tags, 'k');
+			
+			// Remove all non-preserved tags.
+			html = html.replace(/<[^>]+>/g, '');
+			
+			// Check to see if what's remaining contains any non-whitespace
+			// characters; if it does, then the element is non-empty.
+			return !non_whitespace.test(html);
+		}
+	},
+	
+	/**
 	 * Adds a class to an element.
 	 * @param {Element}	elem	the element to which the class will be added
 	 * @param {string}	class_name	the name of the class to add
