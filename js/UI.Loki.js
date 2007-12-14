@@ -8,6 +8,7 @@
  */
 UI.Loki = function(textarea, settings)
 {
+	var _owner_window;
 	var _owner_document; // that of _textarea etc.
 	var _window;     //
 	var _document;   // _window, _document, and _body are those of _iframe's content
@@ -162,6 +163,7 @@ UI.Loki = function(textarea, settings)
 		_settings = settings;
 
 		_textarea = textarea;
+		_owner_window = window;
 		_owner_document = _textarea.ownerDocument;
 
 		_use_p_hacks = _use_p_hacks();
@@ -1075,21 +1077,15 @@ UI.Loki = function(textarea, settings)
 			menu.add_menuitems(menuitems);
 		}
 
-		// Determine coordinates
-		// (Code modified from TinyMCE.)
-		var x, y;
-		if ( event.pageX != null ) // Gecko
-		{
-			var pos = Util.Element.get_position(_iframe);
-			x = pos.x + (event.clientX - _body.scrollLeft);
-			y = pos.y + (event.clientY - _body.scrollTop);
-		}
-		else // IE
-		{
-			x = event.screenX + 2;
-			y = event.screenY + 2;
-		}
-
+		// Determine the coordinates at which the menu should be displayed.
+		var frame_pos = Util.Element.get_position(_iframe);
+		var event_pos = Util.Event.get_coordinates(event);
+		var root_offset = Util.Element.get_relative_offsets(_owner_window,
+			_root);
+		
+		var x = frame_pos.x + event_pos.x - root_offset.x;
+		var y = frame_pos.y + event_pos.y - root_offset.y;
+		
 		menu.display(x, y);
 
 		Util.Event.prevent_default(event);
