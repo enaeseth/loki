@@ -135,6 +135,10 @@ UI.Menu = function Menu(loki, style_classes)
 			var target_doc = doc;
 		}
 		
+		var calc_coords = (Util.is_function(arguments[4]))
+			? arguments[4]
+			: Util.Event.get_coordinates;
+		
 		function display_context()
 		{
 			var event = arguments[0] || window.event;
@@ -146,7 +150,7 @@ UI.Menu = function Menu(loki, style_classes)
 			if (on_show && !on_show(menu))
 				return Util.Event.prevent_default(event);
 			
-			var coords = Util.Event.get_coordinates(event);
+			var coords = calc_coords(event);
 			
 			menu.show(target, coords.x, coords.y);
 			

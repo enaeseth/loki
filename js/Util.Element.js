@@ -346,6 +346,11 @@ Util.Element = {
 	 */
 	get_relative_offsets: function get_element_relative_offsets(window, elem)
 	{
+		if (!Util.is_valid_object(window, elem)) {
+			throw new TypeError('Must provide valid window and element ' +
+				'objects to Util.Event.get_relative_offsets().');
+		}
+		
 		var pos = {x: 0, y: 0};
 		
 		for (var e = elem; e && e.nodeName != 'HTML'; e = e.parentNode) {

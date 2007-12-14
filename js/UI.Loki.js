@@ -14,6 +14,7 @@ UI.Loki = function Loki(settings)
 {
 	Util.OOP.mixin(this, UI.Event_Target);
 	
+	this.owner_window = null;
 	this.owner_document = null;
 	
 	this.window = null;
@@ -222,6 +223,7 @@ UI.Loki = function Loki(settings)
 		textarea = area;
 		form = area.form;
 		
+		this.owner_window = window;
 		this.owner_document = area.ownerDocument;
 		dh = new Util.Document(this.owner_document);
 		
@@ -752,8 +754,21 @@ UI.Loki = function Loki(settings)
 			}
 		}
 		
+		function calc_position(event)
+		{
+			var ev_pos = Util.Event.get_coordinates(event);
+			var fr_pos = Util.Element.get_position(self.iframe);
+			var rt_off = Util.Element.get_relative_offsets(self.owner_window,
+				editor_root);
+			
+			return {
+				x: ev_pos.x + fr_pos.x - rt_off.x,
+				y: ev_pos.y + fr_pos.y - rt_off.y
+			};
+		}
+		
 		menu.use_as_contextual(self.document, add_groups, clear_menu,
-			editor_root);
+			editor_root, calc_position);
 	}
 	
 	/*
