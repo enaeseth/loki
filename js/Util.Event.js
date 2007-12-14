@@ -149,6 +149,8 @@ Util.Event.matches_keycode = function matches_keycode(e, key_code)
  */
 Util.Event.get_coordinates = function get_coordinates(event)
 {
+	var doc = (event.currentTarget || event.srcElement).ownerDocument;
+	
 	var x = event.pageX || event.clientX + doc.body.scrollLeft +
 		doc.documentElement.scrollLeft;
 	var y = event.pageY || event.clientY + doc.body.scrollTop +

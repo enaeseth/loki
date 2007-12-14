@@ -325,8 +325,35 @@ Util.Element = {
 		
 		// Loop through the offset chain.
 		for (var e = elem; e; e = e.offsetParent) {
-			pos.x += e.offsetLeft || e.screenLeft;
-			pos.y += e.offsetTop || e.screenTop;
+			pos.x += (Util.is_number(e.offsetLeft))
+			 	? e.offsetLeft
+				: e.screenLeft;
+			pos.y += (Util.is_number(e.offsetTop))
+			 	? e.offsetTop
+				: e.screenTop;
+		}
+		
+		return pos;
+	},
+	
+	/**
+	 * For each element out of the given element and its ancestors that has a
+	 * CSS position of "relative", sums up their x and y offsets and returns
+	 * them.
+	 * @param {Window}	window	the element's window
+	 * @param {HTMLElement}	elem	the element to test
+	 * @return {object}	x and y offsets
+	 */
+	get_relative_offsets: function get_element_relative_offsets(window, elem)
+	{
+		var pos = {x: 0, y: 0};
+		
+		for (var e = elem; e && e.nodeName != 'HTML'; e = e.parentNode) {
+			var position = Util.Element.get_computed_style(window, e).position;
+			if (position == 'relative') {
+				pos.x += e.offsetLeft;
+				pos.y += e.offsetTop;
+			}
 		}
 		
 		return pos;
