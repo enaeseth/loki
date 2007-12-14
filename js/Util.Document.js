@@ -63,6 +63,11 @@ Util.Document.create_element = function(doc, name, attrs, children)
 		}
 	}
 	
+	function dim(dimension)
+	{
+		return (typeof(dimension) == 'number') ? dimension + 'px' : dimension;
+	}
+	
 	var style = {};
 	
 	for (var name in attrs || {}) {
@@ -79,16 +84,22 @@ Util.Document.create_element = function(doc, name, attrs, children)
 				
 				// See http://tinyurl.com/yvsqbx for more information.
 				
-				e.className = attrs[name];
+				var klass = attrs[name];
+				
+				// Allow an array of classes to be passed in.
+				if (typeof(klass) != 'string' && klass.join)
+					klass = klass.join(' ');
+					
+				e.className = klass;
 				continue; // note that this continues the for loop!
 			case 'htmlFor':
 				dest_name = 'for';
 				break;
-		}
-		
-		if (name == 'style') {
-			style = attrs.style;
-			continue;
+			case 'style':
+				if (typeof(style) == 'object') {
+					style = attrs.style;
+					continue; // note that this continues the for loop!
+				}
 		}
 		
 		var a = attrs[name];
@@ -103,7 +114,26 @@ Util.Document.create_element = function(doc, name, attrs, children)
 	}
 	
 	for (var name in style) {
-		e.style[name] = style[name];
+		// Special cases
+		switch (name) {
+			case 'box':
+				var box = style[name];
+				e.style.left = dim(box[0]);
+				e.style.top = dim(box[1]);
+				e.style.width = dim(box[2]);
+				e.style.height = dim(box[3] || box[2]);
+				break;
+			case 'left':
+			case 'top':
+			case 'right':
+			case 'bottom':
+			case 'width':
+			case 'height':
+				e.style[name] = dim(style[name]);
+				break;
+			default:
+				e.style[name] = style[name];
+		}
 	}
 	
 	Util.Array.for_each(children || [], function(c) {
@@ -111,6 +141,45 @@ Util.Document.create_element = function(doc, name, attrs, children)
 	});
 	
 	return e;
+}
+
+/**
+ * Make the document editable. Mozilla doesn't support
+ * contentEditable. Both IE and Mozilla support
+ * designMode. However, in IE if designMode is set on an iframe's
+ * contentDocument, the iframe's ownerDocument will be denied
+ * permission to access it (even if otherwise it *would* have
+ * permission). So for IE we use contentEditable, and for Mozilla
+ * designMode.
+ * @param {HTMLDocument}	doc
+ * @type void
+ */
+Util.Document.make_editable = function make_editable(doc)
+{
+	try {
+		// Internet Explorer
+		doc.body.contentEditable = true;
+		// If the document isn't editable, this will throw an
+		// error. If the document is editable, this is perfectly
+		// harmless.
+		doc.queryCommandState('Bold');
+	} catch (e) {
+		// Gecko (et al?)
+		try {
+			// Turn on design mode.  N.B.: designMode has to be
+			// set after the iframe_elem's src is set (or its
+			// document is closed). ... Otherwise the designMode
+			// attribute will be reset to "off", and things like
+			// execCommand won't work (though, due to Mozilla bug
+			// #198155, the iframe's new document will be
+			// editable)
+			doc.designMode = 'on';
+			doc.execCommand('undo', false, null);
+		} catch (f) {
+			throw new Error('Unable to make the document editable. ' +
+				'(' + e + '); (' + f + ')');
+		}
+	}
 }
 
 /**
@@ -135,63 +204,50 @@ Util.Document.get_head = function(doc)
  * @param	deep			boolean indicating whether to import child
  *							nodes (currently ignored in IE ... is always true)
  */
-Util.Document.import_node = function(new_document, node, deep)
-{	
-	try
-	{
-		return new_document.importNode(node, deep)
-	}
-	catch(e)
-	{
-		try
-		{
-			var handlers = {
-				// element nodes
-				1: function() {
-					var new_node = new_document.createElement(node.nodeName);
-					
-					if (node.attributes && node.attributes.length > 0) {
-						for (var i = 0, len = node.attributes.length; i < len; i++) {
-							var a = node.attributes[i];
-							if (a.specified)
-								new_node.setAttribute(a.name, a.value);
-						}
-					}
-					
-					if (deep) {
-						for (var i = 0, len = node.childNodes.length; i < len; i++) {
-							new_node.appendChild(Util.Document.import_node(new_document, node.childNodes[i], true));
-						}
-					}
-					
-					return new_node;
-				},
+Util.Document.import_node = function import_node(new_document, node, deep)
+{
+	if (new_document.importNode) {
+		return new_document.importNode(node, deep);
+	} else {
+		var handlers = {
+			// element nodes
+			1: function import_element() {
+				var new_node = new_document.createElement(node.nodeName);
 				
-				// attribute nodes
-				2: function() {
-					var new_node = new_document.createAttribute(node.name);
-					new_node.value = node.value;
-					return new_node;
-				},
-				
-				// text nodes
-				3: function() {
-					return new_document.createTextNode(node.nodeValue);
+				if (node.attributes && node.attributes.length > 0) {
+					for (var i = 0, len = node.attributes.length; i < len; i++) {
+						var a = node.attributes[i];
+						if (a.specified)
+							new_node.setAttribute(a.name, a.value);
+					}
 				}
-			};
+				
+				if (deep) {
+					for (var i = 0, len = node.childNodes.length; i < len; i++) {
+						new_node.appendChild(Util.Document.import_node(new_document, node.childNodes[i], true));
+					}
+				}
+				
+				return new_node;
+			},
 			
-			if (typeof(handlers[node.nodeType]) == 'undefined')
-				throw new Error("Workaround cannot handle the given node's type.");
+			// attribute nodes
+			2: function import_attribute() {
+				var new_node = new_document.createAttribute(node.name);
+				new_node.value = node.value;
+				return new_node;
+			},
 			
-			return handlers[node.nodeType]();
-		}
-		catch(f)
-		{
-			throw new Error('Util.Document.import_node: Neither the W3C document.importNode method ' +
-							'nor a workaround for IE worked. When the W3C way was tried, this ' +
-							'exception was thrown: <<' + e.message + '>>. When the IE workaround ' +
-							'was tried, this exception was thrown: <<' + f.message + '>>.');
-		}
+			// text nodes
+			3: function import_text() {
+				return new_document.createTextNode(node.nodeValue);
+			}
+		};
+		
+		if (typeof(handlers[node.nodeType]) == 'undefined')
+			throw new Error("Workaround cannot handle the given node's type.");
+		
+		return handlers[node.nodeType]();
 	}
 };
 
@@ -202,12 +258,38 @@ Util.Document.import_node = function(new_document, node, deep)
  * @param	location	the location of the stylesheet to add
  * @static
  */
-Util.Document.append_style_sheet = function(doc, location)
+Util.Document.append_style_sheet = function append_style_sheet(doc, location)
 {
 	var head = Util.Document.get_head(doc);
-	head.appendChild(Util.Document.create_element(doc, 'LINK',
+	return head.appendChild(Util.Document.create_element(doc, 'LINK',
 		{href: location, rel: 'stylesheet', type: 'text/css'}));
 };
+
+/**
+ * Gets position/dimensions information of a document.
+ * @return {object} an object describing the document's dimensions
+ */
+Util.Document.get_dimensions = function get_document_dimensions(doc)
+{
+	return {
+		client: {
+			width: doc.documentElement.clientWidth || doc.body.clientWidth,
+			height: doc.documentElement.clientHeight || doc.body.clientHeight
+		},
+		
+		offset: {
+			width: doc.documentElement.offsetWidth || doc.body.offsetWidth,
+			height: doc.documentElement.offsetHeight || doc.body.offsetHeight
+		},
+		
+		scroll: {
+			width: doc.documentElement.scrollWidth || doc.body.scrollWidth,
+			height: doc.documentElement.scrollHeight || doc.body.scrollHeight,
+			left: doc.documentElement.scrollLeft || doc.body.scrollLeft,
+			top: doc.documentElement.scrollTop || doc.body.scrollTop
+		}
+	};
+}
 
 /**
  * Returns an array (not a DOM NodeList!) of elements that match the given

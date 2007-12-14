@@ -138,13 +138,15 @@ UI.Page_Link_Selector = function(dialog)
 				try {
 					reader.load(null, 10 /* 10 = 10 seconds until timeout */);
 				} catch (e) {
-					machine.states.error.set('Failed to load the site: ' + 
-						(e.message || e),
-						function() {
-							machine.change('loading_site');
-						}
-					);
-					machine.states.error.enter();
+					(function report_error_shortly() {
+						machine.states.error.set('Failed to load the site: ' + 
+							(e.message || e),
+							function() {
+								machine.change('loading_site');
+							}
+						);
+						machine.states.error.enter();
+					}).defer(); // defer to prevent state machine deadlock
 				}
 				
 			},
@@ -382,13 +384,15 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 				try {
 					reader.load(null, 10 /* 10 = 10 seconds until timeout */);
 				} catch (e) {
-					machine.states.error.set('Failed to load the ' + 
-						inline_p_name + ': ' + (e.message || e),
-						function() {
-							machine.change('loading');
-						}
-					);
-					machine.states.error.enter();
+					(function report_error_shortly() {
+						machine.states.error.set('Failed to load the ' + 
+							inline_p_name + ': ' + (e.message || e),
+							function() {
+								machine.change('loading');
+							}
+						);
+						machine.states.error.enter();
+					}).defer(); // defer to prevent state machine deadlock
 				}
 			},
 			

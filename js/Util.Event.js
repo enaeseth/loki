@@ -21,12 +21,9 @@ Util.Event = function()
  */
 Util.Event.listener = function(func)
 {	
-	return function(e)
+	return function()
 	{
-		if (!e)
-			var e = window.event;
-		
-		return func(e);
+		return func(arguments[0] || window.event);
 	};
 }
 
@@ -67,6 +64,33 @@ Util.Event.add_event_listener = function(node, type, listener)
 };
 
 /**
+ * (More intelligently and concisely) adds an event listener to a node.
+ * @param {Node}	target	the node to which to add the event listener
+ * @param {string}	type	the type of event to listen for
+ * @param {function}	listener	the listener function that will be called
+ * @param {object}	context	the "this context" in which to call the listener
+ * @type void
+ */
+Util.Event.observe = function(target, type, listener, context)
+{
+	if (typeof(target.addEventListener) == 'function') {
+		if (context) {
+			target.addEventListener(type, function event_listener_proxy() {
+				listener.apply(context, arguments);
+			}, false);
+		} else {
+			target.addEventListener(type, listener, false);
+		}
+	} else if (target.attachEvent) {
+		target.attachEvent('on' + type, function ie_event_listener_proxy() {
+			listener.call(context, (arguments[0] || window.event));
+		});
+	} else {
+		throw new Util.Unsupported_Error('modern event handling');
+	}
+}
+
+/**
  * Removes an event listener from a node. Doesn't work at present.
  *
  * @param	node		the node from which to remove the event listener
@@ -96,15 +120,15 @@ Util.Event.remove_event_listener = function(node, type, listener)
 
 /**
  * Tests whether the given keyboard event matches the provided key code.
- * @param {Event} the keyboard event
- * @param {intgeger} the key code
- * @type boolean
+ * @param {Event}	e	the keyboard event
+ * @param {integer} key_code	the key code
+ * @return {boolean} true if the given event represented the code, false if not
  */
-Util.Event.matches_keycode = function(event, key_code)
+Util.Event.matches_keycode = function matches_keycode(e, key_code)
 {
-	if (['keydown', 'keyup'].contains(event.type) && e.keyCode == keycode) {
+	if (['keydown', 'keyup'].contains(e.type) && e.keyCode == keycode) {
 		return true;
-	} else if (event.type == 'keypress') {
+	} else if (e.type == 'keypress') {
 		var code = (e.charCode)
 			? e.charCode
 			: e.keyCode; // Internet Explorer instead puts the ASCII value here.
@@ -112,9 +136,26 @@ Util.Event.matches_keycode = function(event, key_code)
 			return key_code == code ||
 				(key_code >= 65 && key_code <= 90 && key_code + 32 == code);
 	} else {
-		throw new Error('The given event is not an applicable keyboard event.');
+		throw new TypeError('The given event is not an applicable ' +
+			'keyboard event.');
 	}
-}
+};
+
+/**
+ * Gets the mouse coordinates of the given event.
+ * @type object
+ * @param {Event} event	the mouse event
+ * @return {x: (integer), y: (integer)}
+ */
+Util.Event.get_coordinates = function get_coordinates(event)
+{
+	var x = event.pageX || event.clientX + doc.body.scrollLeft +
+		doc.documentElement.scrollLeft;
+	var y = event.pageY || event.clientY + doc.body.scrollTop +
+		doc.documentElement.scrollTop;
+		
+	return {x: x, y: y};
+};
 
 /**
  * Calls the listeners which have been "attached" to the
@@ -172,10 +213,8 @@ Util.Event.prevent_default = function(event)
 	{
 		try // IE
 		{
-			//event = event == null ? _window.event : event;
 			event.returnValue = false;
-			event.cancelBubble = true;
-			//return false;
+			//event.cancelBubble = true;
 		}
 		catch(f)
 		{
@@ -185,27 +224,13 @@ Util.Event.prevent_default = function(event)
 		}
 	}
 	return false;
-
-	/*
-	if ( document.all ) // IE // XXX: hack
-	{
-		//event = event == null ? _window.event : event;
-		event.returnValue = false;
-		event.cancelBubble = true;
-		return false;
-	}
-	else // Gecko
-	{
-		event.preventDefault();
-	}
-	*/
 };
 
 /**
  * Returns the target.
  * Taken from quirksmode.org, by Peter-Paul Koch.
  */
-Util.Event.get_target = function(e)
+Util.Event.get_target = function get_event_target(e)
 {
 	var targ;
 	//if (!e) var e = window.event;

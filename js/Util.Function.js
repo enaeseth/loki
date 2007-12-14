@@ -5,7 +5,7 @@ Util.Function = {
 	 * @author Eric Naeseth
 	 * @see http://taylor-hughes.com/?entry=112
 	 */
-	synchronize: function(function_)
+	synchronize: function synchronize(function_)
 	{
 		var sync = Util.Function.synchronize;
 		
@@ -61,17 +61,27 @@ Util.Function = {
 		}
 	},
 	
-	empty: function()
+	empty: function empty()
 	{
 		
 	},
 	
-	constant: function(k)
+	constant: function constant(k)
 	{
 		return k;
 	},
 	
-	unimplemented: function()
+	optimist: function optimist()
+	{
+		return true;
+	},
+	
+	pessimist: function pessimist()
+	{
+		return false;
+	},
+	
+	unimplemented: function unimplemented()
 	{
 		throw new Error('Function not implemented!');
 	}
@@ -86,7 +96,7 @@ Util.Function.Methods = {
 			return function_;
 		
 		var args = Util.Array.from(arguments).slice(1), object = args.shift();
-		return function() {
+		return function binder() {
 			return function_.apply(object, args.concat(Util.Array.from(arguments)));
 		}
 	},
@@ -94,26 +104,26 @@ Util.Function.Methods = {
 	bind_to_event: function(function_)
 	{
 		var args = Util.Array.from(arguments), object = args.shift();
-		return function(event) {
+		return function event_binder(event) {
 			return function_.apply(object, [event || window.event].concat(args));
 		}
 	},
 	
 	curry: function(function_)
 	{
-		if (!arguments.length)
+		if (arguments.length <= 1)
 			return function_;
 		
 		var args = Util.Array.from(arguments).slice(1);
 		
-		return function() {
+		return function currier() {
 			return function_.apply(this, args.concat(Util.Array.from(arguments)));
 		}
 	},
 	
 	dynamic_curry: function(function_)
 	{
-		if (!arguments.length)
+		if (arguments.length <= 1)
 			return function_;
 		
 		var args = Util.Array.from(arguments).slice(1).map(function (a) {
@@ -122,7 +132,7 @@ Util.Function.Methods = {
 				: a;
 		});
 		
-		return function() {
+		return function dynamic_currier() {
 			return function_.apply(this, args.concat(Util.Array.from(arguments)));
 		}
 	},
@@ -130,7 +140,7 @@ Util.Function.Methods = {
 	methodize: function(function_)
 	{
 		if (!function_.methodized) {
-			function_.methodized = function() {
+			function_.methodized = function methodized() {
 				return function_.apply(null, [this].concat(Util.Array.from(arguments)));
 			}
 		}

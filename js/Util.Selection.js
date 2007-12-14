@@ -11,24 +11,18 @@ Util.Selection.TEXT_TYPE = 2;
  * @param	window_obj	the window object whose selection is desired
  * @return				the current selection
  */
-Util.Selection.get_selection = function(window_obj)
+Util.Selection.get_selection = function get_window_selection(window_obj)
 {
-	try
-	{
-		return window_obj.getSelection();
+	if (!Util.is_valid_object(window_obj)) {
+		throw new TypeError('Must pass an object to get_selection().');
 	}
-	catch(e)
-	{
-		try
-		{
-			return window_obj.document.selection;
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Selection.get_selection(): Neither the Mozilla nor the IE way of getting the selection worked. ' +
-							'When the Mozilla way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	
+	if (typeof(window_obj.getSelection) == 'function') {
+		return window_obj.getSelection();
+	} else if (window_obj.document.selection) {
+		return window_obj.document.selection;
+	} else {
+		throw new Util.Unsupported_Error('getting a window\'s selection');
 	}
 };
 
@@ -39,7 +33,7 @@ Util.Selection.get_selection = function(window_obj)
  * @param	sel				the selection
  * @param	new_node		the node to insert
  */
-Util.Selection.paste_node = function(sel, new_node)
+Util.Selection.paste_node = function paste_node_at_selection(sel, new_node)
 {
 	// Remember node or last child of node, for selection manipulation below
 	if ( new_node.nodeType == Util.Node.DOCUMENT_FRAGMENT_NODE )
@@ -55,7 +49,7 @@ Util.Selection.paste_node = function(sel, new_node)
 	Util.Range.insert_node(rng, new_node);
 
 	// IE
-	if ( document.all ) // XXX bad
+	if ( Util.Browser.IE )
 	{
 		rng.collapse(false);
 		rng.select();
@@ -76,98 +70,41 @@ Util.Selection.paste_node = function(sel, new_node)
 	}
 };
 
-Util.Selection.paste_node__experimental_do_not_use = function(sel, to_be_inserted)
-{
-	//var range = this._create_range(sel);
-	var range = Util.Range.create_range(sel);
-	// remove the current selection
-	sel.removeAllRanges();
-	range.deleteContents();
-	var node = range.startContainer;
-	var pos = range.startOffset;
-	//range = this._create_range();
-	//var range = Util.Range.create_range(sel);
-	range = node.ownerDocument.createRange();
-	switch (node.nodeType)
-	{
-	case 3: // Node.TEXT_NODE
-			// we have to split it at the caret position.
-		if (to_be_inserted.nodeType == 3)
-		{
-			// do optimized insertion
-			node.insertData(pos, to_be_inserted.data);
-			range.setEnd(node, pos + to_be_inserted.length);
-			range.setStart(node, pos + to_be_inserted.length);
-		}
-		else
-		{
-			node = node.splitText(pos);
-			node.parentNode.insertBefore(to_be_inserted, node);
-			range.setStart(node, 0);
-			range.setEnd(node, 0);
-		}
-		break;
-	case 1: // Node.ELEMENT_NODE
-		node = node.childNodes[pos];
-		node.parentNode.insertBefore(to_be_inserted, node);
-		range.setStart(node, 0);
-		range.setEnd(node, 0);
-		break;
-	}
-	sel.addRange(range);
-};
 /**
  * Removes all ranges from the given selection.
  *
  * @param	sel		the selection
  */
-Util.Selection.remove_all_ranges = function(sel)
+Util.Selection.remove_all_ranges = function clear_selection(sel)
 {
-	// Mozilla
-	try
-	{
+	if (sel.removeAllRanges) {
+		// Mozilla
 		sel.removeAllRanges();
-	}
-	catch(e)
-	{
-		// IE
-		try
-		{
-			sel.empty();
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Selection.remove_all_ranges(): Neither the W3C nor the IE way of removing all ranges from the given selection worked. ' +
-							'When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	} else if (sel.empty && !Util.is_boolean(sel.empty)) {
+		sel.empty();
+	} else {
+		throw new Util.Unsupported_Error('clearing a selection');
 	}
 };
 
 /**
  * Sets the selection to be the current range
  */
-Util.Selection.select_range = function(sel, rng)
+Util.Selection.select_range = function select_range(sel, rng)
 {
-	// Mozilla
-	try
-	{
-		sel.removeAllRanges(); // should this be here? (yes, I think)
-		sel.addRange(rng);
+	if (!Util.is_valid_object(sel)) {
+		throw new TypeError('A selection must be provided to select_range().');
+	} else if (!Util.is_valid_object(rng)) {
+		throw new TypeError('A range must be provided to select_range().');
 	}
-	catch(e)
-	{
-		// IE
-		try
-		{
-			rng.select();
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Selection.remove_all_ranges(): Neither the W3C nor the IE way of removing all ranges from the given selection worked. ' +
-							'When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	
+	if (Util.is_function(sel.addRange, sel.removeAllRanges)) {
+		sel.removeAllRanges();
+		sel.addRange(rng);
+	} else if (rng.select) {
+		rng.select();
+	} else {
+		throw new Util.Unsupported_Error('selecting a range');
 	}
 };
 
@@ -280,9 +217,27 @@ Util.Selection.collapse = function(sel, to_start)
 /**
  * Returns whether the given selection is collapsed.
  */
-Util.Selection.is_collapsed = function(sel)
+Util.Selection.is_collapsed = function selection_is_collapsed(sel)
 {
-	var rng = Util.Range.create_range(sel);
+	if (!Util.is_undefined(sel.isCollapsed))
+		return sel.isCollapsed;
+		
+	if (sel.anchorNode && sel.focusNode) {
+		return (sel.anchorNode == sel.focusNode &&
+			sel.anchorOffset == sel.focusOffset);
+	}
+	
+	var rng;
+	
+	try {
+		rng = Util.Range.create_range(sel);
+	} catch (e) {
+		if (e.code == 1)
+			return true;
+		else
+			throw e;
+	}
+	
 	if ( rng.text != null )
 		return rng.text == '';
 	else if ( rng.length != null )
@@ -294,76 +249,378 @@ Util.Selection.is_collapsed = function(sel)
 };
 
 /**
- * Gets the given selection's nearest ancestor which maches the given
- * test. (Sort of imitates FCK code.)
+ * Creates a bookmark for the current selection: a representation of the state
+ * of the selection from which that state can be restored.
  *
- * @param	sel				the selection
- * @param	boolean_test	the test
- * @return					the matching ancestor, if any
+ * The returned object should be treated as opaque except for one method:
+ * restore(), which reselects whatever was selected when the bookmark was
+ * created.
+ *
+ * @param {Window}	window	the window object
+ * @param {Selection} sel	a window selection
+ * @param {Range} [rng]	the selected range, if already known
+ * @return {object} a bookmark object with a restore() method
+ *
+ * Algorithm from TinyMCE.
  */
-Util.Selection.get_nearest_ancestor_node = function(sel, boolean_test)
+Util.Selection.bookmark = function create_selection_bookmark(window, sel, rng)
 {
-	Util.Object.print_r(sel);
-
-/*
-	var container = Util.Selection.get_selected_element(sel);
-	if ( container === null )
-	{
-		try { container = sel.getRangeAt(0).startContainer; } catch(e) {}
+	if (!rng) {
+		// Create the range from the selection if one was not provided.
+		// The range should be provided by Loki due to the quirk of Safari
+		// explained in the function listen_for_context_changes within UI.Loki.
+		
+		rng = Util.Range.create_range(sel);
 	}
 	
+	var doc = Util.Selection.get_document(selection, range);
+	var dim = Util.Document.get_dimensions(doc);
+	var elem;
+	var i;
+	var other_range;
 	
-
-
-	// Gecko
-	var oContainer = this.GetSelectedElement() ;
-	if ( ! oContainer && FCK.EditorWindow )
-	{
-		try		{ oContainer = FCK.EditorWindow.getSelection().getRangeAt(0).startContainer ; }
-		catch(e){}
+	if (doc != window.document) {
+		throw new Error('The selection and window are for different ' +
+			'documents.');
 	}
-
-	return false ;
-
-	// IE
-	var oContainer ;
-
-	if ( FCK.EditorDocument.selection.type == "Control" )
-	{
-		oContainer = this.GetSelectedElement() ;
+	
+	var pos = {
+		x: dim.scroll.left,
+		y: dim.scroll.top
 	}
-	else
-	{
-		var oRange  = FCK.EditorDocument.selection.createRange() ;
-		oContainer = oRange.parentElement() ;
+	
+	// Try the native Windows IE text range implementation. This branch was not
+	// in the original TinyMCE code.
+	if (range.getBookmark) {
+		try {
+			var mark_id = range.getBookmark();
+			return {
+				range: range,
+				id: mark_id,
+				
+				restore: function restore_native_ie_bookmark()
+				{
+					this.range.moveToBookmark(this.id);
+				}
+			}
+		} catch (e) {
+			// Ignore the error and try the other methods.
+		}
 	}
-
-	while ( oContainer )
-	{
-		if ( oContainer.nodeType == 1 && oContainer.tagName == nodeTagName ) return true ;
-		oContainer = oContainer.parentNode ;
+	
+	if (sel.addRange && doc.createRange && doc.createTreeWalker) {
+		// W3C Traversal and Range, and Mozilla (et al.) selections
+		
+		// Returns a bookmark object that only re-scrolls to the marked position
+		function position_only_bookmark(position)
+		{
+			return {
+				window: window,
+				pos: position,
+				
+				restore: function restore_position_only_bookmark()
+				{
+					if (typeof(console) == 'object') {
+						var message = 'Position-only bookmark used.';
+						
+						if (console.warn)
+							console.warn(message);
+						else if (console.log)
+							console.log(message);
+					}
+					
+					this.window.scrollTo(this.pos.x, this.pos.y);
+				}
+			}
+		}
+		
+		// Gets the currently selected element or the common ancestor element
+		// for the selection's start and end. Taken directly from TinyMCE; I
+		// don't understand all of what it's doing.
+		function get_node()
+		{
+			var elem = rng.commonAncestorContainer;
+			
+			// Handle selection of an image or another control-like element
+			// (e.g. an anchor).
+			if (!rng.collapsed) {
+				var wk = Util.Browser.WebKit;
+				var same_container = (rng.startContainer == rng.endContainer ||
+					(wk && rng.startContainer == rng.endContainer.parentNode));
+				if (same_container) {
+					if (wk || rng.startOffset - rng.endOffset < 2) {
+						if (rng.startContainer.hasChildNodes()) {
+							elem =
+								rng.startContainer.childNodes[rng.startOffset];
+						}
+							
+					}
+				}
+			}
+			
+			while (elem) {
+				if (elem.nodeType == Util.Node.ELEMENT_NODE)
+					return elem;
+				elem = elem.parentNode;
+			}
+			
+			return null;
+		}
+		
+		// Image selection
+		elem = get_node();
+		if (elem && elem.nodeName == 'IMG') {
+			// TinyMCE does this, though I don't know why.
+			return position_only_bookmark(pos);
+		}
+		
+		// Determines the textual position of a range relative to the body,
+		// given the range's relevant start and end nodes. Only gives an answer
+		// if start and end are both text nodes.
+		function get_textual_position(start, end)
+		{
+			var bounds = {start: undefined, end: undefined};
+			var walker = document.createTreeWalker(doc.body,
+				NodeFilter.SHOW_TEXT, null, false);
+			// Note that the walker will only retrieve text nodes.
+			
+			for (var p = 0, n = walker.nextNode(); n; n = walker.nextNode()) {
+				if (n == start) {
+					// Found the starting node in the tree under the root.
+					// Store the position at which it was found.
+					bounds.start = p;
+				}
+				
+				if (n == end) { // not "else if" in case start == end.
+					// Found the ending node in the tree under the root.
+					// Store the position at which it was found and return the
+					// boundaries.
+					bound.end = p;
+					return bounds;
+				}
+				
+				if (n.nodeValue)
+					p += n.nodeValue.length;
+			}
+			
+			return null; // Never did find the end node. Eek.
+		}
+		
+		var bounds, start, end;
+		if (Util.Selection.is_collapsed(sel)) {
+			bounds = get_textual_position(sel.anchorNode, sel.focusNode);
+			if (!bounds) {
+				return position_only_bookmark(pos);
+			}
+			
+			bounds.start += sel.anchorOffset;
+			bound.end += sel.focusOffset;
+		} else {
+			bounds = get_textual_position(rng.startContainer, rng.endContainer);
+			if (!bounds) {
+				return position_only_bookmark(pos);
+			}
+			
+			bounds.start += rng.startOffset;
+			bound.end += rng.endOffset;
+		}
+		
+		return {
+			selection: sel,
+			window: window,
+			document: doc,
+			body: doc.body,
+			pos: pos,
+			start: bounds.start,
+			end: bounds.end,
+			
+			restore: function restore_w3c_bookmark()
+			{
+				var walker = this.document.createTreeWalker(this.body,
+					NodeFilter.SHOW_TEXT, null, false);
+				var bounds = {};
+				var pos = 0;
+				
+				window.scrollTo(this.pos.x, this.pos.y);
+				
+				while (n = walker.nextNode()) { // assignment intentional
+					if (n.nodeValue)
+						pos += n.nodeValue.length;
+					
+					if (pos >= this.start && !bounds.startNode) {
+						// This is the first time we've reached our marked
+						// starting position. Record the starting node and
+						// offset.
+						bounds.startNode = n;
+						bounds.startOffset = this.start -
+							(pos - n.nodeValue.length);
+					}
+					
+					if (pos >= this.end) { // not "else if" in case start == end
+						// We've reached our ending position. Record the ending
+						// node and offset and stop the search.
+						bounds.endNode = n;
+						bounds.endOffset = this.end -
+							(pos - n.nodeValue.length);
+						
+						break;
+					}
+				}
+				
+				if (!bounds.endNode)
+					return;
+				
+				var range = this.document.createRange();
+				range.setStart(bounds.startNode, bounds.setOffset);
+				range.setEnd(bounds.endNode, bounds.endOffset);
+				
+				this.selection.removeAllRanges();
+				this.selection.addRange(range);
+				
+				if (!Util.Browser.Opera) // ???
+					this.window.focus();
+			}
+		};
+	} else if (rng.length && rng.item) {
+		// Internet Explorer control range.
+		
+		elem = rng.item(0);
+		
+		// Find the index of the element in the NodeList of elements with its
+		// tag name. I'm not sure why this is being done (perhaps it keeps the
+		// selected Node object from being retained?), or if it works properly,
+		// but I'm just porting the TinyMCE implementation.
+		function get_element_index(elem)
+		{
+			var elements = doc.getElementsByTagName(elem.nodeName);
+			for (var i = 0; i < elements.length; i++) {
+				if (elements[i] == n)
+					return i;
+			}
+		}
+		
+		i = get_element_index(elem);
+		if (Util.is_blank(i)) {
+			throw new Error('Cannot create bookmark; the selected element ' +
+				'cannot be found in the editing document.');
+		}
+		
+		return {
+			window: window,
+			tag: e.nodeName,
+			index: i,
+			pos: pos,
+			
+			restore: function restore_ie_control_range_bookmark()
+			{
+				var rng = doc.body.createControlRange();
+				var elements = doc.getElementsByTagName(this.tag);
+				var el = elements[this.index];
+				if (!el) {
+					throw new Error('Could not retrieve the bookmark target.');
+				}
+				
+				this.window.scrollTo(this.pos.x, this.pos.y);
+				rng.addElement(el);
+				rng.select();
+			}
+		};
+	} else if (!Util.is_blank(rng.length) && rng.moveToElementText) {
+		// Internet Explorer text range
+		
+		// Figure out the position of the range. We do this in a slightly crude
+		// way, by attempting to move the range backwards by a large number of
+		// characters and seeing how many characters we actually moved.
+		function find_relative_position(range, collapse_to_start)
+		{
+			range.collapse(collapse_to_start);
+			// TextRange.move() returns the number of units actually moved
+			return Math.abs(range.move('character', -0xFFFFFF));
+		}
+		
+		// Establish a baseline by finding the position of the body.
+		other_range = doc.body.createTextRange();
+		other_range.moveToElementText(doc.body);
+		var body_pos = find_relative_position(other_range, true);
+		
+		// Find how far the start side of the selection is from the selection's
+		// base.
+		other_range = rng.duplicate();
+		var start_pos = find_relative_position(other_range, true);
+		
+		// Find the length of the range by finding how far the end side is
+		// from the base and subtracting the start position from it.
+		other_range = rng.duplicate();
+		var length = find_relative_position(other_range, false) - start_pos;
+		
+		return {
+			window: window,
+			body: doc.body,
+			start: start_pos - body_pos, // start pos. of range relative to body
+			length: length,
+			pos: pos,
+			
+			restore: function restore_ie_text_range_bookmark()
+			{
+				// Sanity check
+				if (b.start < 0) {
+					throw new Error('Invalid bookmark: starting point is ' +
+						'negative.');
+				}
+				
+				this.window.scrollTo(this.pos.x, this.pos.y);
+				
+				// Create a new range that we can select.
+				var range = this.body.createTextRange();
+				range.moveToElementText(this.body);
+				range.collapse(true); // collapse to beginning of body
+				
+				// The move methods are relative, so we first move the range's
+				// start forward to the bookmarked start position.
+				range.moveStart('character', b.start);
+				
+				// In doing so, we also moved the end position forward by the
+				// same amount (because you can't have a range's end occur
+				// before its start). Now all we have to do is move the end of
+				// the range forward by the bookmarked length.
+				range.moveEnd('character', b.length);
+				
+				// Done!
+				range.select();
+			}
+		};
+	} else {
+		throw new Util.Unsupported_Error('bookmarking a selection');
 	}
-
-
-	return false ;
-
-
-
-	var ancestor = Util.Range.get_common_ancestor(rng);
-	if ( boolean_test(ancestor) )
-	{
-		return ancestor;
-	}
-	else
-	{
-		// TEMP: commented out 2005-05-23
-		//alert("Util.Range.get_nearest_ancestor_node: just before recursing with boolean_test; \n" +
-			  //"ancestor.outerHTML is " + ancestor.outerHTML + "\n" +
-			  //"ancestor == null is " + (ancestor == null ? 'true' : 'false'));
-		return Util.Node.get_nearest_ancestor_node(ancestor, boolean_test);
-	}
-*/
 };
+
+/**
+ * Gets the selection's owner document.
+ * @param {Selection}	sel 
+ * @param {Range}	rng	the selected range, if already known
+ * @return {Document}
+ */
+Util.Selection.get_document = function get_selection_document(sel, rng)
+{
+	if (!rng) {
+		// Create the range from the selection if one was not provided.
+		// The range should be provided by Loki due to the quirk of Safari
+		// explained in the function listen_for_context_changes within UI.Loki.
+		
+		rng = Util.Range.create_range(sel);
+	}
+	
+	var elem = (sel.anchorNode // Mozilla (and friends) selection object
+		|| rng.startContainer // W3C Range
+		|| (rng.parentElement && rng.parentElement())); // IE TextRange
+		
+	if (!elem) {
+		throw new Util.Unsupported_Error("getting a selection's owner " +
+			"document");
+	}
+	
+	return elem.ownerDocument;
+}
 
 /**
  * Returns the selected element, if any. Otherwise returns null.

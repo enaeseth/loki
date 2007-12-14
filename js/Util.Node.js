@@ -81,25 +81,22 @@ Util.Node.remove_child_nodes = function(node, boolean_test)
  */
 Util.Node.get_nearest_ancestor_node = function(node, boolean_test, extra_args)
 {
-	var cur_node = node.parentNode;
-	while ( true )
-	{
-		if ( cur_node == null || // added only 2006-03-07; should this actually be here, 
-								 // after all this time, or am I just missing something?
-			 cur_node.nodeType == Util.Node.DOCUMENT_NODE ||
-			 cur_node.nodeType == Util.Node.DOCUMENT_FRAGMENT_NODE ) // reached the top of the tree
-		{
-			return null;
-		}
-		else if ( boolean_test(cur_node, extra_args) )
-		{
-			return cur_node;
-		}
-		else
-		{
-			cur_node = cur_node.parentNode;
+	function terminal(node) {
+		switch (node.nodeType) {
+			case Util.Node.DOCUMENT_NODE:
+			case Util.Node.DOCUMENT_FRAGMENT_NODE:
+				return true;
+			default:
+				return false;
 		}
 	}
+	
+	for (var n = node.parentNode; n && !terminal(n); n = n.parentNode) {
+		if (boolean_test(n, extra_args))
+			return n;
+	}
+	
+	return null;
 };
 
 /**
@@ -107,22 +104,56 @@ Util.Node.get_nearest_ancestor_node = function(node, boolean_test, extra_args)
  * that satisfies the given boolean_test. Paramaters same as for
  * get_nearest_ancestor_node.
  */
-Util.Node.has_ancestor_node = function(node, boolean_test, extra_args)
+Util.Node.has_ancestor_node =
+	function node_has_matching_ancestor(node, boolean_test, extra_args)
 {
 	return Util.Node.get_nearest_ancestor_node(node, boolean_test, extra_args) != null;
 };
 
 /**
+ * Gets the nearest ancestor of the node that is currently being displayed as
+ * a block.
+ * @param {Node}	node		the node to examine
+ * @param {Window}	node_window	the node's window
+ * @type Element
+ * @see Util.Node.get_nearest_bl_ancestor_element()
+ * @see Util.Element.is_block_level()
+ */
+Util.Node.get_enclosing_block =
+	function get_enclosing_block_of_node(node, node_window)
+{
+	// Sanity checks.
+	if (!Util.is_valid_object(node)) {
+		throw new TypeError('Must provide a node to ' + 
+			'Util.Node.get_enclosing_block.');
+	} else if (!Util.is_valid_object(node_window)) {
+		throw new TypeError('Must provide the node\'s window object to ' + 
+			'Util.Node.get_enclosing_block.');
+	} else if (node_window.document != node.ownerDocument) {
+		throw new Error('The window provided to Util.Node.get_enclosing_block' +
+			' is not actually the window in which the provided node resides.');
+	}
+	
+	function is_block(node) {
+		return (node.nodeType == Util.Node.ELEMENT_NODE &&
+			Util.Element.is_block_level(window, node));
+	}
+	
+	return Util.Node.get_nearest_ancestor_node(node, is_block);
+}
+
+/**
  * Gets the nearest ancester of node which is a block-level
  * element. (Uses get_nearest_ancestor_node.)
  *
- * @param	node		the starting node
+ * @param {Node}	node		the starting node
+ * @type Element
+ * @see Util.Node.get_enclosing_block()
  */
 Util.Node.get_nearest_bl_ancestor_element = function(node)
 {
 	return Util.Node.get_nearest_ancestor_node(node, Util.Node.is_block_level_element);
 };
-
 /**
  * Gets the given node's nearest ancestor which is an element whose
  * tagname matches the one given.
@@ -133,12 +164,13 @@ Util.Node.get_nearest_bl_ancestor_element = function(node)
  */
 Util.Node.get_nearest_ancestor_element_by_tag_name = function(node, tag_name)
 {
-	var boolean_test = function(node2)
+	// Yes, I could use curry_is_tag, but I'd rather only have one closure.
+	function matches_tag_name(node)
 	{
-		return ( node2.nodeType == Util.Node.ELEMENT_NODE &&
-			     node2.tagName == tag_name );
-	};
-	return Util.Node.get_nearest_ancestor_node(node, boolean_test);
+		return Util.Node.is_tag(node, tag_name);
+	}
+	
+	return Util.Node.get_nearest_ancestor_node(node, matches_tag_name);
 };
 
 /**
@@ -153,13 +185,11 @@ Util.Node.get_nearest_ancestor_element_by_tag_name = function(node, tag_name)
  */
 Util.Node.get_last_child_node = function(node, boolean_test)
 {
-	var children = node.childNodes;
-	for ( var i = children.length - 1; i >= 0; i-- )
-	{
-		var child = children.item(i);
-		if ( boolean_test(child) )
-			return child;
+	for (var n = node.lastChild; n; n = n.previousSibling) {
+		if (boolean_test(n))
+			return n;
 	}
+	
 	return null;
 };
 
@@ -170,11 +200,11 @@ Util.Node.has_child_node = function(node, boolean_test)
 
 /**
  * Returns true if the node is an element node and its node name matches the
- * tag parameter.
+ * tag parameter, false otherwise.
  *
  * @param	node	node on which the test will be run
  * @param	tag		tag name to look for
- * @return			true or false
+ * @type boolean
  */
 Util.Node.is_tag = function(node, tag)
 {
@@ -345,45 +375,16 @@ Util.Node.surround_with_node = function(inner_node, outer_node)
  */
 Util.Node.replace_with_children = function(node)
 {
-	// XXX XXX: this doesn't work correctly right now
+	var parent = node.parentNode;
 
-	// if the node's parent is null, it's already been removed
-	if ( node.parentNode == null )
-	{
-		return;
+	if (!parent)
+		return; // node was removed already
+	
+	while (node.firstChild) {
+		parent.insertBefore(node.removeChild(node.firstChild), node);
 	}
-
-/*
-	// Take all the children of node and move them, 
-	// one at a time, immediately before node in the tree.
-	// Then, node being empty, remove node.
-	var a = [];
-	for ( var i = 0; i < node.childNodes.length; i++ )
-		//a.push(node.removeChild(node.firstChild)); // this is dangerous...can result in data 
-													 // loss if there's an error
-		a.push(node.firstChild);
-	for ( var i = 0; i < a.length; i++ )
-	{
-		if ( node.nextSibling != null )
-		{
-			alert('node.nextSibling != null');
-			node.nextSibling.insertBefore(a[i], node.nextSibling);
-		}
-		else
-		{
-			alert('node.nextSibling == null');
-			node.appendChild(a[i]);
-		}
-		//node.parentNode.insertBefore(a[i], node);
-	}
-	node.parentNode.removeChild(node);
-*/
-
-	while ( node.hasChildNodes() )
-	{
-		node.parentNode.insertBefore( node.removeChild(node.firstChild), node);
-	}
-	node.parentNode.removeChild(node);
+	
+	parent.removeChild(node);
 };
 
 /**
@@ -424,7 +425,7 @@ Util.Node.swap_node = function(new_node, old_node)
  */
 Util.Node.previous_matching_sibling = function(node, boolean_test)
 {	
-	for (var sib = node.previousSibling; sib != null; sib = sib.previousSibling) {
+	for (var sib = node.previousSibling; sib; sib = sib.previousSibling) {
 		if (boolean_test(sib))
 			return sib;
 	}
@@ -438,7 +439,7 @@ Util.Node.previous_matching_sibling = function(node, boolean_test)
  */
 Util.Node.next_matching_sibling = function(node, boolean_test)
 {	
-	for (var sib = node.nextSibling; sib != null; sib = sib.nextSibling) {
+	for (var sib = node.nextSibling; sib; sib = sib.nextSibling) {
 		if (boolean_test(sib))
 			return sib;
 	}
@@ -467,6 +468,46 @@ Util.Node.next_element_sibling = function(node)
 		return n.nodeType == Util.Node.ELEMENT_NODE;
 	})
 };
+
+/**
+ * @return {String} a string that describes the node
+ */
+Util.Node.get_debug_string = function get_node_debug_string(node)
+{
+	var str;
+	
+	if (!Util.is_number(node.nodeType)) {
+		return '(Non-node ' + node + ')';
+	}
+	
+	switch (node.nodeType) {
+		case Util.Node.ELEMENT_NODE:
+			str = '<' + node.nodeName;
+			
+			Util.Object.enumerate(Util.Element.get_attributes(node),
+				function append_attribute(name, value) {
+					str += ' ' + name + '="' + value + '"';
+				}
+			);
+			
+			str += '>';
+			break;
+		case Util.Node.TEXT_NODE:
+			str = '"' +
+				node.nodeValue.toString().replace(/^\s+|\s+$/g, '') + '"';
+			break;
+		case Util.Node.DOCUMENT_NODE:
+			str = '[Document';
+			if (node.location)
+				str += ' ' + node.location;
+			str += ']';
+			break;
+		default:
+			str = '[' + node.nodeName + ']';
+	}
+	
+	return str;
+}
 
 // end file Util.Node.js
 
