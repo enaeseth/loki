@@ -78,9 +78,10 @@ UI.Key_Event.translate = function translate_browser_events_to_loki_key_events(
 	//    [2] Unfortunately, IE will not generate keypress events for arrow
 	//        keys, and while current releases of Safari (3.0.4/Mac at least)
 	//        generate keypress events for all of our special keys (and even
-	//        invented unique codes for them), recent nightly WebKit builds
-	//        no longer do and only generate keyup/down. So, for all other
-	//        browsers we use keydown.
+	//        invented unique codes for them), upcoming releases of WebKit no
+	//        longer do and merely generate keyup/down. So, for all other
+	//        browsers, we trap keydown instead.
+	//        (See http://bugs.webkit.org/show_bug.cgi?id=16429 for more info.)
 	//    [3] It seems that we would run into trouble because Safari/Mac only
 	//        generates keypress events when the operating system notices that a
 	//        key is being held down and generates a repeat, but apparently
@@ -88,6 +89,8 @@ UI.Key_Event.translate = function translate_browser_events_to_loki_key_events(
 	//        not generate events for the repeats. It is unknown if this works
 	//        on Safari/Windows, since it generates both a keydown and a
 	//        keypress event on each repetition.
+	// A very useful resource for keyboard event issues can be found at
+	// http://unixpapa.com/js/key.html.
 	
 	function key_depressed(event)
 	{
@@ -116,7 +119,7 @@ UI.Key_Event.translate = function translate_browser_events_to_loki_key_events(
 		return return_value;
 	}
 	
-	if (Util.Browser.Gecko) {
+	if (Util.Browser.Gecko || Util.Browser.Opera) {
 		Util.Event.observe(element, 'keypress', key_depressed); // [1]
 	} else {
 		Util.Event.observe(element, 'keydown', key_depressed); // [2]

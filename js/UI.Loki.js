@@ -709,6 +709,13 @@ UI.Loki = function Loki(settings)
 			return keybinder.evaluate(arguments[0] || window.event)
 		}
 		
+		// If this suddenly breaks under Safari and other WebKit-based
+		// browsers for shortcut keys, see the WebKit development mailing list
+		// (http://lists.webkit.org/pipermail/webkit-dev/). There were many
+		// changes to key event handling on WebKit releases after the Safari 3
+		// release on Mac OS X 10.5, and they were considering changing the
+		// handling of application-defined shortcuts from keypress to keydown.
+		// If this broke, perhaps they did.
 		Util.Event.add_event_listener(self.document, 'keypress',
 			evaluate_key_press);
 	}
