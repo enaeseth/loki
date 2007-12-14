@@ -11,7 +11,7 @@ Util.Array = function()
  * Forms a legitimate JavaScript array from an array-like object
  * (eg NodeList objects, function argument lists).
  */
-Util.Array.from = function(iterable)
+Util.Array.from = function array_from_iterable(iterable)
 {
 	if (!iterable)
 		return [];
@@ -40,7 +40,7 @@ var $A = Util.Array.from; // convenience alias
 /**
  * Creates an array of integers from start up to (but not including) stop.
  */
-Util.Array.range = function(start, stop)
+Util.Array.range = function range(start, stop)
 {
 	if (arguments.length == 1) {
 		stop = start;
@@ -74,7 +74,7 @@ Util.Array.Methods = {
 	 * @param	thisp	optional "this" context
 	 * @see	http://tinyurl.com/ds8lo
 	 */
-	for_each: function(array, func)
+	for_each: function each(array, func)
 	{
 		var thisp = arguments[2] || null;
 
@@ -101,7 +101,7 @@ Util.Array.Methods = {
 	 * @type array
 	 * @see http://tinyurl.com/32ww7d
 	 */
-	map: function(array, func)
+	map: function map(array, func)
 	{
 		var thisp = arguments[2] || null;
 
@@ -118,7 +118,7 @@ Util.Array.Methods = {
 	/**
 	 * @see http://tinyurl.com/yq3c9f
 	 */
-	reduce: function(array, func, initial_value)
+	reduce: function reduce(array, func, initial_value)
 	{
 		if (typeof(func) != 'function')
 			throw new TypeError();
@@ -143,7 +143,7 @@ Util.Array.Methods = {
 	 * @param	test	the function which will be called
 	 * @param	thisp	optional "this" context
 	 */
-	find: function(array, test, thisp)
+	find: function find(array, test, thisp)
 	{
 		if (typeof(thisp) == 'undefined')
 			thisp = null;
@@ -154,7 +154,7 @@ Util.Array.Methods = {
 
 		for (var i = 0; i < len; i++) {
 			if (i in array && test.call(thisp, array[i]))
-				return array[i]
+				return array[i];
 		}
 	},
 	
@@ -165,7 +165,7 @@ Util.Array.Methods = {
 	 * @param	test	the function which will be called
 	 * @param	thisp	optional "this" context
 	 */
-	find_all: function(array, test, thisp)
+	find_all: function findAll(array, test, thisp)
 	{
 		if (typeof(thisp) == 'undefined')
 			thisp = null;
@@ -183,7 +183,7 @@ Util.Array.Methods = {
 		return results;
 	},
 	
-	min: function(array, key_func)
+	min: function min(array, key_func)
 	{
 		return array.reduce(function(a, b) {
 			if (key_func) {
@@ -198,7 +198,7 @@ Util.Array.Methods = {
 		});
 	},
 	
-	max: function(array, key_func)
+	max: function max(array, key_func)
 	{
 		return array.reduce(function(a, b) {
 			if (key_func) {
@@ -213,35 +213,110 @@ Util.Array.Methods = {
 		});
 	},
 	
-	pluck: function(array, property_name)
+	pluck: function pluck(array, property_name)
 	{
 		return array.map(function(obj) {
 			return obj[property_name];
 		});
 	},
 	
-	sum: function(array)
+	sum: function sum(array)
 	{
 		return array.reduce(function(a, b) {
 			return a + b;
 		});
 	},
 	
-	product: function(array)
+	product: function product(array)
 	{
 		return array.reduce(function(a, b) {
 			return a * b;
 		});
 	},
 	
-	contains: function(array, item)
+	contains: function contains(array, item)
 	{
+		if (Util.is_function(array.indexOf)) {
+			return -1 != array.indexOf(item);
+		}
+		
 		return !!array.find(function(element) {
 			return item == element;
 		});
 	},
 	
-	remove: function(array, item)
+	/**
+	 * Returns true if the function test returns true when given any element
+	 * in array.
+	 * @param {array}	array	the array to examine
+	 * @param {function}	test	the test to apply to the array's elements
+	 * @param {object}	thisp	an optional "this" context in which the test
+	 *							function will be called
+	 * @type boolean
+	 */
+	some: function some(array, test)
+	{
+		var thisp = arguments[2] || null;
+		
+		for (var i = 0; i < array.length; i++) {
+			if (i in array) {
+				if (test.call(thisp, array[i])) {
+					// Found one that works.
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	},
+	
+	/**
+	 * Returns true if the function test returns true when executed for each
+	 * element in array.
+	 * @param {array}	array	the array to examine
+	 * @param {function}	test	the test to apply to the array's elements
+	 * @param {object}	thisp	an optional "this" context in which the test
+	 *							function will be called
+	 * @type boolean
+	 */
+	every: function every(array, test)
+	{
+		var thisp = arguments[2] || null;
+		
+		for (var i = 0; i < array.length; i++) {
+			if (i in array) {
+				if (!test.call(thisp, array[i])) {
+					// Found one that doesn't work.
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	},
+	
+	/**
+	 * Returns all of the elements of the array that passed the given test.
+	 * @param {array}	array	the array to filter
+	 * @param {function}	test	a function that will be called for each
+	 *								element in the array to determine whether
+	 *								or not it should be included
+	 * @param {object}	thisp	an optional "this" context in which the test
+	 *							function will be called
+	 * @type array
+	 */
+	filter: function filter(array, test)
+	{
+		var thisp = arguments[2] || null;
+		
+		return array.reduce(function perform_filtration(matches, element) {
+			if (test.call(thisp, element))
+				matches.push(element);
+			return matches;
+		}, []);
+	},
+	
+	remove: function remove(array, item)
 	{
 		var len = array.length;
 		for (var i = 0; i < len; i++) {
@@ -254,7 +329,7 @@ Util.Array.Methods = {
 		return false;
 	},
 	
-	remove_all: function(array, item)
+	remove_all: function removeAll(array, item)
 	{
 		var len = array.length;
 		var found = false;
@@ -269,7 +344,7 @@ Util.Array.Methods = {
 		return found;
 	},
 	
-	append: function(a, b)
+	append: function append(a, b)
 	{
 		// XXX: any more efficient way to do this using Array.splice?
 		
@@ -299,6 +374,22 @@ for (var name in Util.Array.Methods) {
 	
 	Util.Array[name] = Util.Array.Methods[name];
 	
-	var new_name = (name == 'for_each') ? 'each' : transform_name(name);
-	Array.prototype[new_name] = Util.Array.Methods[name].methodize();
+	var new_name;
+	switch (name) {
+		case 'map':
+		case 'reduce':
+		case 'filter':
+		case 'every':
+		case 'some':
+			if (!Util.is_function(Array.prototype[name]))
+				Array.prototype[name] = Util.Array.Methods[name].methodize();
+			break;
+		case 'for_each':
+			Array.prototype.each = (Array.prototype.forEach ||
+					Util.Array.Methods.for_each.methodize());
+			break;
+		default:
+			new_name = transform_name(name);
+			Array.prototype[new_name] = Util.Array.Methods[name].methodize();
+	}
 }
