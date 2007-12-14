@@ -476,6 +476,10 @@ Util.Node.get_debug_string = function get_node_debug_string(node)
 {
 	var str;
 	
+	if (!Util.is_number(node.nodeType)) {
+		return '(Non-node ' + node + ')';
+	}
+	
 	switch (node.nodeType) {
 		case Util.Node.ELEMENT_NODE:
 			str = '<' + node.nodeName;
