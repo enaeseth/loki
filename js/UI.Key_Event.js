@@ -49,6 +49,7 @@ UI.Key_Event = function KeyEvent(loki, source)
 	
 	this.allow_browser_handling = function allow_browser_handling()
 	{
+		this.prevent_default();
 		this._state |= UI.Key_Event._BROWSER_HANDLING_ALLOWED;
 	}
 }
