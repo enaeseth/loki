@@ -180,6 +180,9 @@ UI.Loki = function Loki(settings)
 		switch_toolbar(source_toolbar, toolbar);
 		finish_ui_creation(true);
 		this.dispatch_event(new UI.Event('graphical_view_switch'));
+		
+		this.focus();
+		handle_user_activity(null);
 	}
 	
 	this.show_source_view = function show_source_view()
@@ -626,7 +629,6 @@ UI.Loki = function Loki(settings)
 			activate_capabilities(switching_from_source);
 			
 			self.set_html(textarea.value);
-			
 			activate_keybindings();
 			activate_contextual_menu();
 			trap_form_submission();
@@ -808,6 +810,8 @@ UI.Loki = function Loki(settings)
 	
 	function setup_document_and_selection()
 	{
+		return;
+		
 		var body = self.body;
 		
 		function create_initial_paragraph()
@@ -874,14 +878,14 @@ UI.Loki = function Loki(settings)
 	 * Raises UI.Key_Event events for the special keydown events.
 	 */
 	function listen_for_special_keys()
-	{
+	{	
 		function default_action(event)
 		{
 			UI.Special_Key_Handler.handle_event(event);
 		}
 		
 		UI.Key_Event.translate(self.document, self, default_action,
-			context_changed);
+			handle_user_activity);
 	}
 	
 	/*
@@ -898,7 +902,7 @@ UI.Loki = function Loki(settings)
 		
 		if (!switching_from_source) {
 			self.window.focus();
-			handle_user_activity(null);
+			handle_user_activity(false);
 			context_changed.delay(.05 /* 50ms */);
 		}
 	}
@@ -906,6 +910,12 @@ UI.Loki = function Loki(settings)
 	/*
 	 * Responds to a change (or possible change) in the selection / carat
 	 * position in the editing document.
+	 *
+	 * If the event provided to this function evaluates to false, attempts
+	 * to recover from a failure to get the range that only happens in Safari.
+	 *
+	 * If the event provided to this function *is* false (i.e. event === false),
+	 * does not trigger a context change.
 	 */
 	function handle_user_activity(event)
 	{
@@ -918,10 +928,34 @@ UI.Loki = function Loki(settings)
 		// advantage: we retrieve the selected range in this event
 		// listener when we know that the editing window has focus.
 		
-		selected_range = Util.Range.create_range(selection);
+		try {
+			selected_range = Util.Range.create_range(selection);
+		} catch (e) {
+			// On Safari this fails when Loki first loads or when we switch
+			// back from source view.
+			
+			if (!event && self.document.createRange) {
+				selected_range = webkit_create_initial_range();
+			} else {
+				throw e;
+			}
+		}
 		
-		if (event)
-			context_changed(event);
+		
+		if (event !== false)
+			context_changed(event || null);
+	}
+	
+	/*
+	 * Create an initial range for WebKit.
+	 */
+	function webkit_create_initial_range()
+	{
+		var range = self.document.createRange();
+		range.setStart(self.body, 0);
+		range.collapse(true);
+		
+		return range;
 	}
 	
 	/**
