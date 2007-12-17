@@ -99,7 +99,7 @@ UI.Key_Event.translate = function translate_browser_events_to_loki_key_events(
 		if (!UI.Key_Event._handles_code(event.keyCode))
 			return return_value;
 		
-		var key_event = new UI.Key_Event(self, event);
+		var key_event = new UI.Key_Event(target, event);
 		target.dispatch_event(key_event);
 		
 		if (default_handler) {
