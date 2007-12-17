@@ -216,7 +216,7 @@ UI.Loki = function Loki(settings)
 	this.replace_textarea = function replace_textarea(area)
 	{
 		if (textarea) {
-			// This instance has already replaced some textarea and using it.
+			// This instance has already replaced some textarea and is using it.
 			// We can't replace another!
 			
 			throw new Error('This Loki instance is already using some ' +
