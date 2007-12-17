@@ -175,6 +175,10 @@ Util.Document.make_editable = function make_editable(doc)
 			// editable)
 			doc.designMode = 'on';
 			doc.execCommand('undo', false, null);
+			
+			try {
+				doc.execCommand('useCSS', false, true);
+			} catch (no_use_css) {}
 		} catch (f) {
 			throw new Error('Unable to make the document editable. ' +
 				'(' + e + '); (' + f + ')');
