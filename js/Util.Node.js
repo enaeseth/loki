@@ -111,6 +111,35 @@ Util.Node.has_ancestor_node =
 };
 
 /**
+ * Finds the node that is equal to or an ancestor of the given node that
+ * matches the provided test.
+ * @param	{Node}	node	the node to examine
+ * @param	{function}	test	the test function that should return true when
+ *								passed a suitable node
+ * @return {Node}	the matching node if one was found, otherwise null
+ */
+Util.Node.find_match_in_ancestry =
+	function find_matching_node_in_ancestry(node, test)
+{
+	function terminal(node) {
+		switch (node.nodeType) {
+			case Util.Node.DOCUMENT_NODE:
+			case Util.Node.DOCUMENT_FRAGMENT_NODE:
+				return true;
+			default:
+				return false;
+		}
+	}
+	
+	for (var n = node; n && !terminal(n); n = n.parentNode) {
+		if (test(n))
+			return n;
+	}
+	
+	return null;
+}
+
+/**
  * Gets the nearest ancestor of the node that is currently being displayed as
  * a block.
  * @param {Node}	node		the node to examine
