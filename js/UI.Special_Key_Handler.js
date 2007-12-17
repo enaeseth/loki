@@ -29,11 +29,60 @@ UI.Special_Key_Handler = {
 	 */
 	handle_enter: function handle_enter(event)
 	{
+		var loki = event.loki;
+		var b = this.get_boundaries(loki);
+		var block_name; 
+		
+		// Shorten the name of this function.
+		function find(node, test)
+		{
+			return Util.Node.find_match_in_ancestry(node, test);
+		}
+		
+		/*
+		// Determine whether or not to permit browser handling.
 		// Modern releases of TinyMCE bail out if Opera is detected and allow it
 		// to use its default behavior since it is apparently "really good".
 		// We may want to do the same after some testing.
+		function browser_handling_is_acceptable()
+		{
+			// If we're inside a list or a preformatted block, the default 
+			// browser behavior (inserting a <br> tag or a simple line break,
+			// respectively) is what we want.
+			function is_list_or_pre(node)
+			{
+				return /^(OL|UL|DL|PRE)$/.test(node.nodeName);
+			}
+			
+			if (find(b.start.block, is_list_or_pre))
+				return true;
+			
+			return false;
+		}
 		
-		var loki = event.loki;
+		if (browser_handling_is_acceptable()) {
+			event.allow_browser_handling();
+			return;
+		}
+		*/
+		
+		// The tag name of the block that will be created.
+		var block_name = (b.start.block & b.start.block.nodeName != 'BODY')
+			? b.start.block.nodeName
+			: 'P';
+		
+		this.insert_block(b, block_name);
+	},
+	
+	/**
+	 * Gets the relevant boundaries for the Loki selection, including the
+	 * boundaries' blocks.
+	 * @see Util.Range.get_boundaries()
+	 * @param {UI.Loki}	loki
+	 * @return {object}
+	 */
+	get_boundaries: function get_boundaries(loki)
+	{
 		var body = loki.body;
 		var selected_range = loki.get_selected_range();
 		
@@ -73,8 +122,6 @@ UI.Special_Key_Handler = {
 			});
 		}
 		
-		console.debug(b.start, b.end);
-		
 		function get_block(side)
 		{
 			var node = (side.container.nodeType == Util.Node.TEXT_NODE)
@@ -102,7 +149,18 @@ UI.Special_Key_Handler = {
 			b.end.block = get_block(b.end);
 		}
 		
-		console.debug(b.start.block, b.end.block);
+		return b;
+	},
+	
+	/**
+	 * Starts a new block at the current selection.
+	 * @param {object}	b	the selection boundaries
+	 * @param {string}	tag	the tag name of the new block
+	 * @return {Element}	the newly-created block
+	 */
+	insert_block: function insert_block(b, tag)
+	{
+		
 	},
 	
 	/** @ignore */
