@@ -142,7 +142,7 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 			// W3C range
 			
 			return {
-				node: rng[side + 'Container'],
+				container: rng[side + 'Container'],
 				offset: rng[side + 'Offset']
 			};
 		} else if (rng.duplicate && rng.parentElement) {
@@ -212,7 +212,7 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 			
 			// End of the parent
 			return {
-				node: parent,
+				container: parent,
 				offset: parent.childNodes.length
 			};
 		} else if (rng.item) {
@@ -226,7 +226,7 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 			parent = node.parentNode;
 			
 			return {
-				node: parent,
+				container: parent,
 				offset: get_offset_of_node(parent, node)
 			};
 		} else {
