@@ -353,7 +353,7 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 						machine.states.error.set('No ' +
 							type.name.toLowerCase() + ' are available to ' +
 							'choose from.', function() {
-								machine.change('loading_site')
+								machine.change('loading')
 							});
 						machine.states.error.enter();
 						return;
