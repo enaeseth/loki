@@ -364,7 +364,7 @@ UI.Loki = function Loki(settings)
 	 * Formats a block as a list of the given type if it's not so, and
 	 * if it is so, formats it as a normal paragraph. This is
 	 * necessary because in Mozilla, if a block is already formatted
-	 * as a list, the Insert[Un]orderedList commands simply remove the
+	 * as a list, the Insert(Uno|O)rderedList commands simply remove the
 	 * block's block-level formatting, rather than changing it to a
 	 * paragraph.
 	 *
@@ -884,8 +884,7 @@ UI.Loki = function Loki(settings)
 			UI.Special_Key_Handler.handle_event(event);
 		}
 		
-		UI.Key_Event.translate(self.document, self, default_action,
-			handle_user_activity);
+		UI.Key_Event.translate(self.document, self, default_action);
 	}
 	
 	/*
@@ -895,9 +894,14 @@ UI.Loki = function Loki(settings)
 	 */
 	function listen_for_mouse_context_changes(switching_from_source)
 	{
-		// Listen for mouseup to catch the carat being moved 
-		['mousedown', 'mouseup'].each(function register_cc_listener(ev_type) {
-			Util.Event.observe(self.document, 'mouseup', handle_user_activity);
+		var context_changing_events = [
+			'mousedown', // Moves the carat (anchor) position
+			'mouseup',   // Sets the selection focus position
+			'keyup'      // Move via keyboard completed (arrow keys, etc.) 
+		];
+		
+		context_changing_events.each(function register_cc_listener(ev_type) {
+			Util.Event.observe(self.document, ev_type, handle_user_activity);
 		});
 		
 		if (!switching_from_source) {
@@ -940,7 +944,6 @@ UI.Loki = function Loki(settings)
 				throw e;
 			}
 		}
-		
 		
 		if (event !== false)
 			context_changed(event || null);

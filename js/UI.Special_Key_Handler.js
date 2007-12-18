@@ -71,7 +71,7 @@ UI.Special_Key_Handler = {
 			? b.start.block.nodeName
 			: 'P';
 		
-		this.insert_block(b, block_name);
+		this.insert_block(loki, b, b.start.block.nodeName, block_name);
 	},
 	
 	/**
@@ -135,13 +135,18 @@ UI.Special_Key_Handler = {
 	
 	/**
 	 * Starts a new block at the current selection.
+	 * Currently requires W3C ranges.
+	 * @param {UI.Loki}	loki
 	 * @param {object}	b	the selection boundaries
 	 * @param {string}	before_tag	the tag name for the original block
 	 * @param {string}	after_tag	the tag name of the new block
-	 * @return {Element}	the newly-created block
+	 * @return {array}	the newly-created elements
 	 */
-	insert_block: function insert_block(b, before_tag, after_tag)
+	insert_block: function insert_block(loki, b, before_tag, after_tag)
 	{
+		var selection = loki.get_selection();
+		var range;
+		
 		function create_new_block(side, tag)
 		{
 			return (side.block && side.block.nodeName == tag)
@@ -172,6 +177,13 @@ UI.Special_Key_Handler = {
 			return null; // should be effectively unreachable
 		}
 		
+		function pad_block(block)
+		{
+			if (Util.Element.is_basically_empty(block)) {
+				block.appendChild(loki.document.createElement('BR'));
+			}
+		}
+		
 		// Create the new before and after blacks.
 		var before = create_new_block(b.start, before_tag);
 		var after = create_new_block(b.end, after_tag);
@@ -183,6 +195,76 @@ UI.Special_Key_Handler = {
 		// Find the chop nodes.
 		var start_chop = find_chop_node(b.start, 'previous');
 		var end_chop = find_chop_node(b.end, 'next');
+		
+		var preserver = loki.document.createRange();
+		
+		// Copy the contents of the existing block (up to the carat) into
+		// the new "before" block that was created above.
+		if (start_chop.nodeName == before_tag)
+			preserver.setStart(start_chop, 0);
+		else
+			preserver.setStartBefore(start_chop);
+		preserver.setEnd(b.start.container, b.start.offset);
+		before.appendChild(preserver.cloneContents());
+		
+		// Copy the contents after the carat into the new "after" block.
+		if (end_chop.nodeName == after_tag)
+			preserver.setEnd(end_chop, end_chop.childNodes.length);
+		else
+			preserver.setEndAfter(end_chop);
+		preserver.setStart(b.end.container, b.end.offset);
+		after.appendChild(preserver.cloneContents());
+		
+		// Delete the original contents.
+		range = loki.document.createRange();
+		if (!start_chop.previousSibling &&
+			start_chop.parentNode.nodeName == before_tag)
+		{
+			range.setStartBefore(start_chop.parentNode);
+		} else if (start_chop.nodeName == before_tag) {
+			range.setStartBefore(start_chop);
+		} else if (b.start.container.nodeName == before_tag && !b.start.offset){
+			range.setStartBefore(b.start.container);
+		} else {
+			range.setStart(b.start.container, b.start.offset)
+		}
+		
+		if (!end_chop.nextSibling && end_chop.parentNode.nodeName == after_tag){
+			range.setEndAfter(end_chop.parentNode);
+		} else if (end_chop.nodeName == after_tag) {
+			range.setEndAfter(end_chop);
+		} else {
+			range.setEnd(b.end.container, b.end.offset);
+		}
+		range.deleteContents();
+		
+		pad_block(before);
+		pad_block(after);
+		
+		// Opera needs this done in the reverse order from everyone else
+		// for some reason.
+		if (!Util.Browser.Opera) {
+			range.insertNode(after);
+			range.insertNode(before);
+		} else {
+			range.insertNode(before);
+			range.insertNode(after);
+		}
+		
+		before.normalize();
+		after.normalize();
+		
+		// Move cursor and scroll into view.
+		range = loki.document.createRange();
+		range.selectNodeContents(after);
+		range.collapse(true);
+		Util.Selection.select_range(selection, range);
+		
+		if (after.scrollIntoView)
+			after.scrollIntoView(false);
+			
+		// All done!
+		return [before, after];
 	},
 	
 	/**
