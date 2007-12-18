@@ -12,39 +12,80 @@
 // For more information about how to sign scripts, see 
 // privileged/HOWTO
 //
-// Gecko
-if ('object' == typeof(Components))
-{
-	document.addEventListener('DOMContentLoaded', function() {
-		UI.Clipboard_Helper_Privileged_Iframe = document.createElement('IFRAME');
-		UI.Clipboard_Helper_Privileged_Iframe.src = UI__Clipboard_Helper_Privileged_Iframe__src;
-		UI.Clipboard_Helper_Privileged_Iframe.setAttribute('style', 'height:2px; width:2px; left:-500px; position:absolute;');
-		document.getElementsByTagName('BODY')[0].appendChild(UI.Clipboard_Helper_Privileged_Iframe);
-	}, false);
-}
-// For IE also we want a separate sandbox for clipboard operations. We
-// execCommand paste here, then run clean/masseuses, then transfer to 
-// the real iframe. Or we transfer from the real iframe to here, then run
-// unmasseuses, then execCommand copy.
-//
-// The reason to go through all this rather than use window.clipboardData
-// is that the latter only supports copying/pasting as text (or URL ... why 
-// would anyone want that), not HTML.
-else
-{
-	Util.Event.add_event_listener(window, 'load', function()
+(function setup_clipboard_helper() {
+	
+	function watch_onload(func)
 	{
-		UI.Clipboard_Helper_Editable_Iframe = document.createElement('IFRAME');
-		// When under https, this causes an alert in IE about combining https and http:
-		UI.Clipboard_Helper_Editable_Iframe.src = UI__Clipboard_Helper_Editable_Iframe__src;
-		UI.Clipboard_Helper_Editable_Iframe.style.height = '2px';
-		UI.Clipboard_Helper_Editable_Iframe.style.width = '2px';
-		UI.Clipboard_Helper_Editable_Iframe.style.left = '-500px';
-		UI.Clipboard_Helper_Editable_Iframe.style.position = 'absolute';
-		document.body.appendChild(UI.Clipboard_Helper_Editable_Iframe);
-	});
-}
-
+		if (document.addEventListener) {
+			document.addEventListener('DOMContentLoaded', func, false);
+			window.addEventListener('load', func, false);
+		} else if (window.attachEvent) {
+			window.attachEvent('onload', func);
+		} else {
+			window.onload = func;
+		}
+	}
+	
+	function create_hidden_iframe(src)
+	{
+		var called = false;
+		var frame = Util.Document.create_element(document, 'iframe',
+		{
+			src: src,
+			style: {
+				position: 'absolute',
+				box: [-500, -500, 2]
+			}
+		});
+		
+		function append_helper_iframe()
+		{
+			if (called)
+				return;
+			called = true;
+			
+			var body = (document.getElementsByTagName('BODY')[0] ||
+				document.documentElement);
+			body.appendChild(frame);
+		}
+		
+		watch_onload(append_helper_iframe);
+		
+		return frame;
+	}
+	
+	function add_script(src)
+	{
+		var called = false;
+		var tag = Util.Document.create_element(document, 'script',
+		{
+			src: src,
+			type: 'text/javascript'
+		});
+		
+		function append_script()
+		{
+			if (called)
+				return;
+			called = true;
+			
+			var head = (document.getElementsByTagName('HEAD')[0] ||
+				document.documentElement);
+			head.appendChild(tag);
+		}
+		
+		watch_onload(append_script);
+	}
+	
+	if (typeof(Components) == 'object') {
+		// Gecko
+		create_hidden_iframe(_gecko_clipboard_helper_src);
+	} else {
+		// everyone else
+		UI.Clipboard_Helper_Editable_Iframe =
+			create_hidden_iframe(UI__Clipboard_Helper_Editable_Iframe__src);
+	}
+})();
 
 /**
  * @class Provides cut/copy/paste via the system clipboard.
@@ -142,13 +183,13 @@ UI.Clipboard_Capability = function Clipboard(loki)
 		} catch (e) {
 			// Gecko
 			
-			UI.Clipboard_Helper_Privileged_Iframe.contentDocument.
-				Clipboard_Helper_Privileged_Functions.set_clipboard(html);
+			loki.owner_window.GeckoClipboard.set(html);
 		}
 	}
 	
 	this.paste = function paste()
 	{
+		var sel = loki.get_selection();
 		var rng = loki.get_selected_range();
 		
 		function clean(html)
@@ -202,9 +243,13 @@ UI.Clipboard_Capability = function Clipboard(loki)
 		} catch (e) {
 			// Gecko
 			
-			insert_html(clean(UI.Clipboard_Helper_Privileged_Iframe.
-				contentDocument.Clipboard_Helper_Privileged_Functions.
-				get_clipboard()));
+			var data = loki.owner_window.GeckoClipboard.get();
+			
+			var value = (data.type == 'text/html')
+				? data.value
+				: data.value.replace(/\r?\n/g, "<br />\n");
+			
+			insert_html(value);
 		}
 	}
 	
