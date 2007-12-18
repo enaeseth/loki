@@ -31,7 +31,13 @@ UI.Special_Key_Handler = {
 	{
 		var loki = event.loki;
 		var b = this.get_boundaries(loki);
-		var block_name; 
+		var block_name;
+		
+		// Internet Explorer is, for once, wonderful.
+		if (Util.Browser.IE) {
+			event.allow_browser_handling();
+			return;
+		}
 		
 		// Shorten the name of this function.
 		function find(node, test)
@@ -270,7 +276,7 @@ UI.Special_Key_Handler = {
 		if (!Util.Browser.WebKit) {
 			select_and_scroll();
 		} else {
-			select_and_scroll.defer();
+			select_and_scroll.defer(); // absolute voodoo
 		}
 			
 		// All done!
