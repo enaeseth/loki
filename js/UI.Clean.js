@@ -431,3 +431,15 @@ UI.Clean.cleanHtml = function(html, settings)
 
     return html;
 };
+
+UI.Clean.clean_pasted = function clean_pasted(html)
+{
+	if (!(/^\s*<p>/i.test(html))) {
+		html = '<p>' + html;
+	}
+	if (!(/<\/p>\s*$/i.test(html))) {
+		html =  html + '</p>';
+	}
+	
+	return html.replace(/(\s*)<br\s*\/?>(\s*)<br\s*\/?>(\s*)/gi, '$1</p>$2<p>$3');
+};

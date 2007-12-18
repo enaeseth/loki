@@ -252,6 +252,7 @@ UI.Loki = function(textarea, settings)
 			self.window = _window;
 			self.document = _document;
 			self.body = _body;
+			self.owner_window = _owner_window;
 			self.owner_document = _owner_document;
 			self.root = _root;
 			self.hidden = _hidden;

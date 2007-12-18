@@ -269,9 +269,12 @@ class Loki2
 		if(!$loki_js_has_been_included)
 		{
 			// Set up hidden iframe for clipboard operations
+			$priv_jar = 'jar:'.$this->_asset_protocol.$this->_asset_host.
+				$this->_asset_path.'auxil/privileged.jar!/gecko_clipboard.html';
+				
 			?>
 			<script type="text/javascript">
-				UI__Clipboard_Helper_Privileged_Iframe__src = 'jar:<?php echo $this->_asset_protocol . $this->_asset_host . $this->_asset_path; ?>auxil/privileged.jar!/Clipboard_Helper_Privileged_Iframe.html';
+				var _gecko_clipboard_helper_src = '<?php echo $priv_jar ?>';
 				UI__Clipboard_Helper_Editable_Iframe__src = '<?php echo $this->_asset_protocol . $this->_asset_host . $this->_asset_path; ?>auxil/loki_blank.html';
 			</script>
 			<?php

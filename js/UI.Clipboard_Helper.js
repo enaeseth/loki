@@ -13,37 +13,57 @@
 // privileged/HOWTO
 //
 // Gecko
-if ('object' == typeof(Components))
-{
-	document.addEventListener('DOMContentLoaded', function() {
-		UI.Clipboard_Helper_Privileged_Iframe = document.createElement('IFRAME');
-		UI.Clipboard_Helper_Privileged_Iframe.src = UI__Clipboard_Helper_Privileged_Iframe__src;
-		UI.Clipboard_Helper_Privileged_Iframe.setAttribute('style', 'height:2px; width:2px; left:-500px; position:absolute;');
-		document.getElementsByTagName('BODY')[0].appendChild(UI.Clipboard_Helper_Privileged_Iframe);
-	}, false);
-}
-// For IE also we want a separate sandbox for clipboard operations. We
-// execCommand paste here, then run clean/masseuses, then transfer to 
-// the real iframe. Or we transfer from the real iframe to here, then run
-// unmasseuses, then execCommand copy.
-//
-// The reason to go through all this rather than use window.clipboardData
-// is that the latter only supports copying/pasting as text (or URL ... why 
-// would anyone want that), not HTML.
-else
-{
-	window.attachEvent("onload", function()
+(function setup_clipboard_helper() {
+	
+	function watch_onload(func)
 	{
-		UI.Clipboard_Helper_Editable_Iframe = document.createElement('IFRAME');
-		// When under https, this causes an alert in IE about combining https and http:
-		UI.Clipboard_Helper_Editable_Iframe.src = UI__Clipboard_Helper_Editable_Iframe__src;
-		UI.Clipboard_Helper_Editable_Iframe.style.height = '2px';
-		UI.Clipboard_Helper_Editable_Iframe.style.width = '2px';
-		UI.Clipboard_Helper_Editable_Iframe.style.left = '-500px';
-		UI.Clipboard_Helper_Editable_Iframe.style.position = 'absolute';
-		document.body.appendChild(UI.Clipboard_Helper_Editable_Iframe);
-	});
-}
+		if (document.addEventListener) {
+			document.addEventListener('DOMContentLoaded', func, false);
+			window.addEventListener('load', func, false);
+		} else if (window.attachEvent) {
+			window.attachEvent('onload', func);
+		} else {
+			window.onload = func;
+		}
+	}
+	
+	function create_hidden_iframe(src)
+	{
+		var called = false;
+		var frame = Util.Document.create_element(document, 'iframe',
+		{
+			src: src,
+			style: {
+				position: 'absolute',
+				box: [-500, -500, 2]
+			}
+		});
+		
+		function append_helper_iframe()
+		{
+			if (called)
+				return;
+			called = true;
+			
+			var body = (document.getElementsByTagName('BODY')[0] ||
+				document.documentElement);
+			body.appendChild(frame);
+		}
+		
+		watch_onload(append_helper_iframe);
+		
+		return frame;
+	}
+	
+	if (typeof(Components) == 'object') {
+		// Gecko
+		create_hidden_iframe(_gecko_clipboard_helper_src);
+	} else {
+		// everyone else
+		UI.Clipboard_Helper_Editable_Iframe =
+			create_hidden_iframe(UI__Clipboard_Helper_Editable_Iframe__src);
+	}
+})();
 
 /**
  * Declares instance variables.
@@ -183,10 +203,7 @@ UI.Clipboard_Helper = function()
 	{
 		try
 		{
-			// Requires lokiaux extension:
-			//self._loki.owner_document.documentElement.lokiaux__set_clipboard(html);
-			// Requires valid cert: UI.Clipboard_Helper_Privileged_Iframe.contentDocument.Clipboard_Helper_Privileged_Functions.set_clipboard(html);
-			UI.Clipboard_Helper_Privileged_Iframe.contentDocument.Clipboard_Helper_Privileged_Functions.set_clipboard(html);
+			self._loki.owner_window.GeckoClipboard.set(html);
 		}
 		catch(e)
 		{
@@ -221,21 +238,43 @@ UI.Clipboard_Helper = function()
 	{
 		try
 		{
-			// Requires lokiaux extension:
-			//var html = self._loki.owner_document.documentElement.lokiaux__get_clipboard();
-			// Requires valid cert: 
-			var html = UI.Clipboard_Helper_Privileged_Iframe.contentDocument.Clipboard_Helper_Privileged_Functions.get_clipboard();
+			var data = self._loki.owner_window.GeckoClipboard.get();
+			
+			var html = (data.type == 'text/html')
+				? data.value
+				: data.value.replace(/\r?\n/g, "<br />\n");
 
 			// Massage and clean HTML
 			var container = self._loki.document.createElement('DIV');
 			container.innerHTML = html;
 			UI.Clean.clean(container, self._loki.settings);
 			self._loki.massage_node_descendants(container);
-			html = container.innerHTML;
+			html = UI.Clean.clean_pasted(container.innerHTML);
+			
+			function has_paragraph(container, offset)
+			{
+				var node = (container.nodeType == Util.Node.TEXT_NODE)
+					? container.parentNode
+					: container.childNodes[offset];
+				
+				for (var n = node; n; n = n.parentNode) {
+					if (n.tagName == 'P')
+						return true;
+				}
+				
+				return false;
+			}
 
 			// Get selection and range
 			var sel = Util.Selection.get_selection(self._loki.window);
 			var rng = Util.Range.create_range(sel);
+			
+			if (has_paragraph(rng.startContainer, rng.startOffset)) {
+				html = html.replace(/^<p>/i, '');
+			}
+			if (has_paragraph(rng.endContainer, rng.endOffset)) {
+				html = html.replace(/<\/p>$/i, '');
+			}
 
 			// Paste into temporary container
 			var container = rng.startContainer.ownerDocument.createElement('DIV');
