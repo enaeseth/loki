@@ -36,13 +36,28 @@ UI.Page_Link_Selector = function(dialog)
 		var item_select = get_field('item');
 		var anchor_select = get_field('anchor');
 		
+		function get_anchor()
+		{
+			var i;
+			
+			if (!anchor_select)
+				return '';
+				
+			i = anchor_select.selectedIndex || -1;
+			
+			if (anchor_select.value)
+				return '#' + anchor_select.value;
+			else if (i > 0)
+				return '#' + anchor_select.options[i].value;
+			
+			return '';
+		}
+		
 		if (!item_select)
 			return null;
 		
 		var url = item_select.options[item_select.selectedIndex].value;
-		var anchor = (anchor_select && anchor_select.selectedIndex > 0)
-			? '#' + anchor_select.options[anchor_select.selectedIndex].value
-			: '';
+		var anchor = get_anchor();
 		
 		if (url.length == 0) {
 			if (anchor.length == 0)
@@ -485,6 +500,7 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 						{style: {margin: '0px', fontStyle: 'italic'}},
 						['(No anchors were found.)']);
 					var selector = null;
+					var entry = null;
 					
 					function show_no_anchors_message()
 					{
@@ -528,6 +544,22 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 						});
 					}
 					
+					function show_manual_entry()
+					{
+						if (!entry) {
+							entry = dh.create_element('input',
+								{name: 'anchor', type: 'text', size: 15});
+							if (dialog._initially_selected_name)
+								entry.value = dialog._initially_selected_name;
+						}
+						
+						if (present)
+							present.parentNode.removeChild(present);
+						present = entry;
+						container.appendChild(present);
+						state = 'interactive';
+					}
+					
 					this.load = function(url)
 					{
 						if (state != 'loading') {
@@ -546,7 +578,7 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 							function nothing_found()
 							{
 								request.abort();
-								show_no_anchors_message();
+								show_manual_entry();
 							}
 							
 							function is_html_type()
@@ -564,7 +596,7 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 								});
 							}
 							
-							request = new Util.Request(url, {
+							var options = {
 								method: 'get',
 								timeout: 10,
 								
@@ -597,7 +629,14 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 									
 									show_anchors(names);
 								}
-							});
+							};
+							
+							try {
+								request = new Util.Request(url, options);
+							} catch (e) {
+								show_manual_entry();
+							}
+							
 						}
 					}
 					
