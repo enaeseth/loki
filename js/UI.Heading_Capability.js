@@ -9,6 +9,24 @@ UI.Heading_Capability = function Headings(loki)
 {
 	Util.OOP.inherits(this, UI.Capability, loki, 'Headings');
 	
+	loki.add_event_listener('special_key', function (ev) {
+		if (ev.code == ev.ENTER) {
+			var b = UI.Special_Key_Handler.get_boundaries(loki);
+			var pattern = /^H\d$/;
+			
+			function is_heading(node)
+			{
+				return pattern.test(node.tagName);
+			}
+			
+			if (Util.Node.find_match_in_ancestry(b.start.block, is_heading)) {
+				// We want a new paragraph, not another heading.
+				UI.Special_Key_Handler.insert_block(loki, b, 'P');
+				ev.prevent_default();
+			}
+		}
+	}, this);
+	
 	this.execute = function execute()
 	{
 		loki.toggle_block('h3');
@@ -43,4 +61,5 @@ UI.Heading_Capability = function Headings(loki)
 	}
 	
 	this._add_button('header.gif', 'Heading');
+	this._add_keybinding('Ctrl Shift H');
 }

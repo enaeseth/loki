@@ -9,7 +9,7 @@
  */
 UI.Key_Event = function KeyEvent(loki, source)
 {
-	Util.OOP.inherits(this, UI.Event, source.type);
+	Util.OOP.inherits(this, UI.Event, 'special_key');
 	Util.OOP.mixin(this, UI.Key_Event.Codes);
 	
 	/**

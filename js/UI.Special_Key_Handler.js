@@ -71,7 +71,7 @@ UI.Special_Key_Handler = {
 			? b.start.block.nodeName
 			: 'P';
 		
-		this.insert_block(loki, b, b.start.block.nodeName, block_name);
+		this.insert_block(loki, b, block_name);
 	},
 	
 	/**
@@ -138,13 +138,13 @@ UI.Special_Key_Handler = {
 	 * Currently requires W3C ranges.
 	 * @param {UI.Loki}	loki
 	 * @param {object}	b	the selection boundaries
-	 * @param {string}	before_tag	the tag name for the original block
 	 * @param {string}	after_tag	the tag name of the new block
 	 * @return {array}	the newly-created elements
 	 */
-	insert_block: function insert_block(loki, b, before_tag, after_tag)
+	insert_block: function insert_block(loki, b, after_tag)
 	{
 		var selection = loki.get_selection();
+		var before_tag = b.start.block.nodeName;
 		var range;
 		
 		function create_new_block(side, tag)
@@ -208,7 +208,7 @@ UI.Special_Key_Handler = {
 		before.appendChild(preserver.cloneContents());
 		
 		// Copy the contents after the carat into the new "after" block.
-		if (end_chop.nodeName == after_tag)
+		if (end_chop.nodeName == before_tag)
 			preserver.setEnd(end_chop, end_chop.childNodes.length);
 		else
 			preserver.setEndAfter(end_chop);
@@ -229,9 +229,9 @@ UI.Special_Key_Handler = {
 			range.setStart(b.start.container, b.start.offset)
 		}
 		
-		if (!end_chop.nextSibling && end_chop.parentNode.nodeName == after_tag){
+		if (!end_chop.nextSibling && end_chop.parentNode.nodeName == before_tag){
 			range.setEndAfter(end_chop.parentNode);
-		} else if (end_chop.nodeName == after_tag) {
+		} else if (end_chop.nodeName == before_tag) {
 			range.setEndAfter(end_chop);
 		} else {
 			range.setEnd(b.end.container, b.end.offset);
@@ -258,10 +258,20 @@ UI.Special_Key_Handler = {
 		range = loki.document.createRange();
 		range.selectNodeContents(after);
 		range.collapse(true);
-		Util.Selection.select_range(selection, range);
 		
-		if (after.scrollIntoView)
-			after.scrollIntoView(false);
+		function select_and_scroll()
+		{
+			Util.Selection.select_range(selection, range);
+
+			if (after.scrollIntoView)
+				after.scrollIntoView(false);
+		}
+		
+		if (!Util.Browser.WebKit) {
+			select_and_scroll();
+		} else {
+			select_and_scroll.defer();
+		}
 			
 		// All done!
 		return [before, after];
