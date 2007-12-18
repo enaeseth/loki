@@ -86,26 +86,6 @@ UI.Special_Key_Handler = {
 		var body = loki.body;
 		var selected_range = loki.get_selected_range();
 		
-		/*
-		 * Tries two possible ways to see if an element is a block: via its
-		 * computed CSS, if available; otherwise blindly via its tag name.
-		 */
-		function is_block_level(node)
-		{
-			// Util.Element.is_block_level will throw a TypeError if it is
-			// passed a non-element.
-			if (!node || node.nodeType != Util.Node.ELEMENT_NODE)
-				return false;
-				
-			try {
-				// Try via computed CSS.
-				return Util.Element.is_block_level(loki.window, node);
-			} catch (e) {
-				// Try via tag name.
-				return Util.Node.is_block_level_element(node);
-			}
-		}
-		
 		var b = Util.Range.get_boundaries(selected_range);
 		
 		function is_on_body()
@@ -122,6 +102,7 @@ UI.Special_Key_Handler = {
 			});
 		}
 		
+		var is_block_level = this.is_block_level;
 		function get_block(side)
 		{
 			var node = (side.container.nodeType == Util.Node.TEXT_NODE)
@@ -155,12 +136,73 @@ UI.Special_Key_Handler = {
 	/**
 	 * Starts a new block at the current selection.
 	 * @param {object}	b	the selection boundaries
-	 * @param {string}	tag	the tag name of the new block
+	 * @param {string}	before_tag	the tag name for the original block
+	 * @param {string}	after_tag	the tag name of the new block
 	 * @return {Element}	the newly-created block
 	 */
-	insert_block: function insert_block(b, tag)
+	insert_block: function insert_block(b, before_tag, after_tag)
 	{
+		function create_new_block(side, tag)
+		{
+			return (side.block && side.block.nodeName == tag)
+				? side.block.cloneNode(false)
+				: loki.document.createElement(tag);
+		}
 		
+		var is_block = this.is_block_level;
+		function find_chop_node(side, direction)
+		{
+			var sibling = direction + 'Sibling';
+			
+			var node = (side.container.nodeType == Util.Node.TEXT_NODE)
+				? side.container
+				: side.container.childNodes[side.offset];
+			
+			function is_chop(node)
+			{
+				return (n == loki.body || n.nodeType == Util.Node.DOCUMENT_NODE
+					|| (n.nodeType == Util.Node.ELEMENT_NODE && is_block(n)));
+			}
+			
+			for (var n = node; n; n = n[sibling] || n.parentNode) {
+				if (is_chop(n))
+					return n;
+			}
+			
+			return null; // should be effectively unreachable
+		}
+		
+		// Create the new before and after blacks.
+		var before = create_new_block(b.start, before_tag);
+		var after = create_new_block(b.end, after_tag);
+		
+		// Remove any ID attribute that might have made its way onto the after
+		// block if it was cloned.
+		after.removeAttribute('id');
+		
+		// Find the chop nodes.
+		var start_chop = find_chop_node(b.start, 'previous');
+		var end_chop = find_chop_node(b.end, 'next');
+	},
+	
+	/**
+	 * Tries two possible ways to see if an element is a block: via its
+	 * computed CSS, if available; otherwise blindly via its tag name.
+	 */
+	is_block_level: function is_block_level(node)
+	{
+		// Util.Element.is_block_level will throw a TypeError if it is
+		// passed a non-element.
+		if (!node || node.nodeType != Util.Node.ELEMENT_NODE)
+			return false;
+			
+		try {
+			// Try via computed CSS.
+			return Util.Element.is_block_level(loki.window, node);
+		} catch (e) {
+			// Try via tag name.
+			return Util.Node.is_block_level_element(node);
+		}
 	},
 	
 	/** @ignore */
