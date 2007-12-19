@@ -290,7 +290,7 @@ UI.Clean.clean = function(root, settings)
 		{
 			description: 'Remove width and height attributes from images if so desired.',
 			test: function(node) {
-				return (settings.disallow_image_sizes &&
+				return (!!settings.disallow_image_sizes &&
 					has_tagname(node, ['IMG']));
 			},
 			action: function(node) {
