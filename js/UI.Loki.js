@@ -160,6 +160,11 @@ UI.Loki = function(textarea, settings)
 	 */
 	this.init = function(textarea, settings)
 	{
+		// Incompatible browser check.
+		if (!(Util.Browser.IE || Util.Browser.Gecko)) {
+			throw new Error('Unsupported browser.');
+		}
+		
 		_settings = settings;
 
 		_textarea = textarea;
