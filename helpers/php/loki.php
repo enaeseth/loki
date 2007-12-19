@@ -278,11 +278,10 @@ class Loki2
 	 * we are depending on this fact to make sure that only the first Loki object spits 
 	 * out the Loki js.
 	 *
-	 * @param	mode	Either 'debug', to include all files individually;
-	 *					'inline', to print the contents of all the files inline;
-	 *					or 'external', to reference an external, cache-aware
-	 *					script that merges all of the Loki JavaScript files
-	 *					together.
+	 * @param	mode	Defaults to 'static', which uses the prebuilt script
+	 *                  file that ships with Loki. Other modes are only useful
+	 *                  for Loki testing and only work when paired with a
+	 *                  source distribution or Subversion checkout of Loki.
 	 * @param	path	For the 'external' mode, specifies the HTTP path to the
 	 *					Loki script aggregator. If this is not specified,
 	 *					the path will be guessed based on the default Loki
@@ -305,15 +304,16 @@ class Loki2
 			</script>
 			<?php
 			
-			if (!$mode) {
-				$mode = ($this->_debug)
-					? 'debug'
-					: 'external';
-			} else {
-				$mode = strtolower($mode);
-			}
+			$mode = ($mode) ? strtolower($mode) : 'static';
 			
-			if ($mode == 'debug') {
+			if ($mode == 'static') {
+				if (!$path) {
+					$path = $this->_asset_path.'loki.js';
+				}
+				
+				echo '<script type="text/javascript" language="javascript" src="'.$path.'">',
+					"</script>\n";
+			} else if ($mode == 'debug') {
 				$files = $this->_get_js_files();
 				$base = $this->_asset_path.'js';
 				if (!$files)
