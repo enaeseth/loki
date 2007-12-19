@@ -402,6 +402,7 @@ UI.Loki = function(textarea, settings)
 			image: [UI.Image_Button],
 			link: [UI.Page_Link_Button],
 			anchor: [UI.Anchor_Button],
+			cleanup: [UI.Clean_Button],
 			source: [UI.Source_Button, UI.Raw_Source_Button]
 		};
 		

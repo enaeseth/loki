@@ -61,6 +61,7 @@ UI.Loki_Options.prototype._init_all = function()
 				  link : 2048,
 				  table : 4096,
 				  image : 8192,
+				  cleanup : 16384,
 				  source : 32768,
 				  anchor : 65536,
 				  hrule : 131072,
