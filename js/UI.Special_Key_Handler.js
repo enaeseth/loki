@@ -39,12 +39,6 @@ UI.Special_Key_Handler = {
 			return;
 		}
 		
-		// Shorten the name of this function.
-		function find(node, test)
-		{
-			return Util.Node.find_match_in_ancestry(node, test);
-		}
-		
 		/*
 		// Determine whether or not to permit browser handling.
 		// Modern releases of TinyMCE bail out if Opera is detected and allow it

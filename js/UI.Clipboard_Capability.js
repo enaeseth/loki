@@ -54,29 +54,6 @@
 		return frame;
 	}
 	
-	function add_script(src)
-	{
-		var called = false;
-		var tag = Util.Document.create_element(document, 'script',
-		{
-			src: src,
-			type: 'text/javascript'
-		});
-		
-		function append_script()
-		{
-			if (called)
-				return;
-			called = true;
-			
-			var head = (document.getElementsByTagName('HEAD')[0] ||
-				document.documentElement);
-			head.appendChild(tag);
-		}
-		
-		watch_onload(append_script);
-	}
-	
 	if (typeof(Components) == 'object') {
 		// Gecko
 		create_hidden_iframe(_gecko_clipboard_helper_src);
