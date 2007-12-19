@@ -226,7 +226,7 @@ UI.Clipboard_Capability = function Clipboard(loki)
 				? data.value
 				: data.value.replace(/\r?\n/g, "<br />\n");
 			
-			insert_html(value);
+			insert_html(clean(value));
 		}
 	}
 	
