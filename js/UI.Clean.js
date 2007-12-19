@@ -350,30 +350,24 @@ UI.Clean.clean = function(root, settings)
 			}
 		},
 		{
-			description : 'Remove width and height attrs on images and tables.',
-			test : function(node) { return has_tagname(node, ['TABLE', 'IMG']); },
-			action : function(node) { remove_attributes(node, ['height', 'width']); }
-		},
-		/*
-		{
-			description : 'Strip https and http in img.src',
-			test : function(node) { return has_tagname(node, ['IMG']); },
-			action : function(node) 
-			{
-				if ( node.getAttribute('src') != null )
-					node.setAttribute('src', Util.URI.strip_https_and_http(node.getAttribute('src')));
+			description : 'Remove width and height attrs on tables.',
+			test : function(node) {
+				return has_tagname(node, ['TABLE']); 
+			},
+			action : function(node) { 
+				remove_attributes(node, ['height', 'width']); 
 			}
 		},
 		{
-			description : 'Strip https and http in a.href',
-			test : function(node) { return has_tagname(node, ['A']); },
-			action : function(node) 
-			{
-				if ( node.getAttribute('href') != null )
-					node.setAttribute('href', Util.URI.strip_https_and_http(node.getAttribute('href')));
+			description: 'Remove width and height attributes from images if so desired.',
+			test: function(node) {
+				return (!!settings.disallow_image_sizes &&
+					has_tagname(node, ['IMG']));
+			},
+			action: function(node) {
+				remove_attributes(node, ['height', 'width']);
 			}
 		},
-		*/
 		{
 			description: 'Remove protocol from links on the current server',
 			test: function(node) { return has_tagname(node, ['A']); },
