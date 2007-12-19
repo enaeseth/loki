@@ -113,6 +113,14 @@ UI.Clean.clean = function(root, settings)
 			? had_attrs
 			: false;
 	}
+	
+	/**
+	 * Checks whether the given node is an element node.
+	 */
+	function is_element(node)
+	{
+		return (node.nodeType == Util.Node.ELEMENT_NODE);
+	}
 
 	/**
 	 * Checks whether the given node has one of the given tagnames.
