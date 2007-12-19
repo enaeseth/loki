@@ -277,7 +277,7 @@ UI.Clipboard_Helper = function()
 			}
 
 			// Paste into temporary container
-			var container = rng.startContainer.ownerDocument.createElement('DIV');
+			container = rng.startContainer.ownerDocument.createElement('DIV');
 			container.innerHTML = html;
 
 			// Copy into document fragment

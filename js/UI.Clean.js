@@ -233,9 +233,72 @@ UI.Clean.clean = function(root, settings)
 			action : remove_attributes
 		},
 		{
+			description: 'Remove empty Word paragraphs',
+			test: function is_empty_word_paragraph(node) {
+				// Check node type and tag
+				if (!node.tagName || node.tagName != 'P') {
+					return false;
+				}
+				
+				// Check for a Word class
+				if (!(/(^|\b)Mso/.test(node.className)))
+					return false;
+				
+				// Check for the paragraph to only contain non-breaking spaces
+				var pattern = new RegExp("^(\xA0| )+$", "");
+				for (var i = 0; i < node.childNodes.length; i++) {
+					var child = node.childNodes[i];
+					if (child.nodeType == Util.Node.ELEMENT_NODE) {
+						if (!is_empty_word_paragraph(child)) // recurse
+							return false;
+					}
+					
+					if (child.nodeType == Util.Node.TEXT_NODE) {
+						if (!pattern.test(child.data)) {
+							return false;
+						}
+					}
+				}
+				
+				return true;
+			},
+			action: remove_node
+		},
+		{
 			description : 'Remove all classes that include Mso (from Word) or O (from Powerpoint) in them.',
-			test : function(node) { return has_class(node, ['O', 'Mso']); },
-			action : remove_class
+			test : is_element,
+			action : function strip_ms_office_classes(node)
+			{
+				var office_pattern = /^(Mso|O)/;
+				var classes = Util.Element.get_class_array(node);
+				var length = classes.length;
+				
+				for (var i = 0; i < length; i++) {
+					if (office_pattern.test(classes[i]))
+						classes.splice(i, 1); // remove the class
+				}
+				
+				if (classes.length != length)
+					Util.Element.set_class_array(node, classes);
+			}
+		},
+		{
+			description: 'Remove Microsoft Word section DIV\'s',
+			test: function is_ms_word_section_div(node) {
+				if (!has_tagname(node, ['DIV']))
+					return false;
+			
+				var pattern = /^Section\d+$/;
+				var classes = Util.Element.get_class_array(node);
+				
+				for (var i = 0; i < classes.length; i++) {
+					if (!pattern.test(classes[i]))
+						return false;
+				}
+				
+				return true;
+			},
+			action: remove_tag
 		},
 		{
 			description : 'Remove all miscellaneous bad tags.',
@@ -253,25 +316,8 @@ UI.Clean.clean = function(root, settings)
 		// Axe form elements?
 		{
 			description : "Remove U unless there's an appropriate option set.",
-			test : function(node) { return has_tagname(node, ['U']); },
-			action : function(node) 
-			{
-				/* buggy (actually it's not--the bug is in remove_tag--but leave this
-				   commented until we figure out that bug)
-				// We don't want to replace with EM if it's already EM'd; but otherwise we do
-				var boolean_test = function(node)
-				{
-					return ( node.nodeType == Util.Node.ELEMENT_NODE &&
-							 ( node.tagName == 'EM' || node.tagName == 'I' ) );
-				};
-				if ( !Util.Node.has_ancestor_node(node, boolean_test) &&
-					 !Util.Node.has_child_node(node, boolean_test) )
-					change_tag(node, 'EM');
-				else
-					remove_tag(node);
-				*/
-				remove_tag(node);
-			}
+			test : function(node) { return !settings.options.test('underline') && has_tagname(node, ['U']); },
+			action : remove_tag
 		},
 		{
 			description : 'Remove all tags that have Office namespace prefixes.',
