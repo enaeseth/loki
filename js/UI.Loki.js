@@ -817,7 +817,6 @@ UI.Loki = function(textarea, settings)
 			if ( !_document.all ) // XXX bad
 			{
 				Util.Fix_Keys.fix_delete_and_backspace(event, _window);
-				//Util.Fix_Keys.fix_enter(event, _window);
 				tinyMCE.handleEvent(event);
 			}
 		});
