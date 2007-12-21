@@ -219,7 +219,7 @@ Util.Node.curry_is_tag = function(tag)
 	return function(node) { return Util.Node.is_tag(node, tag); };
 }
 
-Util.Node.non_whitespace_regexp = new RegExp('[^\f\n\r\t\v]', 'gi');
+Util.Node.non_whitespace_regexp = /[^\f\n\r\t\v]/gi;
 Util.Node.is_non_whitespace_text_node = function(node)
 {
 	// [^\f\n\r\t\v] should be the same as \S, but at least on
@@ -255,12 +255,6 @@ Util.Node.get_last_non_whitespace_child_node = function(node)
  */
 Util.Node.get_nearest_non_whitespace_sibling_node = function(node, next_or_previous)
 {
-	// [^\f\n\r\t\v] should be the same as \S, but at least on
-	// Gecko/20040206 Firefox/0.8 for Windows, \S doesn't always match
-	// what the explicitly specified character class matches--and what
-	// \S should match.
-	var non_whitespace_regexp = new RegExp('[^\f\n\r\t\v]', 'gi');
-
 	do
 	{
 		if ( next_or_previous == Util.Node.NEXT )
@@ -272,21 +266,24 @@ Util.Node.get_nearest_non_whitespace_sibling_node = function(node, next_or_previ
 	}
 	while (!( node == null ||
 			  node.nodeType != Util.Node.TEXT_NODE ||
-			  non_whitespace_regexp.test(node.nodeValue)
+			  Util.Node.non_whitespace_regexp.test(node.nodeValue)
 		   ))
 
 	return node;
 };
 
 /**
- * Determines whether the given node is a block-level element.
+ * Determines whether the given node is an element that is block-level by
+ * default in HTML.
  *
+ * @see Util.Element.is_block_level
+ * @see Util.Block.is_block
  * @param	node	the node in question
- * @return			boolean indicating whether the given node is a block-level element
+ * @return	{boolean}	true if the node is by default a block-level element
  */
 Util.Node.is_block_level_element = function(node)
 {
-	return node.nodeType == Util.Node.ELEMENT_NODE && Util.BLE_Rules.all_ble.regexp.test(node.tagName);
+	return Util.Block.is_block(node);
 };
 
 /**
@@ -297,7 +294,7 @@ Util.Node.is_block_level_element = function(node)
  */
 Util.Node.is_nestable_block_level_element = function(node)
 {
-	return Util.Node.is_block_level_element && !(new RegExp('(BODY|TBODY|THEAD|TR|TH|TD)', 'i')).test(node.tagName);
+	return Util.Node.is_block_level_element && !(/^(BODY|TBODY|THEAD|TR|TH|TD)$/i).test(node.tagName);
 };
 
 /**
@@ -340,13 +337,6 @@ Util.Node.insert_after = function(new_node, ref_node)
 	else
 		ref_node.parentNode.insertBefore(new_node, ref_node.nextSibling);
 };
-
-// XXX: think of better names for the next two fxns? and more 
-// generalized, so the first works with any node not just
-// a tag. "surround_node_with_new_node" is too clunky and
-// not quite correct anyway...what happens if the new node
-// already has children. "remove_node_but_keep_its_children"
-// is also too clunky.
 
 /**
  * Surrounds the given node with an element of the given tagname, 
