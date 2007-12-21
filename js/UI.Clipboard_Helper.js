@@ -249,7 +249,7 @@ UI.Clipboard_Helper = function()
 			container.innerHTML = html;
 			UI.Clean.clean(container, self._loki.settings);
 			self._loki.massage_node_descendants(container);
-			html = UI.Clean.clean_pasted(container.innerHTML);
+			html = container.innerHTML;
 			
 			function has_paragraph(container, offset)
 			{
