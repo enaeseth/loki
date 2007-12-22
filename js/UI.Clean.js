@@ -214,8 +214,15 @@ UI.Clean.clean = function(root, settings)
 		return false;
 	};
 	
-	var allowable_tags = settings.allowable_tags ||
-		['A', 'ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'B', 'BDO', 'BIG', 'BLOCKQUOTE', 'BR', 'BUTTON', 'CAPTION', 'CITE', 'CODE', 'COL', 'COLGROUP', 'DD', 'DEL', 'DIV', 'DFN', 'DL', 'DT', 'EM', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'IMG', 'INPUT', 'INS', 'KBD', 'LABEL', 'LI', 'MAP', 'NOSCRIPT', 'OBJECT', 'OL', 'OPTGROUP', 'OPTION', 'P', 'PARAM', 'PRE', 'Q', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TR', 'TT', 'U', 'UL', 'VAR'];
+	var allowable_tags =
+		(settings.allowable_tags || UI.Clean.default_allowable_tags).toSet();
+		
+	function is_allowable_tag(node)
+	{
+		return (node.nodeType != Util.Node.ELEMENT_NODE ||
+			node.tagName in allowable_tags);
+	}
+	
 
 	tests =
 	[
@@ -315,7 +322,7 @@ UI.Clean.clean = function(root, settings)
 		},
 		{
 			description : 'Remove all miscellaneous non-good tags (strip_tags).',
-			test : function(node) { return doesnt_have_tagname(node, allowable_tags); },
+			test : function(node) { return !is_allowable_tag(node); },
 			action : remove_tag
 		},
 		// STRONG -> B, EM -> I should be in a Masseuse; then exclude B and I here
@@ -480,3 +487,13 @@ UI.Clean.cleanHtml = function(html, settings)
 
     return html;
 };
+
+UI.Clean.default_allowable_tags = 
+	['A', 'ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'B', 'BDO', 'BIG', 'BLOCKQUOTE',
+	'BR', 'BUTTON', 'CAPTION', 'CITE', 'CODE', 'COL', 'COLGROUP', 'DD', 'DEL',
+	'DIV', 'DFN', 'DL', 'DT', 'EM', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4',
+	'H5', 'H6', 'HR', 'I', 'IMG', 'INPUT', 'INS', 'KBD', 'LABEL', 'LI', 'MAP',
+	'NOSCRIPT', 'OBJECT', 'OL', 'OPTGROUP', 'OPTION', 'P', 'PARAM', 'PRE', 'Q',
+	'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TABLE',
+	'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TR', 'TT', 'U', 'UL',
+	'VAR'];

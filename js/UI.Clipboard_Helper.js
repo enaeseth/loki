@@ -250,31 +250,10 @@ UI.Clipboard_Helper = function()
 			UI.Clean.clean(container, self._loki.settings);
 			self._loki.massage_node_descendants(container);
 			html = container.innerHTML;
-			
-			function has_paragraph(container, offset)
-			{
-				var node = (container.nodeType == Util.Node.TEXT_NODE)
-					? container.parentNode
-					: container.childNodes[offset];
-				
-				for (var n = node; n; n = n.parentNode) {
-					if (n.tagName == 'P')
-						return true;
-				}
-				
-				return false;
-			}
 
 			// Get selection and range
 			var sel = Util.Selection.get_selection(self._loki.window);
 			var rng = Util.Range.create_range(sel);
-			
-			if (has_paragraph(rng.startContainer, rng.startOffset)) {
-				html = html.replace(/^<p>/i, '');
-			}
-			if (has_paragraph(rng.endContainer, rng.endOffset)) {
-				html = html.replace(/<\/p>$/i, '');
-			}
 
 			// Paste into temporary container
 			container = rng.startContainer.ownerDocument.createElement('DIV');

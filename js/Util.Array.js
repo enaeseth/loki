@@ -143,7 +143,7 @@ Util.Array.Methods = {
 	 * @param	test	the function which will be called
 	 * @param	thisp	optional "this" context
 	 */
-	find: function find(array, test, thisp)
+	find: function find_in_array(array, test, thisp)
 	{
 		if (typeof(thisp) == 'undefined')
 			thisp = null;
@@ -165,7 +165,7 @@ Util.Array.Methods = {
 	 * @param	test	the function which will be called
 	 * @param	thisp	optional "this" context
 	 */
-	find_all: function findAll(array, test, thisp)
+	find_all: function find_all_in_array(array, test, thisp)
 	{
 		if (typeof(thisp) == 'undefined')
 			thisp = null;
@@ -183,7 +183,25 @@ Util.Array.Methods = {
 		return results;
 	},
 	
-	min: function min(array, key_func)
+	/**
+	 * Converts the array to a "set": an object whose keys are the original
+	 * array's values and whose values are all true. This allows efficient
+	 * membership testing of the array when it needs to be done repeatedly.
+	 */
+	to_set: function array_to_set(array)
+	{
+		var s = {};
+		var len = array.length;
+		
+		for (var i = 0; i < len; i++) {
+			if (i in array)
+				s[array[i]] = true;
+		}
+		
+		return s;
+	},
+	
+	min: function min_in_array(array, key_func)
 	{
 		return array.reduce(function(a, b) {
 			if (key_func) {
@@ -198,7 +216,7 @@ Util.Array.Methods = {
 		});
 	},
 	
-	max: function max(array, key_func)
+	max: function max_in_array(array, key_func)
 	{
 		return array.reduce(function(a, b) {
 			if (key_func) {
@@ -213,28 +231,28 @@ Util.Array.Methods = {
 		});
 	},
 	
-	pluck: function pluck(array, property_name)
+	pluck: function pluck_from_array(array, property_name)
 	{
 		return array.map(function(obj) {
 			return obj[property_name];
 		});
 	},
 	
-	sum: function sum(array)
+	sum: function sum_of_array(array)
 	{
 		return array.reduce(function(a, b) {
 			return a + b;
 		});
 	},
 	
-	product: function product(array)
+	product: function product_of_array(array)
 	{
 		return array.reduce(function(a, b) {
 			return a * b;
 		});
 	},
 	
-	contains: function contains(array, item)
+	contains: function array_contains(array, item)
 	{
 		if (Util.is_function(array.indexOf)) {
 			return -1 != array.indexOf(item);
@@ -305,7 +323,7 @@ Util.Array.Methods = {
 	 *							function will be called
 	 * @type array
 	 */
-	filter: function filter(array, test)
+	filter: function filter_array(array, test)
 	{
 		var thisp = arguments[2] || null;
 		
@@ -316,7 +334,7 @@ Util.Array.Methods = {
 		}, []);
 	},
 	
-	remove: function remove(array, item)
+	remove: function remove_from_array(array, item)
 	{
 		var len = array.length;
 		for (var i = 0; i < len; i++) {
@@ -329,7 +347,7 @@ Util.Array.Methods = {
 		return false;
 	},
 	
-	remove_all: function removeAll(array, item)
+	remove_all: function remove_all_from_array(array, item)
 	{
 		var len = array.length;
 		var found = false;
@@ -344,7 +362,7 @@ Util.Array.Methods = {
 		return found;
 	},
 	
-	append: function append(a, b)
+	append: function append_array(a, b)
 	{
 		// XXX: any more efficient way to do this using Array.splice?
 		
