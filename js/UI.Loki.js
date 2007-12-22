@@ -803,6 +803,9 @@ UI.Loki = function(textarea, settings)
 		control.init(_window, _iframe, self);
 		var tinyMCE = new TinyMCE();
 		tinyMCE.init(_window, control);
+		
+		var paste_dni; // a DOMNodeInserted event handler has been registered
+		var ni_count = 0;
 
 		var paragraph_helper = (new UI.Paragraph_Helper).init(self);
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
@@ -898,6 +901,64 @@ UI.Loki = function(textarea, settings)
 			Util.Event.add_event_listener(_document, 'keyup', function() { _update_statusbar(); });
 			Util.Event.add_event_listener(_document, 'click', function() { _update_statusbar(); });
 			Util.Event.add_event_listener(_toolbar, 'click', function() { _update_statusbar(); });
+		}
+		
+		if (_settings.options.test('clipboard')) {
+			function perform_cleanup(last_ni_count)
+			{
+				var c_count = ni_count; // current count
+				
+				if (Util.is_number(last_ni_count) && c_count > last_ni_count) {
+					// More has happened since we last looked; wait some more.
+					wait_to_cleanup(c_count);
+					return;
+				}
+				
+				ni_count = 0;
+				UI.Clean.clean(_body, _settings);
+			}
+			
+			function handle_paste_event(ev)
+			{
+				if (paste_dni && ev.type == 'paste') {
+					// If the browser is capable of generating actual paste
+					// events, then remove the DOMNodeInserted handler.
+					
+					Util.Event.remove_event_handler(_document, 'DOMNodeInserted',
+						handle_paste_event);
+					paste_dni = false;
+				}
+				
+				perform_cleanup(null);
+			}
+			
+			function wait_to_cleanup(current_ni_count)
+			{
+				(function call_cleanup_performer() {
+					perform_cleanup(current_ni_count);
+				}).delay(0.15);
+			}
+			
+			function node_inserted(ev)
+			{
+				if (ni_count <= 0) {
+					ni_count = 1;
+					wait_to_cleanup(1);
+				} else {
+					ni_count++;
+				}
+			}
+			
+			Util.Event.observe(_document, 'paste', handle_paste_event);
+			if (Util.Browser.IE) {
+				// We know that we have paste events.
+				paste_dni = false;
+			} else {
+				paste_dni = true;
+				Util.Event.observe(_document, 'DOMNodeInserted',
+					node_inserted);
+			}
+			
 		}
 		
 		function submit_handler(ev)
