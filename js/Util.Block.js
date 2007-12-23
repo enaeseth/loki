@@ -55,32 +55,33 @@ Util.Block = {
 	
 	is_block: function is_block(element)
 	{
-		return (this.get_flags(element) & Util.Block.BLOCK);
+		return !!(this.get_flags(element) & Util.Block.BLOCK);
 	},
 	
 	is_paragraph_container: function is_paragraph_container(element)
 	{
-		return (this.get_flags(element) & Util.Block.PARAGRAPH_CONTAINER);
+		return !!(this.get_flags(element) & Util.Block.PARAGRAPH_CONTAINER);
 	},
 	
 	is_multi_paragraph_container: function is_multi_paragraph_container(element)
 	{
-		return (this.get_flags(element) & Util.Block.MULTI_PARAGRAPH_CONTAINER);
+		return !!(this.get_flags(element) &
+			Util.Block.MULTI_PARAGRAPH_CONTAINER);
 	},
 	
 	is_inline_container: function is_inline_container(element)
 	{
-		return (this.get_flags(element) & Util.Block.INLINE_CONTAINER);
+		return !!(this.get_flags(element) & Util.Block.INLINE_CONTAINER);
 	},
 	
 	is_empty: function is_empty(element)
 	{
-		return (this.get_flags(element) & Util.Block.EMPTY);
+		return !!(this.get_flags(element) & Util.Block.EMPTY);
 	},
 	
 	is_mixed: function is_mixed(element)
 	{
-		return (this.get_flags(element) & Util.Block.MIXED);
+		return !!(this.get_flags(element) & Util.Block.MIXED);
 	},
 	
 	/**

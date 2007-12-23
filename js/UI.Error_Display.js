@@ -48,7 +48,6 @@ UI.Error_Display = function(message_container)
 	
 	function remove()
 	{
-		console.debug(this.display, this.display.parentNode);
 		if (this.display.parentNode)
 			this.display.parentNode.removeChild(this.display);
 		this.display = null;
