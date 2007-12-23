@@ -635,7 +635,7 @@ UI.Loki = function Loki(settings)
 			setup_document_and_selection();
 			
 			listen_for_special_keys();
-			listen_for_mouse_context_changes(switching_from_source);
+			listen_for_context_changes(switching_from_source);
 		} catch (e) {
 			// If we were unable to fully create the Loki WYSIWYG GUI, show the
 			// HTML source view instead.
@@ -888,11 +888,10 @@ UI.Loki = function Loki(settings)
 	}
 	
 	/*
-	 * Traps events caused by the user changing the document selection with the
-	 * mouse raises a context change notification. Context changes caused by the
-	 * keyboard are dealt with in listen_for_special_keys.
+	 * Traps events caused by the user changing the document selection and
+	 * raises a context change notification.
 	 */
-	function listen_for_mouse_context_changes(switching_from_source)
+	function listen_for_context_changes(switching_from_source)
 	{
 		var context_changing_events = [
 			'mousedown', // Moves the carat (anchor) position
