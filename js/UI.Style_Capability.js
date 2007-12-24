@@ -69,7 +69,7 @@ UI.Style_Capability = function Styles(loki)
 		if (Util.is_function(selection.getRangeAt)) {
 			// OK to use default behavior.
 			selected_range = loki.get_selected_range();
-		} else if (Util.is_function(selection.createRangeCollection)) {
+		} else if (selection.createRangeCollection) {
 			// We're using IE; make sure we get a text range.
 			var ie_range_col = selection.createRangeCollection();
 			if (ie_range.col.length <= 0)
@@ -258,7 +258,7 @@ UI.Style_Capability = function Styles(loki)
 			case 'start':
 				if (Util.is_valid_object(range.startContainer)) {
 					return range.startContainer;
-				} else if (Util.is_function(range.parentElement)) {
+				} else if (range.parentElement) {
 					clone = range.duplicate();
 					clone.collapse(true);
 					return clone.parentElement();
@@ -270,7 +270,7 @@ UI.Style_Capability = function Styles(loki)
 			case 'end':
 				if (Util.is_valid_object(range.endContainer)) {
 					return range.endContainer;
-				} else if (Util.is_function(range.parentElement)) {
+				} else if (range.parentElement) {
 					clone = range.duplicate();
 					clone.collapse(false);
 					return clone.parentElement();
