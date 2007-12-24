@@ -435,16 +435,11 @@ UI.Clean.clean = function(root, settings)
 		}
 	}
 	
-	function _clean_paragraphs(node)
-	{
-		
-	}
-
 	// We do this because we don't want any errors to result in lost content!
 	try
 	{
 		_clean_recursive(root);
-		_clean_paragraphs(root);
+		Util.Block.enforce_rules(root);
 	}
 	catch(e)
 	{
@@ -501,16 +496,4 @@ UI.Clean.clean_HTML = function(html, settings)
 	}
 
     return html;
-};
-
-UI.Clean.clean_pasted = function clean_pasted(html)
-{
-	if (!(/^\s*<p>/i.test(html))) {
-		html = '<p>' + html;
-	}
-	if (!(/<\/p>\s*$/i.test(html))) {
-		html =  html + '</p>';
-	}
-	
-	return html.replace(/(\s*)<br\s*\/?>(\s*)<br\s*\/?>(\s*)/gi, '$1</p>$2<p>$3');
 };

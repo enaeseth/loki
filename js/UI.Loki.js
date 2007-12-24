@@ -219,8 +219,8 @@ UI.Loki = function Loki(settings)
 			// This instance has already replaced some textarea and is using it.
 			// We can't replace another!
 			
-			throw new Error('This Loki instance is already using some ' +
-				'textarea; cannot also use another!');
+			throw new UI.Loki.State_Error('This Loki instance is already ' +
+				'using some textarea; cannot also use another!');
 		}
 		
 		textarea = area;
@@ -276,7 +276,7 @@ UI.Loki = function Loki(settings)
 		switch (arguments.length) {
 			case 0:
 				// actually handled by the typeof(command) test
-				throw new Error();
+				throw new TypeError();
 				break;
 			case 1:
 				iface = false;
@@ -636,6 +636,7 @@ UI.Loki = function Loki(settings)
 			
 			listen_for_special_keys();
 			listen_for_context_changes(switching_from_source);
+			listen_for_pastes();
 		} catch (e) {
 			// If we were unable to fully create the Loki WYSIWYG GUI, show the
 			// HTML source view instead.
@@ -949,6 +950,90 @@ UI.Loki = function Loki(settings)
 	}
 	
 	/*
+	 * Listens for paste events in the editing document.
+	 *
+	 * We always want to clean up HTML content that is pasted into Loki,
+	 * especially because that content often comes from Microsoft Word which
+	 * generates highly unsatisfactory markup. There are, however, two major
+	 * difficulties:
+	 *
+	 *  - Due to issue 28, we can't always trap or prevent the browser's default
+	 *    behavior of the keyboard shortcut for paste, which is probably the
+	 *    most common, natural way of pasting content.
+	 *  - There are clipboard DOM events for which we can listen, but they are
+	 *    Microsoft inventions and thus are not yet widely implemented at the
+	 *    time of this writing.
+	 *
+	 * To work around the second issue, we note that the two supported browsers
+	 * that do not dispatch paste events (Opera and Mozilla) do dispatch
+	 * DOMNodeInserted events. So, we always listen for paste events, and on
+	 * browsers that don't support them, we also listen for node insertions.
+	 * If we notice an insertion, we wait for a possible batch of insertions
+	 * (as would happen in even a moderately large paste operation) to finish,
+	 * then perform a cleanup.
+	 */
+	function listen_for_pastes()
+	{
+		var ni_count = 0;
+		var paste_dni = false;
+		
+		function perform_cleanup(last_ni_count)
+		{
+			var c_count = ni_count; // current count
+			
+			if (Util.is_number(last_ni_count) && c_count > last_ni_count) {
+				// More has happened since we last looked; wait some more.
+				wait_to_cleanup(c_count);
+				return;
+			}
+			
+			ni_count = 0;
+			clean_body();
+		}
+		
+		function handle_paste_event(ev)
+		{
+			if (paste_dni && ev.type == 'paste') {
+				// If the browser is capable of generating actual paste
+				// events, then remove the DOMNodeInserted handler.
+				
+				Util.Event.remove_event_handler(self.document,
+					'DOMNodeInserted', node_inserted);
+				paste_dni = false;
+			}
+			
+			perform_cleanup(null);
+		}
+		
+		function wait_to_cleanup(current_ni_count)
+		{
+			(function call_cleanup_performer() {
+				perform_cleanup(current_ni_count);
+			}).delay(0.15);
+		}
+		
+		function node_inserted(ev)
+		{
+			if (ni_count <= 0) {
+				ni_count = 1;
+				wait_to_cleanup(1);
+			} else {
+				ni_count++;
+			}
+		}
+		
+		Util.Event.observe(self.document, 'paste', handle_paste_event);
+		if (Util.Browser.IE || Util.Browser.Safari) {
+			// We know that we have paste events.
+			paste_dni = false;
+		} else {
+			paste_dni = true;
+			Util.Event.observe(self.document, 'DOMNodeInserted',
+				node_inserted);
+		}
+	}
+	
+	/*
 	 * Create an initial range for WebKit.
 	 */
 	function webkit_create_initial_range()
@@ -1002,6 +1087,6 @@ UI.Loki = function Loki(settings)
  */
 UI.Loki.State_Error = function StateError(message)
 {
-	Util.OOP.inherits(this, Error, mesasge);
+	Util.OOP.inherits(this, Error, message);
 	this.name = 'UI.Loki.State_Error';
 }
