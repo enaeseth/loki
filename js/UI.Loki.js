@@ -925,7 +925,7 @@ UI.Loki = function(textarea, settings)
 					// events, then remove the DOMNodeInserted handler.
 					
 					Util.Event.remove_event_handler(_document, 'DOMNodeInserted',
-						handle_paste_event);
+						node_inserted);
 					paste_dni = false;
 				}
 				
