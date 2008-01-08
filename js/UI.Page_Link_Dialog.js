@@ -447,9 +447,15 @@ UI.Page_Link_Dialog = function()
 	this._internal_submit_listener = function()
 	{
 		// Get URI
+		
+		var tab_name = this._tabset.get_name_of_selected_tab();
+		
+		if (!this._initially_selected_item.uri) {
+			UI.Page_Link_Dialog._default_tab = tab_name;
+		}
 
 		var uri;
-		if ( this._tabset.get_name_of_selected_tab() == 'rss' )
+		if ( tab_name == 'rss' )
 		{
 			uri = this.item_selector.get_uri();
 			if (!uri) {
@@ -457,7 +463,7 @@ UI.Page_Link_Dialog = function()
 				return false;
 			}
 		}
-		else if ( this._tabset.get_name_of_selected_tab() == 'custom' )
+		else if ( tab_name == 'custom' )
 		{
 			var uri = this._custom_input.value;
 			if ( uri.search( new RegExp('\@', '') ) > -1 && 
@@ -473,7 +479,7 @@ UI.Page_Link_Dialog = function()
 			else if ( uri.search( new RegExp('^file:') ) > -1 ||
 			          uri.search( new RegExp('^[A-Za-z]:') ) > -1 )
 			{
-				var answer = confirm("It appears that you've tried to create a link to a page on your hard drive. This will not work anywhere but your own computer--probably not what you want. \n\nAre you sure you want to continue anyway?");
+				var answer = confirm("It appears that you've tried to create a link to a file on your specific computer. This will not work anywhere but your own computer--probably not what you want. \n\nAre you sure you want to continue anyway?");
 				if ( !answer )
 					return;
 			}
@@ -504,7 +510,7 @@ UI.Page_Link_Dialog = function()
 				}
 			}
 		}
-		else
+		else if (tab_name == 'email')
 		{
 			var uri = this._email_input.value;
 			if ( uri.search( new RegExp('\@', '') ) == -1 ||
@@ -519,6 +525,10 @@ UI.Page_Link_Dialog = function()
 			if ( uri.search( new RegExp('^mailto:', 'i') ) == -1 )
 				uri = 'mailto:' + uri;
 		}
+		else
+		{
+			throw new Error('Unknown tab "' + tab_name + '".');
+		}
 
 		// Call external event listener
 		this._external_submit_listener({uri : uri, 
@@ -528,60 +538,54 @@ UI.Page_Link_Dialog = function()
 		// Close dialog window
 		this._dialog_window.window.close();
 	};
+	
+	this._determine_tab = function determine_tab(use_rss)
+	{
+		if (arguments.length == 0)
+			use_rss = this._use_rss;
+		
+		if (!this._initially_selected_item.uri) {
+			return UI.Page_Link_Dialog._default_tab || (use_rss && 'rss') ||
+				'custom';
+		} else if (use_rss) {
+			return 'rss';
+		} else if (/^mailto:/.test(this._initially_selected_item.uri)) {
+			return 'email';
+		} else {
+			return 'custom';
+		}
+	}
+	
+	this._select_tab = function select_tab(tab)
+	{
+		this._tabset.select_tab(tab);
+		this._initialize_link_information(tab);
+	}
 
 	this._apply_initially_selected_item = function()
 	{	
-		if ( this._use_rss )
-		{	
-			if ( !this._initially_selected_item.uri )
-			{
-				this._tabset.select_tab('rss');
-				this._initialize_link_information('rss');
+		var tab = this._determine_tab();
+		
+		if (tab == 'rss') {
+			if (this._initially_selected_item.uri) {
+				this._load_finder(this._finder_feed);
+			} else {
+				this._select_tab(tab);
 				this._load_sites(this._sites_feed);
 			}
-			else
-			{
-				this._load_finder(this._finder_feed);
-			}	
-		}
-		else
-		{
-			this._select_custom_or_email_tab();
+		} else {
+			this._select_tab(tab);
 		}
 	};
 
 	this._finder_listener = function()
 	{
-		var not_found = !this._initially_selected_site_uri;
-
-		if ( not_found || !this._use_rss )
-		{
-			this._select_custom_or_email_tab();
-		}
-		else
-		{
-			this._tabset.select_tab('rss');
-			this._initialize_link_information('rss');
-		}
-
-		this._load_sites(this._sites_feed);
-	};
-
-	this._select_custom_or_email_tab = function()
-	{
-		var is_email_address = 
-			( this._initially_selected_item.uri.match != null &&
-			  this._initially_selected_item.uri.match( new RegExp('mailto:', 'i') ) );
-
-		if ( is_email_address )
-		{
-			this._tabset.select_tab('email');
-			this._initialize_link_information('email');
-		}
-		else
-		{
-			this._tabset.select_tab('custom');
-			this._initialize_link_information('custom');
+		if (!this._use_rss || !this._initially_selected_site_uri) {
+			// Not found (or RSS not in use at all, which would be odd...)
+			this._select_tab(this._determine_tab(false));
+		} else {
+			this._select_tab('rss');
+			this._load_sites(this._sites_feed);
 		}
 	};
 
@@ -792,53 +796,6 @@ UI.Page_Link_Dialog = function()
 		// Append the containing chunk
 		this._dialog_window.body.appendChild(chunk);
 	};
-
 }
 
-
-/*
-
-#
-# do this in apply_initially_selected_item
-#
-On first time ...
-Is uri empty?
-{
-	Show rss tab
-	Call "load other rss feeds" below.
-}
-Is uri not empty?
-{
-	Load finder.
-	#
-	# do this in a listener
-	#
-	Is not found
-	{
-		Is email address
-		{
-			Show email tab
-		}
-		Is not email address
-		{
-			Show custom tab
-		}
-	}
-	Is found?
-	{
-		Show rss tab
-	}
-	Call "load other rss feeds" below.
-}
-
-Load other rss feeds.
-If initially selected uri not found
-{
-	Select defaults
-}
-Else
-{
-	Select as indicated by finder
-}
-
-*/
+UI.Page_Link_Dialog._default_tab = null;
