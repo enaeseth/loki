@@ -131,23 +131,21 @@ UI.Dialog = function()
 	this._add_dialog_listeners = function()
 	{
 		var self = this;
+		var enter_unsafe =
+			['TEXTAREA', 'BUTTON', 'SELECT', 'OPTION'].toSet();
+	
+		
 		//Util.Event.add_event_listener(this._dialog_window.body, 'keyup', function(event) 
 		this._dialog_window.document.onkeydown = function(event)
 		{ 
 			event = event == null ? self._dialog_window.window.event : event;
 			var target = event.srcElement == null ? event.target : event.srcElement;
 
-			// This is too dangerous, because those who use the
-			// keyboard to change options might press enter for
-			// reasons other than to confirm the dialog.
-			/*
-			if ( event.keyCode == 13 && // enter
-				 !( target != null && target.nodeType == Util.Node.ELEMENT_NODE && ( target.tagName == 'TEXTAREA' || target.tagName == 'BUTTON' ) ) )
-			{
+			// Enter key
+			if (event.keyCode == 13 && target && !(target.tagName in enter_unsafe)) {
 				self._internal_submit_listener();	
 				return false;
 			}
-			*/
 			
 			if ( event.keyCode == 27 ) // escape
 			{
