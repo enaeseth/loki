@@ -915,7 +915,7 @@ UI.Loki = function(textarea, settings)
 				}
 				
 				ni_count = 0;
-				UI.Clean.clean(_body, _settings);
+				UI.Clean.clean(_body, _settings, true);
 			}
 			
 			function handle_paste_event(ev)

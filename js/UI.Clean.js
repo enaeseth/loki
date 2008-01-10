@@ -14,9 +14,12 @@ UI.Clean = new Object;
 /**
  * Cleans the children of the given root.
  *
- * @param	root	reference to the node whose children should be cleaned
+ * @param {Element} root       reference to the node whose children should be
+ *                             cleaned
+ * @param {object}	settings   Loki settings
+ * @param {boolean} automatic  true if this clean is being run automatically
  */
-UI.Clean.clean = function(root, settings)
+UI.Clean.clean = function(root, settings, automatic)
 {
 	/**
 	 * Removes the given node from the tree.
@@ -224,7 +227,7 @@ UI.Clean.clean = function(root, settings)
 	}
 	
 
-	tests =
+	var tests =
 	[
 		// description : a text description of the test and action
 		// test : function that is passed node in question, and returns
@@ -378,6 +381,7 @@ UI.Clean.clean = function(root, settings)
 		{
 			description: 'Remove unnecessary BR\'s that are elements\' last ' +
 				'children',
+			run_on_auto: false,
 			test: function is_last_child_br(node) {
 				function get_last_element_child(n)
 				{
@@ -395,6 +399,7 @@ UI.Clean.clean = function(root, settings)
 		},
 		{
 			description: 'Remove improperly nested elements',
+			run_on_auto: false,
 			test: function improperly_nested(node)
 			{
 				function is_nested()
@@ -422,11 +427,6 @@ UI.Clean.clean = function(root, settings)
 
 	function _clean_recursive(root)
 	{
-/*
-		var children = [];
-		for ( var i = 0; i < root.childNodes.length; i++ )
-			children.push(root.childNodes[i]);
-*/
 		var children = root.childNodes;
 		// we go backwards because remove_tag uses insertBefore,
 		// so if we go forwards some nodes will be skipped
@@ -444,20 +444,23 @@ UI.Clean.clean = function(root, settings)
 	{
 		for ( var i = 0; i < tests.length; i++ )
 		{
+			if (automatic && false === tests[i].run_on_auto)
+				continue;
+			
 			var result = tests[i].test(node);
 			if ( result !== false )
 			{
 				// We do this because we don't want any errors to
 				// result in lost content!
-				try
-				{
+				try {
 					tests[i].action(node, result);
-					mb('did action "' + tests[i].description + '" on node with result', [node, result]);
-				}
-				catch(e)
-				{
-					mb('UI.Clean: tests failed: [node, result, error]', [node, result, e]);
-					throw(e); // XXX tmp, for testing
+				} catch (e) {
+					if (console) {
+						if (console.warn)
+							console.warn(e);
+						else if (console.log)
+							console.log(e);
+					}
 				}
 			}
 		}
@@ -472,7 +475,10 @@ UI.Clean.clean = function(root, settings)
 	catch(e)
 	{
 		if (console) {
-			(console.warn || console.log || Util.Function.empty)(e);
+			if (console.warn)
+				console.warn(e);
+			else if (console.log)
+				console.log(e);
 		}
 	}
 };
@@ -536,6 +542,7 @@ UI.Clean.default_allowable_tags =
 	'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TABLE',
 	'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TR', 'TT', 'U', 'UL',
 	'VAR'];
+
 UI.Clean.self_nesting_disallowed =
 	['ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'B', 'BR', 'BUTTON', 'CAPTION',
 	'CODE', 'DEL', 'DFN', 'EM', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
