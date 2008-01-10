@@ -11,7 +11,7 @@ UI.Indent_Button = function()
 	Util.OOP.inherits(self, UI.Button);
 
 	this.image = 'indent.gif';
-	this.title = 'Indent text';
+	this.title = 'Increase list depth';
 	this.click_listener = function() 
 	{
 		// Only indent if we're inside a UL or OL 

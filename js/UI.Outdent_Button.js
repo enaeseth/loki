@@ -11,7 +11,7 @@ UI.Outdent_Button = function()
 	Util.OOP.inherits(self, UI.Button);
 
 	this.image = 'outdent.gif';
-	this.title = 'Remove indent';
+	this.title = 'Decrease list depth';
 	// XXX: eventually take the duplicated code here and that in Indent_Button and combine it
 	// into a helper. Not worth it right now.
 	this.click_listener = function() 
