@@ -16,20 +16,7 @@ Util.HTML_Parser = function()
 		close: []
 	};
 	
-	var self_closing_tags = (function() {
-		var ret = {};
-		
-		for (var i = 0; i < arguments.length; i++) {
-			ret[arguments[i]] = true;
-		}
-		
-		ret.test = function(tag)
-		{
-			return !!this[tag];
-		}
-		
-		return ret;
-	})('BR', 'AREA', 'LINK', 'IMG', 'PARAM', 'HR', 'INPUT', 'COL', 'BASE', 'META');
+	var self_closing_tags = Util.HTML_Parser.self_closing_tags;
 	
 	// -- Public Methods --
 	
@@ -214,7 +201,7 @@ Util.HTML_Parser = function()
 			tag_opened(tag, attributes);
 			
 			var next_char = scan_character();
-			if (next_char == '/' || self_closing_tags.test(tag.toUpperCase())) {
+			if (next_char == '/' || tag.toUpperCase() in self_closing_tags) {
 				// self-closing tag (XML-style or known)
 				tag_closed(tag);
 				
@@ -273,3 +260,6 @@ Util.HTML_Parser = function()
 		return starting_state;
 	}
 }
+
+Util.HTML_Parser.self_closing_tags = ['BR', 'AREA', 'LINK', 'IMG', 'PARAM',
+	'HR', 'INPUT', 'COL', 'BASE', 'META'].toSet();
