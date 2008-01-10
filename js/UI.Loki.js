@@ -709,6 +709,23 @@ UI.Loki = function Loki(settings)
 	 */
 	function activate_keybindings()
 	{
+		function possibly_paragraphify()
+		{
+			var sel = this.get_selection();
+			var rng = Util.Range.create_range(sel);
+			var container;
+			
+			if (!rng)
+				return;
+			
+			container = Util.Range.get_start_container(rng);
+			if (container && container.nodeName == 'BODY') {
+				this.toggle_block('p');
+			}
+		}
+		
+		keybinder.bind(Util.Function.optimist, possibly_paragraphify, self);
+		
 		function evaluate_key_press()
 		{
 			return keybinder.evaluate(arguments[0] || window.event)
