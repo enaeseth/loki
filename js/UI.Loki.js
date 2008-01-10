@@ -637,6 +637,9 @@ UI.Loki = function Loki(settings)
 			listen_for_special_keys();
 			listen_for_context_changes(switching_from_source);
 			listen_for_pastes();
+			
+			if (!switching_from_source)
+				possibly_paragraphify();
 		} catch (e) {
 			// If we were unable to fully create the Loki WYSIWYG GUI, show the
 			// HTML source view instead.
@@ -703,30 +706,35 @@ UI.Loki = function Loki(settings)
 		});
 	}
 	
+	function possibly_paragraphify()
+	{
+		var sel = self.get_selection();
+		var rng;
+		var container;
+		
+		if (sel.rangeCount === 0)
+			return;
+		
+		rng = Util.Range.create_range(sel);
+		
+		if (!rng)
+			return;
+		
+		container = Util.Range.get_start_container(rng);
+		if (container && container.nodeName == 'BODY') {
+			self.toggle_block('p');
+		}
+		
+		return true;
+	}
+	
 	/*
 	 * Connects the keybinder to actual keyboard events in the Loki editing
 	 * document.
 	 */
 	function activate_keybindings()
 	{
-		function possibly_paragraphify()
-		{
-			var sel = this.get_selection();
-			var rng = Util.Range.create_range(sel);
-			var container;
-			
-			if (!rng)
-				return;
-			
-			container = Util.Range.get_start_container(rng);
-			if (container && container.nodeName == 'BODY') {
-				this.toggle_block('p');
-			}
-			
-			return true;
-		}
-		
-		keybinder.bind(Util.Function.optimist, possibly_paragraphify, self);
+		Util.Event.observe(self.document, 'keyup', possibly_paragraphify);
 		
 		function evaluate_key_press()
 		{
