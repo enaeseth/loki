@@ -722,6 +722,8 @@ UI.Loki = function Loki(settings)
 			if (container && container.nodeName == 'BODY') {
 				this.toggle_block('p');
 			}
+			
+			return true;
 		}
 		
 		keybinder.bind(Util.Function.optimist, possibly_paragraphify, self);
