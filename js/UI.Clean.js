@@ -374,6 +374,24 @@ UI.Clean.clean = function(root, settings)
 			description: 'Remove bubbles',
 			test: function(node) { return has_class(node, ['loki__bubble']); },
 			action: remove_node
+		},
+		{
+			description: 'Remove unnecessary BR\'s that are elements\' last ' +
+				'children',
+			test: function is_last_child_br(node) {
+				function get_last_element_child(n)
+				{
+					var c; // child
+					for (c = n.lastChild; c; c = c.previousSibling) {
+						if (c.nodeType == Util.Node.ELEMENT_NODE)
+							return c;
+					}
+				}
+				
+				return has_tagname(node, ['BR']) &&
+					get_last_element_child(node.parentNode) == node;
+			},
+			action: remove_node
 		}
 		// TODO: deal with this?
 		// In content pasted from Word, there may be 
@@ -433,8 +451,9 @@ UI.Clean.clean = function(root, settings)
 	}
 	catch(e)
 	{
-		mb('UI.Clean: _clean_recursive failed: error', e.message);
-		//throw(e); // XXX tmp, for testing
+		if (console) {
+			(console.warn || console.log || Util.Function.empty)(e);
+		}
 	}
 };
 
