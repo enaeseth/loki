@@ -392,6 +392,26 @@ UI.Clean.clean = function(root, settings)
 					get_last_element_child(node.parentNode) == node;
 			},
 			action: remove_node
+		},
+		{
+			description: 'Remove improperly nested elements',
+			test: function improperly_nested(node)
+			{
+				function is_nested()
+				{
+					var a;
+					for (a = node.parentNode; a; a = a.parentNode) {
+						if (a.tagName == node.tagName)
+							return true;
+					}
+					
+					return false;
+				}
+				
+				return node.tagName in UI.Clean.self_nesting_disallowed &&
+					is_nested();
+			},
+			action: remove_tag
 		}
 		// TODO: deal with this?
 		// In content pasted from Word, there may be 
@@ -516,3 +536,9 @@ UI.Clean.default_allowable_tags =
 	'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TABLE',
 	'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TR', 'TT', 'U', 'UL',
 	'VAR'];
+UI.Clean.self_nesting_disallowed =
+	['ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'B', 'BR', 'BUTTON', 'CAPTION',
+	'CODE', 'DEL', 'DFN', 'EM', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+	'HR', 'I', 'IMG', 'INPUT', 'INS', 'KBD', 'LABEL', 'MAP', 'NOSCRIPT',
+	'OPTION', 'P', 'PARAM', 'PRE', 'SCRIPT', 'SELECT', 'STRONG', 'TT', 'U',
+	'VAR'].toSet();
