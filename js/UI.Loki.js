@@ -907,12 +907,26 @@ UI.Loki = function Loki(settings)
 	 */
 	function listen_for_special_keys()
 	{	
+		function before_handling(event)
+		{
+			// This function is the workaround for some unfortunate browser
+			// behavior that exists at least on Firefox/Mac: when the user has a
+			// range of text selected and then clicks again within it, the new
+			// collapsed selection is not available onmouseup. It would be very
+			// bad if we executed our special handling on the out-of-date
+			// selection information, so we force a selected range update before
+			// we do our handling.
+			
+			handle_user_activity(event);
+		}
+		
 		function default_action(event)
 		{
 			UI.Special_Key_Handler.handle_event(event);
 		}
 		
-		UI.Key_Event.translate(self.document, self, default_action);
+		UI.Key_Event.translate(self.document, self, default_action, 
+			before_handling);
 	}
 	
 	/*

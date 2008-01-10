@@ -61,12 +61,13 @@ UI.Key_Event = function KeyEvent(loki, source)
  * @param {object}	target		the target for the generated events
  * @param {function} [default_handler] a default event handler to call if no
  *								other event handlers call prevent_default()
+ * @param {function} [on_start]	a function to call before handling begins
  * @param {function} [on_end]	a function to call after all other handling has
  *								been completed
  * @type {void}
  */
 UI.Key_Event.translate = function translate_browser_events_to_loki_key_events(
-	element, target, default_handler, on_end)
+	element, target, default_handler, on_start, on_end)
 {
 	// Even though UI.Loki is the only current user of this function, I've moved
 	// this code out here due to its complexity.
@@ -99,6 +100,10 @@ UI.Key_Event.translate = function translate_browser_events_to_loki_key_events(
 		
 		if (!UI.Key_Event._handles_code(event.keyCode))
 			return return_value;
+			
+		if (on_start) {
+			on_start(event);
+		}
 		
 		var key_event = new UI.Key_Event(target, event);
 		target.dispatch_event(key_event);
