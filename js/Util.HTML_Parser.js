@@ -16,7 +16,7 @@ Util.HTML_Parser = function()
 		close: []
 	};
 	
-	var self_closing_tags = Util.HTML_Parser.self_closing_tags;
+	var self_closing_tags = Util.HTML_Parser.self_closing_tags.toSet();
 	
 	// -- Public Methods --
 	
@@ -262,4 +262,4 @@ Util.HTML_Parser = function()
 }
 
 Util.HTML_Parser.self_closing_tags = ['BR', 'AREA', 'LINK', 'IMG', 'PARAM',
-	'HR', 'INPUT', 'COL', 'BASE', 'META'].toSet();
+	'HR', 'INPUT', 'COL', 'BASE', 'META'];
