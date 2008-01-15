@@ -105,7 +105,14 @@ UI.Clipboard_Helper = function()
 		var container = self._loki.document.createElement('DIV');
 		container.innerHTML = html;
 		self._loki.unmassage_node_descendants(container);
-		UI.Clean.clean(container, self._loki.settings);
+		
+		// Clean the copied HTML. We pass an override to the block-level element
+		// rule enforcer that specifies that inline content within paragraphs do
+		// not have to be wrapped in (e.g.) paragraph tags. This prevents inline
+		// content that is being copied from being treated as its own paragraph.
+		UI.Clean.clean(container, self._loki.settings, false, {
+			overrides: {DIV: Util.Block.BLOCK}
+		});
 		html = container.innerHTML;
 
 		// Move HTML to clipboard
@@ -247,7 +254,10 @@ UI.Clipboard_Helper = function()
 			// Massage and clean HTML
 			var container = self._loki.document.createElement('DIV');
 			container.innerHTML = html;
-			UI.Clean.clean(container, self._loki.settings);
+			// See UI.Clipboard_helper.copy() for the override rationale.
+			UI.Clean.clean(container, self._loki.settings, false, {
+				overrides: {DIV: Util.Block.BLOCK}
+			});
 			self._loki.massage_node_descendants(container);
 			html = container.innerHTML;
 

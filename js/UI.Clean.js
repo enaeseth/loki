@@ -14,13 +14,18 @@ UI.Clean = new Object;
 /**
  * Cleans the children of the given root.
  *
- * @param {Element} root       reference to the node whose children should be
- *                             cleaned
- * @param {object}	settings   Loki settings
- * @param {boolean} automatic  true if this clean is being run automatically
+ * @param {Element} root             reference to the node whose children should
+ *                                   be cleaned
+ * @param {object}	settings         Loki settings
+ * @param {boolean} [live]           set to true if this clean is being run
+ *                                   on content that is actively being edited
+ * @param {object}  [block_settings] settings to pass along to
+ *                                   Util.Block.enforce_rules
  */
-UI.Clean.clean = function(root, settings, automatic)
+UI.Clean.clean = function(root, settings, live, block_settings)
 {
+	console.debug('clean', root, settings, live, block_settings);
+	
 	/**
 	 * Removes the given node from the tree.
 	 */
@@ -375,31 +380,38 @@ UI.Clean.clean = function(root, settings, automatic)
 		},
 		{
 			description: 'Remove bubbles',
+			run_on_live: false,
 			test: function(node) { return has_class(node, ['loki__bubble']); },
 			action: remove_node
 		},
 		{
 			description: 'Remove unnecessary BR\'s that are elements\' last ' +
 				'children',
-			run_on_auto: false,
+			run_on_live: false,
 			test: function is_last_child_br(node) {
-				function get_last_element_child(n)
+				console.debug('is_last_child_br', !!live);
+				
+				function get_last_relevant_child(n)
 				{
 					var c; // child
 					for (c = n.lastChild; c; c = c.previousSibling) {
-						if (c.nodeType == Util.Node.ELEMENT_NODE)
+						if (c.nodeType == Util.Node.ELEMENT_NODE) {
 							return c;
+						} else if (c.nodeType == Util.Node.TEXT_NODE) {
+							if (/\S/.test(c.nodeValue))
+								return c;
+						}
 					}
 				}
 				
 				return has_tagname(node, ['BR']) &&
-					get_last_element_child(node.parentNode) == node;
+					get_last_relevant_child(node.parentNode) == node;
 			},
 			action: remove_node
 		},
 		{
 			description: 'Remove improperly nested elements',
-			run_on_auto: false,
+			run_on_live: false,
 			test: function improperly_nested(node)
 			{
 				function is_nested()
@@ -444,7 +456,7 @@ UI.Clean.clean = function(root, settings, automatic)
 	{
 		for ( var i = 0; i < tests.length; i++ )
 		{
-			if (automatic && false === tests[i].run_on_auto)
+			if (live && false === tests[i].run_on_live)
 				continue;
 			
 			var result = tests[i].test(node);
@@ -470,7 +482,7 @@ UI.Clean.clean = function(root, settings, automatic)
 	try
 	{
 		_clean_recursive(root);
-		Util.Block.enforce_rules(root);
+		Util.Block.enforce_rules(root, block_settings);
 	}
 	catch(e)
 	{
