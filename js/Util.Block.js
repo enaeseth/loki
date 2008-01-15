@@ -472,7 +472,12 @@ Util.Block = {
 				TH: Util.Block.MULTI_PARAGRAPH_CONTAINER,
 				TD: Util.Block.MULTI_PARAGRAPH_CONTAINER,
 				LI: Util.Block.MULTI_PARAGRAPH_CONTAINER,
+				DT: Util.Block.MULTI_PARAGRAPH_CONTAINER,
 				DD: Util.Block.MULTI_PARAGRAPH_CONTAINER, // changed from pc
+				
+				UL: NORMAL,
+				OL: NORMAL,
+				DL: NORMAL,
 				
 				TABLE: NORMAL,
 				THEAD: NORMAL,

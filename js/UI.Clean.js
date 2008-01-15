@@ -24,8 +24,6 @@ UI.Clean = new Object;
  */
 UI.Clean.clean = function(root, settings, live, block_settings)
 {
-	console.debug('clean', root, settings, live, block_settings);
-	
 	/**
 	 * Removes the given node from the tree.
 	 */
@@ -389,8 +387,6 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				'children',
 			run_on_live: false,
 			test: function is_last_child_br(node) {
-				console.debug('is_last_child_br', !!live);
-				
 				function get_last_relevant_child(n)
 				{
 					var c; // child
