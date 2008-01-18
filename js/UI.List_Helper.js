@@ -31,13 +31,9 @@ UI.List_Helper = function ListHelper()
 	
 	this.nag_about_indent_use = function nag_about_indent_use()
 	{
-		if (Util.Cookie.get('_loki2_indent_use_nagged'))
-			return;
-		
-		alert('The indent and unindent buttons can only be used to indent and' +
+		UI.Messenger.display_once('indent_use_nag',
+			'The indent and unindent buttons can only be used to indent and' +
 			' outdent list items; in particular, it cannot be used to indent' +
 			' paragraphs.');
-		
-		Util.Cookie.set('_loki2_indent_use_nagged', true);
 	}
 }
