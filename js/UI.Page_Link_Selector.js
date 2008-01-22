@@ -534,7 +534,6 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 						selector.appendChild(dh.create_element('option',
 							{value: ''}, ['(none)']));
 						
-						anchors.sort();
 						anchors.each(function(a) {
 							selector.appendChild(dh.create_element('option',
 								{
