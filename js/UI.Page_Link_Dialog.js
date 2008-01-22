@@ -566,15 +566,11 @@ UI.Page_Link_Dialog = function()
 	{	
 		var tab = this._determine_tab();
 		
-		if (tab == 'rss') {
-			if (this._initially_selected_item.uri) {
-				this._load_finder(this._finder_feed);
-			} else {
-				this._select_tab(tab);
-				this._load_sites(this._sites_feed);
-			}
+		if (tab == 'rss' && this._initially_selected_item.uri) {
+			this._load_finder(this._finder_feed);
 		} else {
 			this._select_tab(tab);
+			this._load_sites(this._sites_feed);
 		}
 	};
 
