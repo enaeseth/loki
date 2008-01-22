@@ -306,6 +306,24 @@ Util.Block = {
 				var br;
 				var next;
 				
+				var paragraphs = [];
+				function add_paragraph(para)
+				{
+					if (para)
+						paragraphs.push(para);
+					
+					return !!para;
+				}
+				
+				function replace_with_children(node)
+				{
+					for (var i = 0; i < node.childNodes.length; i++) {
+						node.parentNode.insertBefore(node.childNodes[i], node);
+					}
+					
+					node.parentNode.removeChild(node);
+				}
+				
 				function create_upto(stop)
 				{
 					var para = stop.ownerDocument.createElement('P');
@@ -332,11 +350,13 @@ Util.Block = {
 					if (!multi) {
 						next = c.nextSibling;
 						
+						if (c.tagName == 'P')
+							add_paragraph(c);
+						
 						if (!belongs_inside_paragraph(c)) {
-							create_upto(c);
-							multi = true;
+							multi = add_paragraph(create_upto(c));
 						} else if (br = is_breaker(c)) { // assignment intent.
-							multi = !!create_upto(c);
+							multi = add_paragraph(create_upto(c));
 							next = br[1].nextSibling;
 							br.each(function(b) {
 								b.parentNode.removeChild(b);
@@ -345,6 +365,10 @@ Util.Block = {
 					} else {
 						next = enforce_container_child(context, node, c);
 					}
+				}
+				
+				if (!multi && paragraphs.length == 1) {
+					replace_with_children(paragraphs[0]);
 				}
 				
 				return node.hasChildNodes();
