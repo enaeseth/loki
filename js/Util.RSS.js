@@ -187,7 +187,7 @@ Util.RSS.Reader = function RSSReader(url)
 	/**
 	 * Adds an event listener.
 	 */
-	this.add_event_listener = function(type, func)
+	this.add_event_listener = function add_rss_event_listener(type, func)
 	{
 		if (!listeners[type]) {
 			throw new Error('Unknown listener type "' + type + '".');
@@ -201,7 +201,7 @@ Util.RSS.Reader = function RSSReader(url)
 	 * Loads items from the feed. If the "num" parameter is provided and the URL has been set up
 	 * to support chunking (see description of the construtor), only requests that many items.
 	 */
-	this.load = function(num, timeout)
+	this.load = function load_rss_feed(num, timeout)
 	{
 		if (!num)
 			var num = null;
