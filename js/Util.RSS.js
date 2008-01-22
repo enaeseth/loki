@@ -16,7 +16,7 @@ Util.RSS = {
  *
  * @author Eric Naeseth
  */
-Util.RSS.Reader = function(url)
+Util.RSS.Reader = function RSSReader(url)
 {
 	this.url = url;
 	
@@ -254,7 +254,7 @@ Util.RSS.Reader = function(url)
  * @class An RSS feed.
  * @author Eric Naeseth
  */
-Util.RSS.Feed = function()
+Util.RSS.Feed = function RSSFeed()
 {
 	this.version = null;
 	this.channel = null;
@@ -267,7 +267,7 @@ Util.RSS.Feed = function()
  * @class An RSS channel.
  * @author Eric Naeseth
  */
-Util.RSS.Channel = function()
+Util.RSS.Channel = function RSSChannel()
 {
 	// required elements
 	this.title = null;
@@ -299,7 +299,7 @@ Util.RSS.Channel = function()
  * @class An RSS feed.
  * @author Eric Naeseth
  */
-Util.RSS.Item = function()
+Util.RSS.Item = function RSSItem()
 {
 	this.title = null;
 	this.link = null;
