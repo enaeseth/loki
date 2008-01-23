@@ -1093,7 +1093,7 @@ UI.Loki = function(textarea, settings)
 				var bubble = fire_keybindings(event);
 				if ( !bubble )
 				{
-					event.cancleBubble = true;
+					event.cancelBubble = true;
 					return Util.Event.prevent_default(event);
 				}
 			});
