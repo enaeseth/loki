@@ -87,9 +87,9 @@ UI.Loki = function Loki(settings)
 		massage_body();
 	}
 	
-	function clean_body()
+	function clean_body(live)
 	{
-		UI.Clean.clean(self.body, settings);
+		UI.Clean.clean(self.body, settings, live || false);
 	}
 	
 	function massage_body()
@@ -1029,7 +1029,7 @@ UI.Loki = function Loki(settings)
 			}
 			
 			ni_count = 0;
-			clean_body();
+			clean_body(true);
 		}
 		
 		function handle_paste_event(ev)

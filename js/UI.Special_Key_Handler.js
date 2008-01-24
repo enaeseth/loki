@@ -196,47 +196,47 @@ UI.Special_Key_Handler = {
 		var start_chop = find_chop_node(b.start, 'previous');
 		var end_chop = find_chop_node(b.end, 'next');
 		
-		var preserver = loki.document.createRange();
+		var preserver = Util.Document.create_range(loki.document);
 		
 		// Copy the contents of the existing block (up to the carat) into
 		// the new "before" block that was created above.
 		if (start_chop.nodeName == before_tag)
-			preserver.setStart(start_chop, 0);
+			Util.Range.set_start(preserver, start_chop, 0);
 		else
-			preserver.setStartBefore(start_chop);
-		preserver.setEnd(b.start.container, b.start.offset);
+			Util.Range.set_start_before(preserver, start_chop);
+		Util.Range.set_end(preserver, b.start.container, b.start.offset);
 		before.appendChild(preserver.cloneContents());
 		
 		// Copy the contents after the carat into the new "after" block.
 		if (end_chop.nodeName == before_tag)
-			preserver.setEnd(end_chop, end_chop.childNodes.length);
+			Util.Range.set_end(preserver, end_chop, end_chop.childNodes.length);
 		else
-			preserver.setEndAfter(end_chop);
-		preserver.setStart(b.end.container, b.end.offset);
+			Util.Range.set_end_after(preserver, end_chop);
+		Util.Range.set_start(preserver, b.end.container, b.end.offset);
 		after.appendChild(preserver.cloneContents());
 		
 		// Delete the original contents.
-		range = loki.document.createRange();
+		range = Util.Document.create_range(loki.document);
 		if (!start_chop.previousSibling &&
 			start_chop.parentNode.nodeName == before_tag)
 		{
-			range.setStartBefore(start_chop.parentNode);
+			Util.Range.set_start_before(range, start_chop.parentNode);
 		} else if (start_chop.nodeName == before_tag) {
-			range.setStartBefore(start_chop);
+			Util.Range.set_start_before(range, start_chop);
 		} else if (b.start.container.nodeName == before_tag && !b.start.offset){
-			range.setStartBefore(b.start.container);
+			Util.Range.set_start_before(range, b.start.container);
 		} else {
-			range.setStart(b.start.container, b.start.offset)
+			Util.Range.set_start(range, b.start.container, b.start.offset)
 		}
 		
 		if (!end_chop.nextSibling && end_chop.parentNode.nodeName == before_tag){
-			range.setEndAfter(end_chop.parentNode);
+			Util.Range.set_end_after(range, end_chop.parentNode);
 		} else if (end_chop.nodeName == before_tag) {
-			range.setEndAfter(end_chop);
+			Util.Range.set_end_after(range, end_chop);
 		} else {
-			range.setEnd(b.end.container, b.end.offset);
+			Util.Range.set_end(range, b.end.container, b.end.offset);
 		}
-		range.deleteContents();
+		Util.Range.delete_contents(range);
 		
 		pad_block(before);
 		pad_block(after);
@@ -244,19 +244,19 @@ UI.Special_Key_Handler = {
 		// Opera needs this done in the reverse order from everyone else
 		// for some reason.
 		if (!Util.Browser.Opera) {
-			range.insertNode(after);
-			range.insertNode(before);
+			Util.Range.insert_node(range, after);
+			Util.Range.insert_node(range, before);
 		} else {
-			range.insertNode(before);
-			range.insertNode(after);
+			Util.Range.insert_node(range, before);
+			Util.Range.insert_node(range, after);
 		}
 		
 		before.normalize();
 		after.normalize();
 		
 		// Move cursor and scroll into view.
-		range = loki.document.createRange();
-		range.selectNodeContents(after);
+		range = Util.Document.create_range(loki.document);
+		Util.Range.select_node_contents(range, after);
 		range.collapse(true);
 		
 		function select_and_scroll()
