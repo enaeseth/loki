@@ -187,10 +187,26 @@ Util.Document.make_editable = function make_editable(doc)
 }
 
 /**
+ * Creates a new range on the document.
+ * @param {Document}  doc   document on which the range will be created
+ * @return {Range} the new range
+ */
+Util.Document.create_range = function create_range_on_document(doc)
+{
+	if (doc.createRange) {
+		return doc.createRange();
+	} else if (doc.body.createTextRange) {
+		return doc.body.createTextRange();
+	} else {
+		throw new Util.Unsupported_Error('creating a range on a document');
+	}
+}
+
+/**
  * Gets the HEAD element of a document.
  * @param	doc		document from which to obtain the HEAD
  */
-Util.Document.get_head = function(doc)
+Util.Document.get_head = function get_document_head(doc)
 {
 	try {
 		return doc.getElementsByTagName('HEAD')[0];
@@ -206,7 +222,7 @@ Util.Document.get_head = function(doc)
  * @param	new_document	the document to import the node to
  * @param	node			the node to import
  * @param	deep			boolean indicating whether to import child
- *							nodes (currently ignored in IE ... is always true)
+ *							nodes
  */
 Util.Document.import_node = function import_node(new_document, node, deep)
 {
