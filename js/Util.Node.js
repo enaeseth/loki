@@ -241,6 +241,29 @@ Util.Node.is_tag = function(node, tag)
 };
 
 /**
+ * Finds the offset of the given node within its parent.
+ * @param {Node}  node  the node whose offset is desired
+ * @return {number}     the node's offset
+ * @throws {Error} if the node is orphaned (i.e. it has no parent)
+ */
+Util.Node.get_offset = function get_node_offset_within_parent(node)
+{
+	var parent = node.parentNode;
+	
+	if (!parent) {
+		throw new Error('Node ' + Util.Node.get_debug_string(node) + ' has ' +
+			' no parent.');
+	}
+	
+	for (var i = 0; i < parent.childNodes.length; i++) {
+		if (parent.childNodes[i] == node)
+			return i;
+	}
+	
+	throw new Error();
+}
+
+/**
  * Creates a function that calls is_tag using the given tag.
  */
 Util.Node.curry_is_tag = function(tag)
@@ -323,7 +346,8 @@ Util.Node.is_block_level_element = function(node)
  */
 Util.Node.is_nestable_block_level_element = function(node)
 {
-	return Util.Node.is_block_level_element && !(/^(BODY|TBODY|THEAD|TR|TH|TD)$/i).test(node.tagName);
+	return Util.Node.is_block_level_element(node)
+		&& !(/^(BODY|TBODY|THEAD|TR|TH|TD)$/i).test(node.tagName);
 };
 
 /**
@@ -361,10 +385,7 @@ Util.Node.is_leftmost_descendent = function(node, ref)
  */
 Util.Node.insert_after = function(new_node, ref_node)
 {
-	if ( ref_node == ref_node.parentNode.lastChild )
-		ref_node.parentNode.appendChild(new_node);
-	else
-		ref_node.parentNode.insertBefore(new_node, ref_node.nextSibling);
+	ref_node.parentNode.insertBefore(new_node, ref_node.nextSibling);
 };
 
 /**
