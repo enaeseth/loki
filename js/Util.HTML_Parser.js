@@ -6,30 +6,19 @@
  * @class A SAX-style tolerant HTML parser that doesn't rely on the browser.
  * @author Eric Naeseth
  */
-Util.HTML_Parser = function()
+Util.HTML_Parser = function SAX_HTML_Parser()
 {
 	var data = null;
 	var position = 0;
 	var listeners = {
-		data: [],
 		open: [],
-		close: []
+		close: [],
+		text: [],
+		cdata: [],
+		comment: [],
 	};
 	
-	var self_closing_tags = (function() {
-		var ret = {};
-		
-		for (var i = 0; i < arguments.length; i++) {
-			ret[arguments[i]] = true;
-		}
-		
-		ret.test = function(tag)
-		{
-			return !!this[tag];
-		}
-		
-		return ret;
-	})('BR', 'AREA', 'LINK', 'IMG', 'PARAM', 'HR', 'INPUT', 'COL', 'BASE', 'META');
+	var self_closing_tags = Util.HTML_Parser.self_closing_tags.toSet();
 	
 	// -- Public Methods --
 	
@@ -120,7 +109,25 @@ Util.HTML_Parser = function()
 	
 	function character_data(data)
 	{
-		listeners.data.each(function(l) {
+		var cdata_listeners = (listeners.cdata.length > 0)
+			? listeners.cdata
+			: listeners.text;
+		
+		cdata_listeners.each(function(l) {
+			l(data);
+		});
+	}
+	
+	function text_data(data)
+	{
+		listeners.text.each(function(l) {
+			l(data);
+		});
+	}
+	
+	function comment(contents)
+	{
+		listeners.comment.each(function(l) {
 			l(data);
 		});
 	}
@@ -145,7 +152,7 @@ Util.HTML_Parser = function()
 	{
 		var cdata = scan_until_string('<');
 		if (cdata) {
-			character_data(cdata);
+			text_data(cdata);
 		}
 		
 		ignore_character();
@@ -210,18 +217,24 @@ Util.HTML_Parser = function()
 		
 		var tag = scan_until_characters("/> \n\r\t");
 		if (tag) {
-			var attributes = parse_attributes();
+			var attributes = parse_attributes(); // last step ignores whitespace
 			tag_opened(tag, attributes);
 			
 			var next_char = scan_character();
-			if (next_char == '/' || self_closing_tags.test(tag.toUpperCase())) {
-				// self-closing tag (XML-style or known)
+			if (next_char == '/') {
+				// self-closing tag (XML-style)
 				tag_closed(tag);
-				
 				ignore_whitespace();
-				next_char = scan_character();
-				if (next_char != '>') // oh my, what on earth?
-					unscan_character();
+				next_char = scan_character(); // advance to the "<"
+			} else if (tag.toUpperCase() in self_closing_tags) {
+				// self-closing tag (known HTML tag)
+				tag_closed(tag);
+			}
+			
+			if (next_char != '>') {
+				// oh my, what on earth?
+				throw new Util.HTML_Parser.Error('Opening tag not terminated ' +
+					'by ">".');
 			}
 		}
 		
@@ -235,8 +248,11 @@ Util.HTML_Parser = function()
 			var next_char = scan_character();
 			if (next_char == '/') {
 				next_char = scan_character();
-				if (next_char != '>') // oh my, what on earth?
-					unscan_character();
+				if (next_char != '>') {
+					// oh my, what on earth?
+					throw new Util.HTML_Parser.Error('Closing tag not ' +
+						'terminated by ">".');
+				}
 			}
 			
 			tag_closed(tag);
@@ -247,15 +263,19 @@ Util.HTML_Parser = function()
 	
 	function escape_state()
 	{
+		var data;
+		
 		if (expect('--')) {
 			// comment
-			scan_until_string('-->');
+			data = scan_until_string('-->');
+			if (data)
+				comment(data);
 			ignore_characters(2);
 		} else if (expect('[CDATA[')) {
 			// CDATA section
-			var cdata = scan_until_string(']]>');
-			if (cdata)
-				character_data(cdata);
+			data = scan_until_string(']]>');
+			if (data)
+				character_data(data);
 			ignore_characters(2);
 		} else {
 			scan_until_string('>');
@@ -273,3 +293,18 @@ Util.HTML_Parser = function()
 		return starting_state;
 	}
 }
+
+/**
+ * Constructs a new HTML parse error.
+ * @class An HTML parse error.
+ * @constructor
+ * @extends Error
+ */
+Util.HTML_Parser.Error = function HTML_Parse_Error(message)
+{
+	Util.OOP.inherits(this, Error, message);
+	this.name = 'HTML_Parse_Error';
+}
+
+Util.HTML_Parser.self_closing_tags = ['BR', 'AREA', 'LINK', 'IMG', 'PARAM',
+	'HR', 'INPUT', 'COL', 'BASE', 'META'];
