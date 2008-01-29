@@ -24,6 +24,19 @@ def main():
 	parser.add_option('-p', '--path', dest='path',
 		help='the path to the Loki source directory', metavar='PATH',
 		default=os.getenv('LOKI'))
+	parser.add_option('--with-dist', dest='dist_build', action='store_true',
+		help='build a distribution tarball (default: true)')
+	parser.add_option('--with-source', dest='source_build', action='store_true',
+		help='build a source tarball (default: false)')
+	parser.add_option('--js-only', dest='js_only', action='store_true',
+		help='instead of building tarballs, outputs a compiled loki.js file ' +
+		'to standard output')
+	parser.add_option('--without-dist', dest='dist_build', action='store_false')
+	parser.add_option('--without-source', dest='dist_build',
+		action='store_false')
+	
+	parser.set_defaults(path=os.getenv('LOKI'), dist_build=True,
+		source_build=False, js_only=False)
 	
 	options, args = parser.parse_args()
 	
@@ -32,11 +45,22 @@ def main():
 	if not options.version:
 		parser.error('the build script requires you to explicitly identify ' +
 			'the Loki version')
+			
+	if options.js_only:
+		compile_js(options.version, os.path.join(options.path, 'js'),
+			sys.stdout)
+		return
 	
 	script, mtime = compile_js(options.version, os.path.join(options.path, 'js'))
 	
-	# Build two tarballs; one distribution ball and one source ball.
-	for source_build in (False, True):
+	# Figure out which tarballs should be built.
+	builds = []
+	if options.dist_build:
+		builds.append(False)
+	if options.source_build:
+		builds.append(True)
+	
+	for source_build in builds:
 		install_folder = 'loki-' + options.version
 		if source_build:
 			ball = install_folder + '-src.tar.bz2'
@@ -89,16 +113,16 @@ def main():
 	# Clean up.
 	os.remove(script)
 	
-def compile_js(version, js_path):
+def compile_js(version, js_path, outfile=None):
 	"""Compiles the Loki JavaScript files into one big file."""
 	
-	f = file('loki.js', 'w')
+	f = outfile or file('loki.js', 'w')
 	
 	print >>f, '// Loki WYSIWIG Editor %s' % version
-	print >>f, '// Copyright 2006 Carleton College'
+	print >>f, '// Copyright (c) 2006 Carleton College'
 	print >>f
 	print >>f, '// Compiled %s' % datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')
-	print >>f, '// http://loki-editor.googlecode.com'
+	print >>f, '// http://loki-editor.googlecode.com/'
 	print >>f
 	
 	filenames, mtime = loki.get_source_filenames(js_path)
@@ -112,8 +136,11 @@ def compile_js(version, js_path):
 		finally:
 			src_file.close()
 	
-	f.close()
-	return ('loki.js', mtime)
+	if not outfile:
+		f.close()
+		return ('loki.js', mtime)
+		
+	return mtime
 	
 if __name__ == '__main__':
 	main()
