@@ -6,7 +6,7 @@
  *
  * @class A WYSIWYG HTML editor.
  */
-UI.Loki = function(textarea, settings)
+UI.Loki = function()
 {
 	var _owner_window;
 	var _owner_document; // that of _textarea etc.
@@ -162,7 +162,7 @@ UI.Loki = function(textarea, settings)
 	{
 		// Incompatible browser check.
 		if (!(Util.Browser.IE || Util.Browser.Gecko)) {
-			throw new Error('Unsupported browser.');
+			throw new Error('Loki does not currently support your browser.');
 		}
 		
 		_settings = settings;
