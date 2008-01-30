@@ -317,8 +317,8 @@ Util.Block = {
 				
 				function replace_with_children(node)
 				{
-					for (var i = 0; i < node.childNodes.length; i++) {
-						node.parentNode.insertBefore(node.childNodes[i], node);
+					while (node.firstChild) {
+						node.parentNode.insertBefore(node.firstChild, node);
 					}
 					
 					node.parentNode.removeChild(node);
