@@ -317,7 +317,6 @@ Util.Node.get_window = function find_window_of_node(node)
 	accept(window);
 	
 	while (candidate = stack.pop()) { // assignment intentional
-		console.debug(candidate);
 		if (candidate.document == doc) {
 			// found it!
 			doc._loki__document_window = candidate;
