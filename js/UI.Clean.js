@@ -229,6 +229,20 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			node.tagName in allowable_tags);
 	}
 	
+	function is_block(node)
+	{
+		var wdw = Util.Node.get_window(node);
+		if (wdw) {
+			return Util.Element.is_block_level(wdw, node);
+		} else {
+			if (console && console.firebug) {
+				console.warn('Warning: Loki was unable to find the window of',
+					node, '; using tag name to get block-level status.');
+			}
+			return Util.Node.is_block_level_element(node);
+		}
+	}
+	
 
 	var tests =
 	[
@@ -400,7 +414,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 					}
 				}
 				
-				return has_tagname(node, ['BR']) &&
+				return has_tagname(node, ['BR']) && is_block(node.parentNode) &&
 					get_last_relevant_child(node.parentNode) == node;
 			},
 			action: remove_node
