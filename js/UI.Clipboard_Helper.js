@@ -84,7 +84,7 @@ UI.Clipboard_Helper = function()
 		return Util.Selection.is_collapsed(sel);
 	};
 
-	this.cut = function()
+	this.cut = function clipboard_cut()
 	{
 		self.copy();
 		var sel = Util.Selection.get_selection(self._loki.window);
@@ -93,13 +93,18 @@ UI.Clipboard_Helper = function()
 		self._loki.focus();
 	};
 
-	this.copy = function()
+	this.copy = function clipboard_copy()
 	{
 		// Get the HTML to copy
 		var sel = Util.Selection.get_selection(self._loki.window);
 		var rng = Util.Range.create_range(sel);
 		var html = Util.Range.get_html(rng);
 		//var text = rng.toString();
+		
+		if (Util.Selection.is_collapsed(sel)) {
+			// If nothing is actually selected; do not overwrite the clipboard.
+			return;
+		}
 
 		// Unmassage and clean HTML
 		var container = self._loki.document.createElement('DIV');
@@ -141,7 +146,7 @@ UI.Clipboard_Helper = function()
 		self._loki.focus();
 	};
 
-	this.paste = function()
+	this.paste = function clipboard_paste()
 	{
 		try // IE
 		{
