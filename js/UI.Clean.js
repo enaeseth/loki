@@ -233,14 +233,24 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	{
 		var wdw = Util.Node.get_window(node);
 		if (wdw) {
-			return Util.Element.is_block_level(wdw, node);
+			try {
+				return Util.Element.is_block_level(wdw, node);
+			} catch (e) {
+				if (typeof(console) == 'object' && console.firebug) {
+					console.error(e);
+					console.warn('Warning: Loki was unable to determine the',
+						'block-level status of', node, 'using',
+						'computed CSS; falling back to tag name.');
+				}
+			}
 		} else {
-			if (console && console.firebug) {
+			if (typeof(console) == 'object' && console.firebug) {
 				console.warn('Warning: Loki was unable to find the window of',
 					node, '; using tag name to get block-level status.');
 			}
-			return Util.Node.is_block_level_element(node);
 		}
+		
+		return Util.Node.is_block_level_element(node);
 	}
 	
 
@@ -416,6 +426,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				
 				return has_tagname(node, ['BR']) && is_block(node.parentNode) &&
 					get_last_relevant_child(node.parentNode) == node;
+				
 			},
 			action: remove_node
 		},
@@ -477,7 +488,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				try {
 					tests[i].action(node, result);
 				} catch (e) {
-					if (console) {
+					if (typeof(console) == 'object') {
 						if (console.warn)
 							console.warn(e);
 						else if (console.log)
@@ -496,7 +507,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	}
 	catch(e)
 	{
-		if (console) {
+		if (typeof(console) == 'object') {
 			if (console.warn)
 				console.warn(e);
 			else if (console.log)
