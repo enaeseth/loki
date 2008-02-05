@@ -210,11 +210,23 @@ UI.Clipboard_Helper = function()
 			'    <li>Restart your browser.</li>';
 		*/
 	};
+	
+	function _show_gecko_privileges_warning()
+	{
+		var message = "Your browser requires that you give explicit permission for " +
+			"your clipboard to be accessed, so you may see a security warning " +
+			"after dismissing this message. You are free to deny this permssion, " +
+			"but if you do, you may be unable to cut, copy, or paste into this " +
+			"document.";
+		
+		UI.Messenger.display_once('gecko clipboard warning', message);
+	}
 
-	var _gecko_copy = function(html)
+	function _gecko_copy(html)
 	{
 		try
 		{
+			_show_gecko_privileges_warning();
 			self._loki.owner_window.GeckoClipboard.set(html);
 		}
 		catch(e)
@@ -223,7 +235,7 @@ UI.Clipboard_Helper = function()
 		}
 	};
 
-	var _ie_copy = function(html)
+	function _ie_copy(html)
 	{
 		try
 		{
@@ -246,10 +258,11 @@ UI.Clipboard_Helper = function()
 		}
 	};
 
-	var _gecko_paste = function()
+	function _gecko_paste()
 	{
 		try
 		{
+			_show_gecko_privileges_warning();
 			var data = self._loki.owner_window.GeckoClipboard.get();
 			
 			var html = (data.type == 'text/html')
@@ -288,7 +301,7 @@ UI.Clipboard_Helper = function()
 		}
 	};
 
-	var _ie_paste = function()
+	function _ie_paste()
 	{
 		try
 		{
