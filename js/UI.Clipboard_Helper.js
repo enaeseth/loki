@@ -219,7 +219,8 @@ UI.Clipboard_Helper = function()
 			"but if you do, you may be unable to cut, copy, or paste into this " +
 			"document.";
 		
-		UI.Messenger.display_once('gecko clipboard warning', message);
+		UI.Messenger.display_once_per_duration('gecko clipboard warning',
+			message, 14);
 	}
 
 	function _gecko_copy(html)
