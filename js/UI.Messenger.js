@@ -46,16 +46,18 @@ UI.Messenger = {
 	display_once_per_duration:
 		function display_message_once_per_duration(id, message, days)
 	{
+		if (!navigator.cookieEnabled)
+			return false;
+		
 		var cookie_name = '_loki2_pmsg_' + id.replace(/\W+/g, '_');
 		
-		if (Util.Cookie.get(cookie_name)) {
-			// Already displayed this session.
-			return false;
-		}
+		var displayed = Boolean(Util.Cookie.get(cookie_name));
 		
-		this.display(message);
+		if (!displayed)
+			this.display(message);
 		
 		Util.Cookie.set(cookie_name, 'displayed', days);
-		return true;
+		
+		return !displayed;
 	}
 }

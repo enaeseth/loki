@@ -220,7 +220,7 @@ UI.Clipboard_Helper = function()
 			"document.";
 		
 		UI.Messenger.display_once_per_duration('gecko clipboard warning',
-			message, 14);
+			message, 45);
 	}
 
 	function _gecko_copy(html)
