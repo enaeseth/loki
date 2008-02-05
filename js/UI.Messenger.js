@@ -21,11 +21,30 @@ UI.Messenger = {
 	 * exists, the message is not displayed.
 	 * @param {string}  id       a fixed ID that can be used to identify this
 	 *                           message in a cookie name
-	 * @param {string}  message  the mesage to be displayed
+	 * @param {string}  message  the message to be displayed
 	 * @return {boolean} true if the message was actually displayed, false if
 	 *                   not
 	 */
 	display_once: function display_message_once_per_session(id, message)
+	{
+		return this.display_once_per_duration(id, message, null);
+	},
+	
+	/**
+	 * Displays a message only once for at least some number of days.
+	 * This works by setting a cookie with an expiration date when the message
+	 * is first displayed. If, when this function is called again, the cookie
+	 * already exists, the message is not displayed.
+	 * @param {string}  id       a fixed ID that can be used to identify this
+	 *                           message in a cookie name
+	 * @param {string}  message  the message to be displayed
+	 * @param {number}  days     the number of days for which the message should
+	 *                           not be shown
+	 * @return {boolean} true if the message was actually displayed, false if
+	 *                   not
+	 */
+	display_once_per_duration:
+		function display_message_once_per_duration(id, message, days)
 	{
 		var cookie_name = '_loki2_pmsg_' + id.replace(/\W+/g, '_');
 		
@@ -36,7 +55,7 @@ UI.Messenger = {
 		
 		this.display(message);
 		
-		Util.Cookie.set(cookie_name, 'displayed');
+		Util.Cookie.set(cookie_name, 'displayed', days);
 		return true;
 	}
 }
