@@ -27,7 +27,8 @@ UI.Messenger = {
 	 */
 	display_once: function display_message_once_per_session(id, message)
 	{
-		var cookie_name = '_loki2_pmsg_' + id.replace(/\W+/, '_');
+		var cookie_name = '_loki2_pmsg_' + id.replace(/\W+/g, '_');
+		console.debug(cookie_name);
 		
 		if (Util.Cookie.get(cookie_name)) {
 			// Already displayed this session.
