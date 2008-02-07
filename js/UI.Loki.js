@@ -52,7 +52,7 @@ UI.Loki = function()
 		_unmassage_body();
 		UI.Clean.clean(_body, _settings);
 		html = _body.innerHTML;
-		html = UI.Clean.cleanHtml(html, _settings);
+		html = UI.Clean.clean_HTML(html, _settings);
 		_massage_body();
 		return html;
 

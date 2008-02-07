@@ -516,7 +516,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	}
 };
 
-UI.Clean.cleanURI = function(uri)
+UI.Clean.clean_URI = function clean_URI(uri)
 {
 	var local = Util.URI.extract_domain(uri) ==
 		Util.URI.extract_domain(window.location);
@@ -526,7 +526,7 @@ UI.Clean.cleanURI = function(uri)
 		: uri;
 }
 
-UI.Clean.cleanHtml = function(html, settings)
+UI.Clean.clean_HTML = function clean_HTML(html, settings)
 {
     // empty elements (as defined by HTML 4.01)
     var empty_elems = '(br|area|link|img|param|hr|input|col|base|meta)';
