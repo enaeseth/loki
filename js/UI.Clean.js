@@ -14,9 +14,15 @@ UI.Clean = new Object;
 /**
  * Cleans the children of the given root.
  *
- * @param	root	reference to the node whose children should be cleaned
+ * @param {Element} root             reference to the node whose children should
+ *                                   be cleaned
+ * @param {object}	settings         Loki settings
+ * @param {boolean} [live]           set to true if this clean is being run
+ *                                   on content that is actively being edited
+ * @param {object}  [block_settings] settings to pass along to
+ *                                   Util.Block.enforce_rules
  */
-UI.Clean.clean = function(root, settings)
+UI.Clean.clean = function(root, settings, live, block_settings)
 {
 	/**
 	 * Removes the given node from the tree.
@@ -214,10 +220,41 @@ UI.Clean.clean = function(root, settings)
 		return false;
 	};
 	
-	var allowable_tags = settings.allowable_tags ||
-		['A', 'ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'B', 'BDO', 'BIG', 'BLOCKQUOTE', 'BR', 'BUTTON', 'CAPTION', 'CITE', 'CODE', 'COL', 'COLGROUP', 'DD', 'DEL', 'DIV', 'DFN', 'DL', 'DT', 'EM', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'IMG', 'INPUT', 'INS', 'KBD', 'LABEL', 'LI', 'MAP', 'NOSCRIPT', 'OBJECT', 'OL', 'OPTGROUP', 'OPTION', 'P', 'PARAM', 'PRE', 'Q', 'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TR', 'TT', 'U', 'UL', 'VAR'];
+	var allowable_tags =
+		(settings.allowable_tags || UI.Clean.default_allowable_tags).toSet();
+		
+	function is_allowable_tag(node)
+	{
+		return (node.nodeType != Util.Node.ELEMENT_NODE ||
+			node.tagName in allowable_tags);
+	}
+	
+	function is_block(node)
+	{
+		var wdw = Util.Node.get_window(node);
+		if (wdw) {
+			try {
+				return Util.Element.is_block_level(wdw, node);
+			} catch (e) {
+				if (typeof(console) == 'object' && console.firebug) {
+					console.error(e);
+					console.warn('Warning: Loki was unable to determine the',
+						'block-level status of', node, 'using',
+						'computed CSS; falling back to tag name.');
+				}
+			}
+		} else {
+			if (typeof(console) == 'object' && console.firebug) {
+				console.warn('Warning: Loki was unable to find the window of',
+					node, '; using tag name to get block-level status.');
+			}
+		}
+		
+		return Util.Node.is_block_level_element(node);
+	}
+	
 
-	tests =
+	var tests =
 	[
 		// description : a text description of the test and action
 		// test : function that is passed node in question, and returns
@@ -239,11 +276,6 @@ UI.Clean.clean = function(root, settings)
 			description : 'Remove all bad attributes. (v:shape from Ppt)',
 			test : function (node) { return has_attributes(node, ['style', 'v:shape']); },
 			action : remove_attributes
-		},
-		{
-			description : 'Remove all tags that have Office namespace prefixes.',
-			test : function(node) { return has_prefix(node, ['o', 'O', 'w', 'W', 'st1', 'ST1']); },
-			action : remove_tag
 		},
 		{
 			description: 'Remove empty Word paragraphs',
@@ -320,7 +352,7 @@ UI.Clean.clean = function(root, settings)
 		},
 		{
 			description : 'Remove all miscellaneous non-good tags (strip_tags).',
-			test : function(node) { return doesnt_have_tagname(node, allowable_tags); },
+			test : function(node) { return !is_allowable_tag(node); },
 			action : remove_tag
 		},
 		// STRONG -> B, EM -> I should be in a Masseuse; then exclude B and I here
@@ -329,25 +361,13 @@ UI.Clean.clean = function(root, settings)
 		// Axe form elements?
 		{
 			description : "Remove U unless there's an appropriate option set.",
-			test : function(node) { return has_tagname(node, ['U']); },
-			action : function(node) 
-			{
-				/* buggy (actually it's not--the bug is in remove_tag--but leave this
-				   commented until we figure out that bug)
-				// We don't want to replace with EM if it's already EM'd; but otherwise we do
-				var boolean_test = function(node)
-				{
-					return ( node.nodeType == Util.Node.ELEMENT_NODE &&
-							 ( node.tagName == 'EM' || node.tagName == 'I' ) );
-				};
-				if ( !Util.Node.has_ancestor_node(node, boolean_test) &&
-					 !Util.Node.has_child_node(node, boolean_test) )
-					change_tag(node, 'EM');
-				else
-					remove_tag(node);
-				*/
-				remove_tag(node);
-			}
+			test : function(node) { return !settings.options.test('underline') && has_tagname(node, ['U']); },
+			action : remove_tag
+		},
+		{
+			description : 'Remove all tags that have Office namespace prefixes.',
+			test : function(node) { return has_prefix(node, ['o', 'O', 'w', 'W', 'st1', 'ST1']); },
+			action : remove_tag
 		},
 		{
 			description : 'Remove width and height attrs on tables.',
@@ -376,14 +396,60 @@ UI.Clean.clean = function(root, settings)
 				var href = node.getAttribute('href');
 				if (href != null) {
 					node.setAttribute('href',
-						UI.Clean.clean_URI(href));
+						UI.Clean.cleanURI(href));
 				}
 			}
 		},
 		{
 			description: 'Remove bubbles',
+			run_on_live: false,
 			test: function(node) { return has_class(node, ['loki__bubble']); },
 			action: remove_node
+		},
+		{
+			description: 'Remove unnecessary BR\'s that are elements\' last ' +
+				'children',
+			run_on_live: false,
+			test: function is_last_child_br(node) {
+				function get_last_relevant_child(n)
+				{
+					var c; // child
+					for (c = n.lastChild; c; c = c.previousSibling) {
+						if (c.nodeType == Util.Node.ELEMENT_NODE) {
+							return c;
+						} else if (c.nodeType == Util.Node.TEXT_NODE) {
+							if (/\S/.test(c.nodeValue))
+								return c;
+						}
+					}
+				}
+				
+				return has_tagname(node, ['BR']) && is_block(node.parentNode) &&
+					get_last_relevant_child(node.parentNode) == node;
+				
+			},
+			action: remove_node
+		},
+		{
+			description: 'Remove improperly nested elements',
+			run_on_live: false,
+			test: function improperly_nested(node)
+			{
+				function is_nested()
+				{
+					var a;
+					for (a = node.parentNode; a; a = a.parentNode) {
+						if (a.tagName == node.tagName)
+							return true;
+					}
+					
+					return false;
+				}
+				
+				return node.tagName in UI.Clean.self_nesting_disallowed &&
+					is_nested();
+			},
+			action: remove_tag
 		}
 		// TODO: deal with this?
 		// In content pasted from Word, there may be 
@@ -394,11 +460,6 @@ UI.Clean.clean = function(root, settings)
 
 	function _clean_recursive(root)
 	{
-/*
-		var children = [];
-		for ( var i = 0; i < root.childNodes.length; i++ )
-			children.push(root.childNodes[i]);
-*/
 		var children = root.childNodes;
 		// we go backwards because remove_tag uses insertBefore,
 		// so if we go forwards some nodes will be skipped
@@ -416,39 +477,46 @@ UI.Clean.clean = function(root, settings)
 	{
 		for ( var i = 0; i < tests.length; i++ )
 		{
+			if (live && false === tests[i].run_on_live)
+				continue;
+			
 			var result = tests[i].test(node);
 			if ( result !== false )
 			{
 				// We do this because we don't want any errors to
 				// result in lost content!
-				try
-				{
+				try {
 					tests[i].action(node, result);
-					mb('did action "' + tests[i].description + '" on node with result', [node, result]);
-				}
-				catch(e)
-				{
-					mb('UI.Clean: tests failed: [node, result, error]', [node, result, e]);
-					throw(e); // XXX tmp, for testing
+				} catch (e) {
+					if (typeof(console) == 'object') {
+						if (console.warn)
+							console.warn(e);
+						else if (console.log)
+							console.log(e);
+					}
 				}
 			}
 		}
 	}
-	
+
 	// We do this because we don't want any errors to result in lost content!
 	try
 	{
 		_clean_recursive(root);
-		Util.Block.enforce_rules(root);
+		Util.Block.enforce_rules(root, block_settings);
 	}
 	catch(e)
 	{
-		mb('UI.Clean: _clean_recursive failed: error', e.message);
-		//throw(e); // XXX tmp, for testing
+		if (typeof(console) == 'object') {
+			if (console.warn)
+				console.warn(e);
+			else if (console.log)
+				console.log(e);
+		}
 	}
 };
 
-UI.Clean.clean_URI = function(uri)
+UI.Clean.clean_URI = function clean_URI(uri)
 {
 	var local = Util.URI.extract_domain(uri) ==
 		Util.URI.extract_domain(window.location);
@@ -458,7 +526,7 @@ UI.Clean.clean_URI = function(uri)
 		: uri;
 }
 
-UI.Clean.clean_HTML = function(html, settings)
+UI.Clean.clean_HTML = function clean_HTML(html, settings)
 {
     // empty elements (as defined by HTML 4.01)
     var empty_elems = '(br|area|link|img|param|hr|input|col|base|meta)';
@@ -497,3 +565,20 @@ UI.Clean.clean_HTML = function(html, settings)
 
     return html;
 };
+
+UI.Clean.default_allowable_tags = 
+	['A', 'ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'B', 'BDO', 'BIG', 'BLOCKQUOTE',
+	'BR', 'BUTTON', 'CAPTION', 'CITE', 'CODE', 'COL', 'COLGROUP', 'DD', 'DEL',
+	'DIV', 'DFN', 'DL', 'DT', 'EM', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4',
+	'H5', 'H6', 'HR', 'I', 'IMG', 'INPUT', 'INS', 'KBD', 'LABEL', 'LI', 'MAP',
+	'NOSCRIPT', 'OBJECT', 'OL', 'OPTGROUP', 'OPTION', 'P', 'PARAM', 'PRE', 'Q',
+	'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TABLE',
+	'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TR', 'TT', 'U', 'UL',
+	'VAR'];
+
+UI.Clean.self_nesting_disallowed =
+	['ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'B', 'BR', 'BUTTON', 'CAPTION',
+	'CODE', 'DEL', 'DFN', 'EM', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+	'HR', 'I', 'IMG', 'INPUT', 'INS', 'KBD', 'LABEL', 'MAP', 'NOSCRIPT',
+	'OPTION', 'P', 'PARAM', 'PRE', 'SCRIPT', 'SELECT', 'STRONG', 'TT', 'U',
+	'VAR'].toSet();

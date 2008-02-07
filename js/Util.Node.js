@@ -183,6 +183,7 @@ Util.Node.get_nearest_bl_ancestor_element = function(node)
 {
 	return Util.Node.get_nearest_ancestor_node(node, Util.Node.is_block_level_element);
 };
+
 /**
  * Gets the given node's nearest ancestor which is an element whose
  * tagname matches the one given.
@@ -269,6 +270,74 @@ Util.Node.get_offset = function get_node_offset_within_parent(node)
 Util.Node.curry_is_tag = function(tag)
 {
 	return function(node) { return Util.Node.is_tag(node, tag); };
+}
+
+/**
+ * Attempts to find the window that corresponds with a given node.
+ * @param {Node}  node   the node whose window is desired
+ * @return {Window}   the window object if it could be found, otherwise null.
+ */
+Util.Node.get_window = function find_window_of_node(node)
+{
+	var doc = (node.nodeType == Util.Node.DOCUMENT_NODE)
+		? node
+		: node.ownerDocument;
+	var seen;
+	var stack;
+	var candidate;
+	
+	if (!doc)
+		return null;
+	
+	if (doc._loki__document_window) {
+		return doc._loki__document_window;
+	}
+	
+	function accept(w)
+	{
+		if (!w)
+			return false;
+		
+		if (!seen.contains(w)) {
+			seen.push(w);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	function get_elements(tag)
+	{
+		return candidate.document.getElementsByTagName(tag);
+	}
+	
+	seen = [];
+	stack = [window];
+	
+	accept(window);
+	
+	while (candidate = stack.pop()) { // assignment intentional
+		if (candidate.document == doc) {
+			// found it!
+			doc._loki__document_window = candidate;
+			return candidate;
+		}
+		
+		if (candidate.parent != candidate && accept(candidate)) {
+			stack.push(candidate);
+		}
+		
+		
+		['FRAME', 'IFRAME'].map(get_elements).each(function (frames) {
+			for (var i = 0; i < frames.length; i++) {
+				if (accept(frames[i].contentWindow))
+					stack.push(frames[i].contentWindow);
+			}
+		});
+	}
+	
+	// guess it couldn't be found
+	return null;
 }
 
 Util.Node.non_whitespace_regexp = /[^\f\n\r\t\v]/gi;

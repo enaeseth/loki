@@ -39,7 +39,16 @@ Util.Element = {
 	 */
 	is_block_level: function is_block_level_element(window, elem)
 	{
-		return Util.Element.get_computed_style(window, elem).display == 'block';
+		var s = Util.Element.get_computed_style(window, elem);
+		
+		try {
+			return s.display == 'block';
+		} catch (e) {
+			var ex = new Error('Unable to get the computed style for ' +
+				Util.Node.get_debug_string(elem) + '.');
+			ex.cause = e;
+			throw ex;
+		}
 	},
 	
 	/**

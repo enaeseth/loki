@@ -366,6 +366,10 @@ Util.Array.Methods = {
 	{
 		// XXX: any more efficient way to do this using Array.splice?
 		
+		if (b.length === undefined || b.length === null) {
+			throw new TypeError("Cannot append a non-iterable to an array.");
+		}
+		
 		var len = b.length;
 		for (var i = 0; i < len; i++) {
 			if (i in b) {

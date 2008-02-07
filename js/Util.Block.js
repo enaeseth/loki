@@ -87,10 +87,13 @@ Util.Block = {
 	/**
 	 * Accepts either an HTML document or an element and enforces paragraph
 	 * behavior inside that node and its children.
-	 * @param	{Node}	an HTML document or element
+	 * @param {Node}     root        an HTML document or element
+	 * @param {object}	 [settings]  parameters that change enforcement settings
+	 * @config {object}  [overrides] if specified, allows element flags to be
+	 *                               overridden
 	 * @return {void}
 	 */
-	enforce_rules: function enforce_paragraph_rules(root)
+	enforce_rules: function enforce_paragraph_rules(root, settings)
 	{
 		var node;
 		var waiting;
@@ -98,12 +101,21 @@ Util.Block = {
 		var child;
 		var descend;
 		
+		if (!settings)
+			settings = {};
+		
 		if (root.nodeType == Util.Node.DOCUMENT_NODE) {
 			root = root.body;
 		} else if (root == root.ownerDocument.documentElement) {
 			root = root.ownerDocument.body;
 		} else if (root.tagName == 'HEAD') {
 			throw new Error('Cannot enforce paragraph rules on a HEAD tag.');
+		}
+		
+		function get_flags(element)
+		{
+			return (settings.overrides && settings.overrides[element.tagName])
+				|| Util.Block.get_flags(element);
 		}
 		
 		function is_relevant(node)
@@ -124,14 +136,30 @@ Util.Block = {
 		
 		function is_breaker(node)
 		{
+			var breaker = null;
+			
 			if (!is_br(node))
 				return false;
 				
+			// Mozilla browsers (at least) like to keep a BR tag at the end
+			// of all paragraphs. As a result, if the user tries to insert a
+			// line break at the end of a paragraph, the HTML will end up as:
+			//    <p> ...<br><br></p>
+			// This is bad because we will detect this as a "breaker" and
+			// possibly insert a new paragraph afterwards and delete both the
+			// user's line break and Mozilla's. As a workaround, we will only
+			// treat two BR's as a breaker if they do not come at the end of
+			// their parent.
+				
 			for (var s = node.nextSibling; s; s = s.nextSibling) {
-				if (is_br(s)) {
-					return [node, s];
+				if (!breaker) {
+					if (is_br(s))
+						breaker = [node, s];
+					else if (is_relevant(s))
+						return false;
 				} else if (is_relevant(s)) {
-					return false;
+					// The breaker is not at the end of its parent.
+					return breaker;
 				}
 			}
 			
@@ -146,8 +174,8 @@ Util.Block = {
 			if (ok_types.contains(node.nodeType))
 				return true;
 			
-			flags = Util.Block.get_flags(node);
-			return !(flags & Util.Block.BLOCK) || (flags & Util.Block.MIXED);
+			flags = get_flags(node);
+			return !(flags & Util.Block.BLOCK) || !!(flags & Util.Block.MIXED);
 		}
 		
 		// Factored out this enforcement because both normal paragraph
@@ -217,7 +245,6 @@ Util.Block = {
 							node.parentNode.insertBefore(c, node);
 						} else {
 							next = c.nextSibling;
-							node.parentNode.insertBefore(c, node.nextSibling);
 							
 							if (next) {
 								// Create a new paragraph, move all of the
@@ -225,6 +252,17 @@ Util.Block = {
 								// and continue using that paragraph.
 								node = create_split_paragraph();
 								next = node.firstChild;
+								
+								// Move the item that does not belong in the
+								// paragraph outside of it and place it between
+								// the existing paragraph and the new split
+								// paragraph.
+								// (Remember, "node" now refers to the split-off
+								// paragraph.)
+								node.parentNode.insertBefore(c, node);
+							} else {
+								node.parentNode.insertBefore(c,
+									node.nextSibling);
 							}
 						}
 					} else if (br = is_breaker(c)) { // assignment intentional
@@ -268,6 +306,24 @@ Util.Block = {
 				var br;
 				var next;
 				
+				var paragraphs = [];
+				function add_paragraph(para)
+				{
+					if (para)
+						paragraphs.push(para);
+					
+					return !!para;
+				}
+				
+				function replace_with_children(node)
+				{
+					while (node.firstChild) {
+						node.parentNode.insertBefore(node.firstChild, node);
+					}
+					
+					node.parentNode.removeChild(node);
+				}
+				
 				function create_upto(stop)
 				{
 					var para = stop.ownerDocument.createElement('P');
@@ -294,11 +350,13 @@ Util.Block = {
 					if (!multi) {
 						next = c.nextSibling;
 						
+						if (c.tagName == 'P')
+							add_paragraph(c);
+						
 						if (!belongs_inside_paragraph(c)) {
-							create_upto(c);
-							multi = true;
+							multi = add_paragraph(create_upto(c));
 						} else if (br = is_breaker(c)) { // assignment intent.
-							multi = !!create_upto(c);
+							multi = add_paragraph(create_upto(c));
 							next = br[1].nextSibling;
 							br.each(function(b) {
 								b.parentNode.removeChild(b);
@@ -307,6 +365,10 @@ Util.Block = {
 					} else {
 						next = enforce_container_child(context, node, c);
 					}
+				}
+				
+				if (!multi && paragraphs.length == 1) {
+					replace_with_children(paragraphs[0]);
 				}
 				
 				return node.hasChildNodes();
@@ -377,7 +439,7 @@ Util.Block = {
 		waiting = [root];
 		
 		while (node = waiting.pop()) { // assignment intentional
-			flags = this.get_flags(node);
+			flags = get_flags(node);
 			
 			if (!flags & Util.Block.BLOCK)
 				continue;
@@ -434,7 +496,12 @@ Util.Block = {
 				TH: Util.Block.MULTI_PARAGRAPH_CONTAINER,
 				TD: Util.Block.MULTI_PARAGRAPH_CONTAINER,
 				LI: Util.Block.MULTI_PARAGRAPH_CONTAINER,
+				DT: Util.Block.MULTI_PARAGRAPH_CONTAINER,
 				DD: Util.Block.MULTI_PARAGRAPH_CONTAINER, // changed from pc
+				
+				UL: NORMAL,
+				OL: NORMAL,
+				DL: NORMAL,
 				
 				TABLE: NORMAL,
 				THEAD: NORMAL,
