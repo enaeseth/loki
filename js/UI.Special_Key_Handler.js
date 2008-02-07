@@ -135,7 +135,6 @@ UI.Special_Key_Handler = {
 	
 	/**
 	 * Starts a new block at the current selection.
-	 * Currently requires W3C ranges.
 	 * @param {UI.Loki}	loki
 	 * @param {object}	b	the selection boundaries
 	 * @param {string}	after_tag	the tag name of the new block
