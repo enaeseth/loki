@@ -22,7 +22,7 @@ UI.Clean = new Object;
  * @param {object}  [block_settings] settings to pass along to
  *                                   Util.Block.enforce_rules
  */
-UI.Clean.clean = function(root, settings, live, block_settings)
+UI.Clean.clean = function clean(root, settings, live, block_settings)
 {
 	/**
 	 * Removes the given node from the tree.

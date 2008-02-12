@@ -39,12 +39,11 @@ Util.Node.PREVIOUS						 = 2;
  */
 Util.Node.remove_child_nodes = function(node, boolean_test)
 {
-	if ( boolean_test == null )
-		boolean_test = function(node) { return true; };
-
-	while ( node.childNodes.length > 0 )
-		if ( boolean_test(node.firstChild) )
+	while (node.hasChildNodes()) {
+		if ((boolean_test || Util.Function.optimist)(node.firstChild)) {
 			node.removeChild(node.firstChild);
+		}
+	}
 };
 
 
