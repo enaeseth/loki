@@ -76,3 +76,9 @@ var Util = {
 		return true;
 	}
 };
+
+if (typeof(String.prototype.strip) != 'function') {
+	String.prototype.strip = function strip() {
+		return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+	}
+}

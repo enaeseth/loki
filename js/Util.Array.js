@@ -57,6 +57,19 @@ Util.Array.range = function range(start, stop)
 var $R = Util.Array.range; // convenience alias
 
 /**
+ * Splits a whitespace-delmited string into an array of parts, much as
+ * qw() does in Perl or %w{} does in Ruby.
+ * @param {string} str
+ * @return {array}
+ */
+function $w(str) {
+	if (!Util.is_string(str))
+		return [];
+	str = str.strip();
+	return (str) ? str.split(/\s+/) : [];
+}
+
+/**
  * Methods that are callable by two methods:
  *  - Util.Array.method_name(some_array, ...)
  *  - some_array.methodName(...)
