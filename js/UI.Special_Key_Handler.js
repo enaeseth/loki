@@ -153,9 +153,11 @@ UI.Special_Key_Handler = {
 		
 		function pad_block(block)
 		{
-			if (Util.Element.is_basically_empty(block)) {
-				block.appendChild(loki.document.createElement('BR'));
-			}
+			var c = Util.Element.get_last_relevant_child(block);
+			if (c && c.tagName == 'BR')
+				return;
+			
+			block.appendChild(loki.document.createElement('BR'));
 		}
 		
 		// Create the new before and after blacks.
@@ -257,6 +259,8 @@ UI.Special_Key_Handler = {
 	 */
 	is_block_level: function is_block_level(node)
 	{
+		var window;
+		
 		// Util.Element.is_block_level will throw a TypeError if it is
 		// passed a non-element.
 		if (!node || node.nodeType != Util.Node.ELEMENT_NODE)
@@ -264,7 +268,8 @@ UI.Special_Key_Handler = {
 			
 		try {
 			// Try via computed CSS.
-			return Util.Element.is_block_level(loki.window, node);
+			window = Util.Node.get_window(node);
+			return Util.Element.is_block_level(window, node);
 		} catch (e) {
 			// Try via tag name.
 			return Util.Node.is_block_level_element(node);
@@ -331,12 +336,32 @@ UI.Special_Key_Handler = {
 			var node = b.start.container;
 			var offset = b.start.offset;
 			
-			if (backspace) {
-				return ((node == block && offset == 0)
-					|| (at_edge_of_text() && node == block.firstChild));
+			function get_relevant_child()
+			{
+				var start = (backspace) ? block.firstChild : block.lastChild;
+				var prop = (backspace ? 'next' : 'previous') + 'Sibling';
+				var br = false;
+				
+				for (var n = start; n; n = n[prop]) {
+					if (n.nodeType == Util.Node.ELEMENT_NODE) {
+						if (!br && !backspace && n.nodeName == 'BR') {
+							br = true;
+						} else {
+							return n;
+						}
+					} else if (n.nodeType == Util.Node.TEXT_NODE) {
+						if (/\S/.test(n.nodeValue))
+							return n;
+					}
+				}
+				
+				return null;
+			}
+			
+			if (node == block) {
+				return offset == (backspace ? 0 : block.length);
 			} else {
-				return ((node == block && offset == block.length)
-					|| (at_edge_of_text() && node == block.lastChild));
+				return (at_edge_of_text() && node == get_relevant_child());
 			}
 		}
 		
@@ -437,24 +462,9 @@ UI.Special_Key_Handler = {
 		
 		function remove_trailing_br(node)
 		{
-			function get_last_relevant_child(n)
-			{
-				var c; // child
-				for (c = n.lastChild; c; c = c.previousSibling) {
-					if (c.nodeType == Util.Node.ELEMENT_NODE) {
-						return c;
-					} else if (c.nodeType == Util.Node.TEXT_NODE) {
-						if (/\S/.test(c.nodeValue))
-							return c;
-					}
-				}
-			}
-			
-			if (node.tagName != 'BR' || !this.is_block_level(node.parentNode))
-				return;
-			
-			if (node == get_last_relevant_child(node.parentNode))
-				node.parentNode.removeChild(node);
+			var c = Util.Element.get_last_relevant_child(node);
+			if (c.nodeType == Util.Node.ELEMENT_NODE && c.nodeName == 'BR')
+				node.removeChild(c);
 		}
 		
 		function select_end_of(node)
