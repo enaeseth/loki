@@ -371,5 +371,26 @@ Util.Element = {
 		}
 		
 		return pos;
+	},
+	
+	/**
+	 * Gets the last "relevant" child of an element; the last child that is
+	 * either an element or a text node that contains non-whitespace characters.
+	 * @param {Element} n the element whose last relevant child is desired
+	 * @reutrn {Node} the last relevant child, or null if there was none
+	 */
+	get_last_relevant_child: function get_last_relevant_child_of_element(n)
+	{
+		var c; // child
+		for (c = n.lastChild; c; c = c.previousSibling) {
+			if (c.nodeType == Util.Node.ELEMENT_NODE) {
+				return c;
+			} else if (c.nodeType == Util.Node.TEXT_NODE) {
+				if (/\S/.test(c.nodeValue))
+					return c;
+			}
+		}
+		
+		return null;
 	}
 };
