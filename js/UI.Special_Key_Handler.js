@@ -34,33 +34,8 @@ UI.Special_Key_Handler = {
 		var block_name;
 		
 		// Internet Explorer is, for once, wonderful.
-		if (Util.Browser.IE) {
-			event.allow_browser_handling();
-			return;
-		}
-		
 		/*
-		// Determine whether or not to permit browser handling.
-		// Modern releases of TinyMCE bail out if Opera is detected and allow it
-		// to use its default behavior since it is apparently "really good".
-		// We may want to do the same after some testing.
-		function browser_handling_is_acceptable()
-		{
-			// If we're inside a list or a preformatted block, the default 
-			// browser behavior (inserting a <br> tag or a simple line break,
-			// respectively) is what we want.
-			function is_list_or_pre(node)
-			{
-				return /^(OL|UL|DL|PRE)$/.test(node.nodeName);
-			}
-			
-			if (find(b.start.block, is_list_or_pre))
-				return true;
-			
-			return false;
-		}
-		
-		if (browser_handling_is_acceptable()) {
+		if (Util.Browser.IE) {
 			event.allow_browser_handling();
 			return;
 		}
@@ -81,7 +56,7 @@ UI.Special_Key_Handler = {
 	 * @param {UI.Loki}	loki
 	 * @return {object}
 	 */
-	get_boundaries: function get_boundaries(loki)
+	get_boundaries: function get_selection_boundaries(loki)
 	{
 		var body = loki.body;
 		var selected_range = loki.get_selected_range();
@@ -299,7 +274,222 @@ UI.Special_Key_Handler = {
 	/** @ignore */
 	handle_delete: function handle_delete(event)
 	{
-		// Prevent anything from happening until support for this is written.
+		var loki = event.loki;
+		var b = this.get_boundaries(loki);
+		var sel = loki.get_selection();
+		var range = loki.get_selected_range();
+		var collapsed = Util.Selection.is_collapsed(sel);
+		var backspace = (event.code == UI.Key_Event.Codes.BACKSPACE);
+		var n;
+		
+		function sibling(node)
+		{
+			if (backspace) {
+				return node.previousSibling;
+			} else {
+				return node.nextSibling;
+			}
+		}
+		
+		function element_sibling(node)
+		{
+			var prop = (backspace ? 'previous' : 'next') + 'Sibling';
+			var s;
+			
+			for (s = node[prop]; s; s = s[prop]) {
+				if (s.nodeType == Util.Node.ELEMENT_NODE)
+					return s;
+			}
+			
+			return null;
+		}
+		
+		function empty_block(node)
+		{
+			if (!node.nodeType == Util.Node.ELEMENT_NODE)
+				return false;
+			
+			return (!node.hasChildNodes()
+				|| (node.childNodes.length == 1
+					&& node.firstChild.tagName == 'BR'));
+		}
+		
+		function select_node(node)
+		{
+			// Util.Selection.select_node doesn't work, at least not at the time
+			// of this writing.
+			
+			var range = loki.get_selected_range();
+			Util.Range.select_node_contents(range, node);
+			
+			return range;
+		}
+		
+		function at_edge_of_block()
+		{
+			var block = b.start.block;
+			var node = b.start.container;
+			var offset = b.start.offset;
+			
+			if (backspace) {
+				return ((node == block && offset == 0)
+					|| (at_edge_of_text() && node == block.firstChild));
+			} else {
+				return ((node == block && offset == block.length)
+					|| (at_edge_of_text() && node == block.lastChild));
+			}
+		}
+		
+		function at_edge_of_text()
+		{
+			if (b.start.container.nodeType != Util.Node.TEXT_NODE)
+				return false;
+			
+			if (backspace) {
+				return b.start.offset == 0;
+			} else {
+				return b.start.offset == b.start.container.length;
+			}
+		}
+		
+		var is_container = this.is_container;
+		function remove_container(node)
+		{
+			if (is_container(node)) {
+				node.parentNode.removeChild(node);
+				return true;
+			}
+			return false;
+		}
+		
+		// We only want our special handling to kick in if the selection is
+		// collapsed.
+		if (!collapsed) {
+			event.allow_browser_handling();
+			return;
+		}
+		
+		// Under Gecko, the caret will sometimes get stuck if an empty paragraph
+		// is deleted. So, we remove the element by hand.
+		if (b.start.container == b.start.block && empty_block(b.start.block)) {
+			n = sibling(b.start.container);
+			if (n) {
+				b.start.container.parentNode.removeChild(b.start.container);
+				select_node(n).collapse(!backspace);
+				return;
+			}
+		}
+		
+		if (at_edge_of_block()) {
+			n = element_sibling(b.start.block);
+			if (backspace)
+				this.merge_blocks(sel, range, n, b.start.block);
+			else
+				this.merge_blocks(sel, range, b.start.block, n);
+		} else if (at_edge_of_text()) {
+			if (!remove_container(sibling(b.start.container))) {
+				event.allow_browser_handling();
+			}
+		} else {
+			if (!remove_container(element_sibling(b.start.container))) {
+				event.allow_browser_handling();
+			}
+		}
+	},
+	
+	/**
+	 * Tries to merge two block-level elements together.
+	 * @param {Selection} sel
+	 * @param {Range} range
+	 * @param {Element} a
+	 * @param {Element} b
+	 * @return {boolean} true if the blocks were dealt with, false if otherwise
+	 */
+	merge_blocks: function merge_blocks(sel, range, a, b)
+	{
+		if (!this._unmergeable) {
+			this._unmergeable =
+				$w('BODY HEAD TABLE TBODY THEAD TFOOT TR TH TD').toSet();
+		}
+		var unmergeable = this._unmergeable;
+		var is_container = this.is_container;
+		
+		/*
+		 * If the node is a special Loki container (e.g. for a horizontal rule),
+		 * we shouldn't merge with it. Instead, delete the container (and the
+		 * page element it contains).
+		 */
+		function handle_container(node)
+		{
+			if (is_container(node)) {
+				node.parentNode.removeChild(node);
+				return true;
+			}
+			
+			return false;
+		}
+		
+		function valid(node)
+		{
+			return (node && node.nodeType == Util.Node.ELEMENT_NODE
+				&& !(node.nodeName.toUpperCase() in unmergeable));
+		}
+		
+		function remove_trailing_br(node)
+		{
+			function get_last_relevant_child(n)
+			{
+				var c; // child
+				for (c = n.lastChild; c; c = c.previousSibling) {
+					if (c.nodeType == Util.Node.ELEMENT_NODE) {
+						return c;
+					} else if (c.nodeType == Util.Node.TEXT_NODE) {
+						if (/\S/.test(c.nodeValue))
+							return c;
+					}
+				}
+			}
+			
+			if (node.tagName != 'BR' || !this.is_block_level(node.parentNode))
+				return;
+			
+			if (node == get_last_relevant_child(node.parentNode))
+				node.parentNode.removeChild(node);
+		}
+		
+		function select_end_of(node)
+		{
+			Util.Range.select_node_contents(range, node);
+			range.collapse(false);
+			Util.Selection.select_range(sel, range);
+		}
+		
+		function merge_children()
+		{
+			while (b.hasChildNodes())
+				a.appendChild(b.firstChild);
+			if (b.parentNode)
+				b.parentNode.removeChild(b);
+		}
+		
+		if (!valid(a) || !valid(b)) {
+			return false;
+		} else if (handle_container(a) || handle_container(b)) {
+			return true;
+		} else {
+			// normal merge
+			remove_trailing_br(a);
+			select_end_of(a);
+			merge_children();
+			return true;
+		}
+	},
+	
+	/** @ignore */
+	is_container: function is_container(node)
+	{
+		return (node && node.nodeType == Util.Node.ELEMENT_NODE
+			&& node.getAttribute('loki:container'));
 	},
 	
 	/** @ignore */
