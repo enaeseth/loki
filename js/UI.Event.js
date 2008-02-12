@@ -156,7 +156,7 @@ UI.Event_Target = {
 }
 
 /**
- * @class Exception raised one or more event handlers fail.
+ * @class Exception raised when one or more UI event handlers fail.
  * @constructor
  * @param	{array}
  */
