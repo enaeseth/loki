@@ -72,6 +72,7 @@ class Loki2
 	var $_monopolize_clipboard = false;
 	var $_allowable_tags = null;
 	var $_external_script_path = null;
+	var $_document_style_sheets = array();
 
 	/**
 	 * Constructor
@@ -176,6 +177,21 @@ class Loki2
 	{
 		$this->_monopolize_clipboard = (bool) $value;
 	}
+	
+	/**
+	 * Adds style sheets to the editing document.
+	 * @param mixed $path either the path to a CSS file to include, or an array
+	 * of them
+	 * @return void
+	 */
+	function add_document_style_sheets($path)
+	{
+		$paths = func_get_args();
+		
+		foreach ($paths as $path) {
+			$this->_document_style_sheets[] = $path;
+		}
+	}
 
 	/**
 	 * Prints the html which needs to be placed within a form.
@@ -207,19 +223,19 @@ class Loki2
 					
 					var settings = {
 						base_uri : '<?php echo $this->_asset_path; ?>',
-						images_feed : '<?php if(!empty($this->_feeds['images'])) echo $this->_feeds['images']; ?>',
-						sites_feed : '<?php if(!empty($this->_feeds['sites'])) echo $this->_feeds['sites']; ?>',
-						finder_feed : '<?php if(!empty($this->_feeds['finder'])) echo $this->_feeds['finder']; ?>',
+						<?php $this->_feed('images') ?>
+						<?php $this->_feed('sites') ?>
+						<?php $this->_feed('finder') ?>
 						default_site_regexp : new RegExp('<?php echo $this->_default_site_regexp; ?>'),
 						default_type_regexp : new RegExp('<?php echo $this->_default_type_regexp; ?>'),
-						use_https : <?php echo $this->_asset_protocol == 'https://' ? 'true' : 'false'; ?>,
-						use_reason_integration : false,
 						use_xhtml : true,
-						<?php $this->_bool_param('sanitize_unsecured') ?>,
-						<?php $this->_bool_param('monopolize_clipboard') ?>,
-						<?php $this->_o_string_param('styles') ?>
-						capabilities : <?php echo '"', addslashes($options_str), '"' ?>,
-						allowable_tags : <?php echo $this->_js_allowable_tags() ?>
+						<?php $this->_bool_param('sanitize_unsecured') ?>
+						<?php $this->_bool_param('monopolize_clipboard') ?>
+						<?php $this->_o_param('styles') ?>
+						<?php $this->_o_param('document_style_sheets') ?>
+						capabilities : <?php echo $this->_js_translate($options_str) ?>,
+						<?php $this->_o_param('allowable_tags', true) ?>
+
 					};
 					
 					var loki = new UI.Loki(settings);
@@ -426,25 +442,13 @@ class Loki2
 	}
 	
 	/**
-	 * 
+	 * Sets the list of HTML tags allowed to exist in Loki output.
+	 * @param array $tags
+	 * @return void
 	 */
 	function set_allowable_tags($tags)
 	{
 		$this->_allowable_tags = $tags;
-	}
-	
-	function _js_allowable_tags()
-	{
-		if (!$this->_allowable_tags)
-			return 'null';
-			
-		$quote = array(&$this, '_quote');
-		return '['.implode(', ', array_map($quote, $this->_allowable_tags)).']';
-	}
-	
-	function _quote($tag)
-	{
-		return '"'.str_replace('\'', "\\'", $tag).'"';
 	}
 	
 	/**
@@ -466,21 +470,81 @@ class Loki2
 			'define the LOKI_2_PATH constant.', E_USER_ERROR);
 	}
 	
-	function _bool_param($which)
+	function _bool_param($which, $last=false)
 	{
 		$var = '_'.$which;
 		$value = $this->$var;
 		
 		echo $which.' : '.(($value) ? 'true' : 'false');
+		
+		if (!$last)
+			echo ',';
+		echo "\n";
 	}
 	
-	function _o_string_param($which)
+	function _o_param($which, $last=false)
 	{
 		$var = '_'.$which;
 		
 		if (!empty($this->$var)) {
-			echo $which.' : "'.addslashes($this->$var).'",';
+			echo $which.' : ', Loki2::_js_translate($this->$var);
+			if (!$last)
+				echo ',';
 		}
+		echo "\n";
+	}
+	
+	function _feed($which, $last=false)
+	{
+		if (!empty($this->_feeds[$which])) {
+			echo $which, '_feed : ',
+				Loki2::_js_translate($this->_feeds[$which]);
+			if (!$last)
+				echo ',';
+		}
+		echo "\n";
+	}
+	
+	function _js_translate($item)
+	{
+		if (is_scalar($item)) {
+			if (is_string($item)) {
+				return '"'.addslashes($item).'"';
+			} else if (is_numeric($item)) {
+				return $item;
+			} else if (is_bool($item)) {
+				return ($item) ? 'true' : 'false';
+			} else {
+				trigger_error('Unknown scalar type "'.gettype($item).'".',
+					E_USER_WARNING);
+				return 'undefined';
+			}
+		} else {
+			if (is_null($item)) {
+				return 'null';
+			} else if (is_array($item)) {
+				return '['.implode(', ',
+					array_map(array('Loki2', '_js_translate'), $item)).']';
+			} else if (is_object($item)) {
+				$repr = '{';
+				$first = true;
+				foreach ((array) $item as $k => $v) {
+					if ($first)
+						$first = false;
+					else
+						$repr .= ', ';
+					
+					$repr .= "'".addslashes($k)."': ".Loki2::_js_translate($v);
+				}
+				$repr .= '}';
+				return $repr;
+			} else {
+				trigger_error('Unknown non-scalar type "'.gettype($item).'".',
+					E_USER_WARNING);
+				return 'undefined';
+			}
+		}
+		
 	}
 }
 ?>

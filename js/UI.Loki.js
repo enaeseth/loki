@@ -692,14 +692,8 @@ UI.Loki = function Loki(settings)
 	function add_document_style_sheets()
 	{
 		var add = Util.Document.append_style_sheet.curry(self.document);
-		var base = settings.base_uri || '';
 		
-		add(base + 'css/cssSelector.css');
-		if (!Util.Browser.IE)
-			add(base + 'css/cssSelector_gecko.css');
-		
-		add(base + 'css/Loki_Document.css');
-		
+		add((settings.base_uri || '') + 'css/Loki_Document.css');
 		
 		(settings.document_style_sheets || []).each(function (sheet) {
 			add(sheet);

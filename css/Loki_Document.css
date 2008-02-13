@@ -1,5 +1,11 @@
 body {
 	margin: 1ex;
+	
+	/* Some reasonable defaults for standard layouts for people who don't really
+	 * define their own document style sheets. */
+	background: white;
+	color: black;
+	font-family: Helvetica, Arial, sans-serif;
 }
 
 .loki__is_really_a_br {
@@ -30,13 +36,6 @@ img.loki__named_anchor {
 	background-repeat: no-repeat;*/
 }
 
-img.loki__anchor_placeholder {
-	background: url('../images/anchor_symbol.gif');
-	width: 11px;
-	height: 11px;
-	-moz-user-select: none;
-}
-
 table.loki__borderless_table {
 	border-width: 1px;
 	border-color: #BCBCBC;
@@ -55,49 +54,22 @@ table.loki__borderless_table td, table.loki__borderless_table th {
 }
 
 blockquote {
+	/* border: 1px #BCBCBC dotted;
+	background: lightblue; */
+	/*
+	background-color: rgb(223,223,223);
+	background-image: url('../images/nav/blockquote.gif');
+	background-repeat: no-repeat;
+	background-position: top left;
+	padding-left: 23px;
+	*/
 	padding-left: 1ex;
 	border-left: solid lightgrey 1px;
+	/*background-image: url('../images/blockquote.gif');
+	background-repeat: no-repeat;
+	background-position: 0% -10%;
+	margin-left: 26px;*/
 	margin: 1em;
-}
-
-div.loki__bubble {
-	font-size: 12px;
-	font-family: Helvetica, Arial, sans-serif;
-	
-	background: #FFFEDC;
-	color: black;
-	border: 1px solid #C7C368;
-	border-radius: 4px;
-	-moz-border-radius: 4px 4px;
-	-webkit-border-radius: 4px;
-	
-	-moz-opacity: 0.9;
-	opacity: 0.9;
-	filter: alpha(opacity=90);
-	padding: 4px;
-}
-
-div.loki__bubble span {
-	cursor: default;
-}
-
-div.loki__bubble a, .loki__bubble_link {
-	cursor: pointer !important;
-}
-
-.loki__bubble__action {
-	font-size: 10px;
-}
-
-.loki__separator {
-	margin: 0 0.5ex;
-}
-
-div.loki__bubble input {
-	cursor: text !important;
-	border: 1px solid #AAA;
-	padding: 1px 2px;
-	margin: 1px 2px;
 }
 
 .loki__hr_container {
