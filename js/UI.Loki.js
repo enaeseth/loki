@@ -285,9 +285,14 @@ UI.Loki = function()
 		{
 			// If anything goes wrong during initialization, first
 			// revert to the textarea before re-throwing the error
-			self.iframe_to_textarea();
-			throw(new Error('UI.Loki._init_async: I reverted to source view because the following ' +
-							'error prevented Loki from initializing: <<' + e.message + '>>.'));
+			try {
+				self.iframe_to_textarea();
+			} catch (desperation) {
+				// If even that doesn't work, go all the way back.
+				_root.parentNode.replaceChild(_textarea, _root);
+			}
+			
+			throw e;
 		}
 	};
 	
@@ -643,13 +648,13 @@ UI.Loki = function()
 	 */
 	var _append_document_style_sheets = function()
 	{
-		Util.Document.append_style_sheet(_document, _settings.base_uri + 'css/cssSelector.css');
-		if ( !document.all ) // XXX bad
-			Util.Document.append_style_sheet(_document, _settings.base_uri + 'css/cssSelector_gecko.css');
-		Util.Document.append_style_sheet(_document, '/global_stock/css/modules.css'); //this should perhaps be more generalized
-		Util.Document.append_style_sheet(_document, '/global_stock/css/default_styles.css'); //this should perhaps be more generalized
-// 		Util.Document.append_style_sheet(_document, '/global_stock/css/minisites_styles.css'); //this should perhaps be more generalized
-		Util.Document.append_style_sheet(_document, _settings.base_uri + 'css/Loki_Document.css');
+		var add = Util.Document.append_style_sheet.curry(_document);
+		
+		add((_settings.base_uri || '') + 'css/Loki_Document.css');
+		
+		(_settings.document_style_sheets || []).each(function (sheet) {
+			add(sheet);
+		});
 	};
 	
 	/**
