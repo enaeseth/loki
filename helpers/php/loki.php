@@ -91,9 +91,7 @@ class Loki2
 				E_USER_ERROR);
 		}
 		
-		$this->_asset_protocol = strpos($_SERVER['SCRIPT_URI'], 'https') === 0
-			? 'https://'
-			: 'http://';
+		$this->_asset_protocol = $this->_get_protocol().'://';
 		$this->_asset_host = $_SERVER['HTTP_HOST'];
 		$this->_asset_path = ('/' != substr(LOKI_2_HTTP_PATH, -1, 1))
 			? LOKI_2_HTTP_PATH.'/'
@@ -544,7 +542,25 @@ class Loki2
 				return 'undefined';
 			}
 		}
+	}
+	
+	/**
+	 * @access private
+	 * @return string
+	 */
+	function _get_protocol()
+	{
+		if (!empty($_SERVER['SCRIPT_URI'])) {
+			$proto_pos = strpos($_SERVER['SCRIPT_URI'], ':');
+			if (false !== $proto_pos)
+				return substr($_SERVER['SCRIPT_URI'], 0, $proto_pos);
+		}
 		
+		if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on')
+			return 'https';
+		
+		// Make a (very) good guess.
+		return 'http';
 	}
 }
 ?>
