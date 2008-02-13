@@ -184,10 +184,12 @@ class Loki2
 	 */
 	function add_document_style_sheets($path)
 	{
-		$paths = func_get_args();
+		$path_arrays = func_get_args();
 		
-		foreach ($paths as $path) {
-			$this->_document_style_sheets[] = $path;
+		foreach ($path_arrays as $paths) {
+			foreach ($paths as $path) {
+				$this->_document_style_sheets[] = $path;
+			}
 		}
 	}
 
