@@ -244,7 +244,7 @@ class Loki2
 				{
 					var exc = arguments[1] || null;
 					
-					if (console && console.error) {
+					if (typeof(console) != 'undefined' && console.error) {
 						if (exc)
 							console.error(message, exc);
 						else
