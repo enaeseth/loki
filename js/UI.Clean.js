@@ -170,25 +170,21 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	}
 
 	/**
-	 * Checks whether the given node has any attributes
+	 * Checks whether the given node has any classes
 	 * matching the given strings.
 	 */
 	function has_class(node, strs)
 	{
 		var matches = [];
-		if ( node.nodeType == Util.Node.ELEMENT_NODE )
-		{
-			for ( var i = 0; i < strs.length; i++ )
-			{
-				if ( Util.Element.has_class(node, strs[i]) )
+		
+		if (node.nodeType == Util.Node.ELEMENT_NODE) {
+			for (var i = 0; i < strs.length; i++) {
+				if (Util.Element.has_class(node, strs[i]))
 					matches.push(strs[i]);
 			}
 		}
 		
-		if ( matches.length > 0 )
-			return matches;
-		else
-			return false;
+		return (matches.length > 0) ? matches : false;
 	}
 
 	/**
@@ -196,8 +192,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	 */
 	function remove_class(node, strs)
 	{
-		for ( var i = 0; i < strs.length; i++ )
-		{
+		for (var i = 0; i < strs.length; i++) {
 			Util.Element.remove_class(node, strs[i]);
 		}
 	}
@@ -253,6 +248,14 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		return Util.Node.is_block_level_element(node);
 	}
 	
+	function is_within_container(node) {
+		for (var n = node; n; n = n.parentNode) {
+			if (is_element(n) && n.getAttribute('loki:container'))
+				return true;
+		}
+		
+		return false;
+	}
 
 	var tests =
 	[
@@ -346,8 +349,12 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			action: remove_tag
 		},
 		{
-			description : 'Remove all miscellaneous bad tags.',
-			test : function(node) { return has_tagname(node, ['SPAN']); },
+			description : 'Remove unnecessary span elements',
+			test : function is_bad_span(node) {
+				 return (has_tagname(node, ['SPAN'])
+					&& !has_attributes(node, ['class', 'style'])
+					&& !is_within_container(node));
+			},
 			action : remove_tag
 		},
 		{
@@ -396,7 +403,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				var href = node.getAttribute('href');
 				if (href != null) {
 					node.setAttribute('href',
-						UI.Clean.cleanURI(href));
+						UI.Clean.clean_URI(href));
 				}
 			}
 		},
