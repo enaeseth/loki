@@ -8,8 +8,9 @@
  * @param {string}	name	a descriptive name for the style
  * @param {string}	tag		the name of the tag of the style's container
  * @param {string}	class_name	the name of the CSS class that this style uses
+ * @param {object}	options	optional style settings
  */
-UI.Style = function Style(identifier, name, tag, class_name)
+UI.Style = function Style(identifier, name, tag, class_name, options)
 {
 	Util.OOP.mixin(this, UI.Event_Target);
 	
@@ -36,6 +37,22 @@ UI.Style = function Style(identifier, name, tag, class_name)
 	 * @type string
 	 */
 	this.class_name = class_name || null;
+	
+	if (!options)
+		options = {}
+	/**
+	 * Style options.
+	 * @type object
+	 */
+	this.options = options;
+	
+	if (options.button) {
+		add_button_listeners.call(this);
+	}
+	
+	if (options.keybinding) {
+		add_keybinding_listeners.call(this);
+	}
 	
 	/**
 	 * Checks if the given element is an instance of this style.
@@ -81,6 +98,83 @@ UI.Style = function Style(identifier, name, tag, class_name)
 	{
 		return false;
 	}
+	
+	function add_button_listeners()
+	{
+		var s = this.options.button;
+		var style = this;
+		
+		if (Util.is_string(s)) {
+			s = {icon: s};
+		} else if (!s.icon) {
+			throw new Error("The filename of the style's button's icon must " +
+				"be provided.");
+		}
+		
+		function add_style_button_to_toolbar(event)
+		{
+			var store;
+			var style = event.target;
+			
+			if (!event.manager.get_storage) {
+				if (typeof(console) != 'undefined' && console.firebug) {
+					console.warn('The style manager', event.manager, 'does not',
+						'appear to support per-editor storage.');
+				}
+				return;
+			}
+			
+			store = event.manager.get_storage();
+			store.button = new UI.Toolbar.Button(s.icon, s.name || style.name,
+				function style_toolbar_button_clicked() {
+					if (event.manager.is_active(style)) {
+						event.manager.remove(style);
+					} else {
+						event.manager.apply(style);
+					}
+				}
+			);
+			
+			event.loki.toolbar.add_item(store.button);
+		}
+		
+		function illuminate_style_button(event)
+		{
+			if (!event.manager.get_storage)
+				return;
+			
+			event.manager.get_storage(event.target).button.set_active(true);
+		}
+		
+		function extinguish_style_button(event)
+		{
+			if (!event.manager.get_storage)
+				return;
+			
+			event.manager.get_storage(event.target).button.set_active(false);
+		}
+		
+		this.add_event_listener('choose', add_style_button_to_toolbar);
+		this.add_event_listener('select', illuminate_style_button);
+		this.add_event_listener('deselect', extinguish_style_button);
+	}
+	
+	function add_keybinding_listeners()
+	{
+		var kb = this.options.keybinding;
+		
+		function add_style_keybinding(event) {
+			event.loki.keybinder.bind(kb, function style_keybinding_entered() {
+				if (event.manager.is_active(this)) {
+					event.manager.remove(this);
+				} else {
+					event.manager.apply(this);
+				}
+			}, event.target);
+		}
+		
+		this.add_event_listener('choose', add_style_keybinding);
+	}
 }
 
 /**
@@ -91,9 +185,9 @@ UI.Style = function Style(identifier, name, tag, class_name)
  *
  * @param {string}	type	the type of event
  * @param {UI.Loki}	loki	the instance of Loki that generated the event
- * @param {object}	styler
+ * @param {object}	manager	the style manager
  */
-UI.Style.Event = function StyleEvent(type, loki, styler)
+UI.Style.Event = function StyleEvent(type, loki, manager)
 {
 	Util.OOP.inherits(this, UI.Event, type);
 	
@@ -104,9 +198,10 @@ UI.Style.Event = function StyleEvent(type, loki, styler)
 	this.loki = loki;
 	
 	/**
+	 * The style manager.
 	 * @type object
 	 */
-	this.styler = styler;
+	this.manager = manager;
 }
 
 /**
@@ -147,6 +242,7 @@ UI.Style.Context = function StyleContext(manager, selection, selected_range,
 	 * @type Range
 	 */
 	this.range = range;
+	rb = Util.Range.get_boundaries(this.range);
 	
 	/**
 	 * The hierarchy of styles.
@@ -156,6 +252,13 @@ UI.Style.Context = function StyleContext(manager, selection, selected_range,
 	 * @type array
 	 */
 	this.hierarchy = style_hierarchy;
+	
+	/**
+	 * The boundaries for the selected range.
+	 * @type object
+	 * @see Util.Range.get_boundaries
+	 */
+	this.bounds = rb;
 	
 	
 	/**
@@ -249,23 +352,25 @@ UI.Style.Context = function StyleContext(manager, selection, selected_range,
 	
 	/*
 	 * Determines whether or not an end of the range is just before or just
-	 * after (depending on the end being looked at) a paragraph.
-	 * Only works for W3C ranges, but that's really all we need this for.
+	 * after (depending on the end being looked at) a paragraph, and if so,
+	 * returns it.
 	 */
-	function adjoins_paragraph(use_start)
+	function adjoining_paragraph(use_start)
 	{
 		function is_element(node)
 		{
 			return node && node.nodeType == Util.Node.ELEMENT_NODE;
 		}
 		
-		if (use_start) {
-			return (is_element(range.startContainer) &&
-				is_paragraph(range.startContainer[range.startOffset]));
-		} else {
-			return (is_element(range.endContainer) &&
-				is_paragraph(range.endContainer[range.endOffset - 1]));
-		}
+		var b = (use_start) ? rb.start : rb.end;
+		
+		if (!is_element(b.container))
+			return false;
+		
+		var offset = b.offset - (use_start ? 0 : 1);
+		return is_paragraph(b.container.childNodes[offset])
+			? b.container.childNodes[offset]
+			: null;
 	}
 	
 	/*
@@ -295,12 +400,10 @@ UI.Style.Context = function StyleContext(manager, selection, selected_range,
 		// while useful, don't really duplicate the behavior that we want here
 		// for W3C ranges.
 		return {
-			start: (adjoins_paragraph(true))
-				? range.startContainer[range.startOffset]
-				: get_node_paragraph(Util.Range.get_start_container(range)),
-			end: (adjoins_paragraph(false))
-				? range.endContainer[range.endOffset - 1]
-				: get_node_paragraph(Util.Range.get_end_container(range))
+			start: (adjoining_paragraph(true)
+				|| get_node_paragraph(b.start.container)),
+			end: (adjoining_paragraph(false)
+				|| get_node_paragraph(b.end.container))
 		};
 	}
 }
