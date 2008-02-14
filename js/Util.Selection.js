@@ -273,7 +273,7 @@ Util.Selection.bookmark = function create_selection_bookmark(window, sel, rng)
 		rng = Util.Range.create_range(sel);
 	}
 	
-	var doc = Util.Selection.get_document(selection, range);
+	var doc = Util.Selection.get_document(sel, rng);
 	var dim = Util.Document.get_dimensions(doc);
 	var elem;
 	var i;
@@ -291,11 +291,11 @@ Util.Selection.bookmark = function create_selection_bookmark(window, sel, rng)
 	
 	// Try the native Windows IE text range implementation. This branch was not
 	// in the original TinyMCE code.
-	if (range.getBookmark) {
+	if (rng.getBookmark) {
 		try {
-			var mark_id = range.getBookmark();
+			var mark_id = rng.getBookmark();
 			return {
-				range: range,
+				range: rng,
 				id: mark_id,
 				
 				restore: function restore_native_ie_bookmark()
@@ -395,7 +395,7 @@ Util.Selection.bookmark = function create_selection_bookmark(window, sel, rng)
 					// Found the ending node in the tree under the root.
 					// Store the position at which it was found and return the
 					// boundaries.
-					bound.end = p;
+					bounds.end = p;
 					return bounds;
 				}
 				
@@ -414,7 +414,7 @@ Util.Selection.bookmark = function create_selection_bookmark(window, sel, rng)
 			}
 			
 			bounds.start += sel.anchorOffset;
-			bound.end += sel.focusOffset;
+			bounds.end += sel.focusOffset;
 		} else {
 			bounds = get_textual_position(rng.startContainer, rng.endContainer);
 			if (!bounds) {
@@ -422,7 +422,7 @@ Util.Selection.bookmark = function create_selection_bookmark(window, sel, rng)
 			}
 			
 			bounds.start += rng.startOffset;
-			bound.end += rng.endOffset;
+			bounds.end += rng.endOffset;
 		}
 		
 		return {
@@ -471,7 +471,7 @@ Util.Selection.bookmark = function create_selection_bookmark(window, sel, rng)
 					return;
 				
 				var range = this.document.createRange();
-				range.setStart(bounds.startNode, bounds.setOffset);
+				range.setStart(bounds.startNode, bounds.startOffset);
 				range.setEnd(bounds.endNode, bounds.endOffset);
 				
 				this.selection.removeAllRanges();

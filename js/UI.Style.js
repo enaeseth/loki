@@ -35,7 +35,7 @@ UI.Style = function Style(identifier, name, tag, class_name)
 	 * The name of the class that this style applies to an element.
 	 * @type string
 	 */
-	this.class_name = class_name;
+	this.class_name = class_name || null;
 	
 	/**
 	 * Checks if the given element is an instance of this style.

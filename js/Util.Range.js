@@ -509,32 +509,25 @@ Util.Range.delete_contents = function delete_range_contents(rng)
 Util.Range.get_html = function get_html_of_range(rng)
 {
 	var html = '';
-	try // Gecko
-	{
-		var frag = rng.cloneContents();
-		var container = rng.startContainer.ownerDocument.createElement('DIV');
+	var frag;
+	var temp;
+	
+	if (rng.htmlText) {
+		// IE TextRange
+		return rng.htmlText;
+	} else if (rng.item && rng.length) {
+		for (var i = 0; i < rng.length; i++) {
+			html += rng.item(i).outerHTML;
+		}
+	} else if (rng.cloneContents) {
+		frag = rng.cloneContents();
+		container = rng.startContainer.ownerDocument.createElement('DIV');
 		container.appendChild(frag);
 		html = container.innerHTML;
+	} else {
+		throw new Util.Unsupported_Error('getting the HTML content of a range');
 	}
-	catch(e)
-	{
-		try // IE
-		{
-			if (rng.htmlText != null)
-				html = rng.htmlText;
-			else if (rng.length > 0)
-			{
-				for (var i = 0; i < rng.length; i++)
-					html += rng.item(i).outerHTML;
-			}
-		}
-		catch(f)
-		{
-			throw('Util.Range.get_html(): Neither the Gecko nor the IE way of getting the image worked. ' +
-				  'When the Gecko way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-				  'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.');
-		}
-	}
+	
 	return html;
 };
 

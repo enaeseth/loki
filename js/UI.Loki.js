@@ -1014,16 +1014,20 @@ UI.Loki = function Loki(settings)
 		
 		function perform_cleanup(last_ni_count)
 		{
-			var c_count = ni_count; // current count
+			var cur_count = ni_count; // current count
+			var mark;
 			
-			if (Util.is_number(last_ni_count) && c_count > last_ni_count) {
+			if (Util.is_number(last_ni_count) && cur_count > last_ni_count) {
 				// More has happened since we last looked; wait some more.
-				wait_to_cleanup(c_count);
+				wait_to_cleanup(cur_count);
 				return;
 			}
 			
+			mark = Util.Selection.bookmark(self.window, self.get_selection(),
+				self.get_selected_range());
 			ni_count = 0;
 			clean_body(true);
+			mark.restore();
 		}
 		
 		function handle_paste_event(ev)

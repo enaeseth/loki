@@ -28,27 +28,29 @@ UI.Masseuse = function(loki)
 	this.unmassage_node_descendants = function(node)
 	{
 	};
-
-	/**
-	 * For convenience.
-	 */
-	this.massage_body = function()
-	{
-		this.massage_node_descendants(this._loki.document);
-	};
-
-	/**
-	 * For convenience.
-	 */
-	this.unmassage_body = function()
-	{
-		this.unmassage_node_descendants(this._loki.document);
-	};
 };
 
-// TODO: remove me after legacy code using this init method is gone
+/**
+ * Legacy initializer function; do not use.
+ */
 UI.Masseuse.prototype.init = function(loki)
 {
-	this._loki = loki;
+	this._loki = this.loki = loki;
 	return this;
 };
+
+/**
+ * Convenience function for massaging the body of the Loki editing document.
+ */
+UI.Masseuse.prototype.massage_body = function massage_body()
+{
+	this.massage_node_descendants(this.loki.body);
+}
+
+/**
+ * Convenience function for unmassaging the body of the Loki editing document.
+ */
+UI.Masseuse.prototype.unmassage_body = function massage_body()
+{
+	this.unmassage_node_descendants(this.loki.body);
+}
