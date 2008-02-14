@@ -90,6 +90,9 @@ blockquote {
 	right: 0px;
 	
 	background: url('../images/close.gif') top;
+	
+	cursor: pointer;
+	cursor: hand;
 }
 
 .loki__hr_container a.loki__delete:hover {
