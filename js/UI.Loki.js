@@ -40,6 +40,9 @@ UI.Loki = function Loki(settings)
 	var toolbar = null;
 	var source_toolbar = null;
 	
+	this.keybinder = keybinder;
+	this.toolbar = null;
+	this.source_toolbar = null;
 	this.bubbler = null;
 	
 	var dh; // document helper for this.owner_document
@@ -448,8 +451,8 @@ UI.Loki = function Loki(settings)
 		[
 			function create_toolbars()
 			{
-				toolbar = new UI.Toolbar(self);
-				source_toolbar = new UI.Toolbar(self);
+				this.toolbar = toolbar = new UI.Toolbar(self);
+				this.source_toolbar = source_toolbar = new UI.Toolbar(self);
 
 				return toolbar.get_element();
 			},
