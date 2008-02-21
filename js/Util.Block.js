@@ -179,7 +179,7 @@ Util.Block = {
 		}
 		
 		// Factored out this enforcement because both normal paragraph
-		// containers and containers that can only contain 0 or >2 paragraphs
+		// containers and containers that can only contain 0 or ≥2 paragraphs
 		// both potentially use the same behavior.
 		function enforce_container_child(context, node, c)
 		{
@@ -196,7 +196,9 @@ Util.Block = {
 					node.removeChild(b);
 				});
 				node.insertBefore(context.p, next);
-			} else if (belongs_inside_paragraph(c)) {
+			} else if (belongs_inside_paragraph(c)
+				&& !Util.Node.is_non_whitespace_text_node(c)) 
+			{
 				if (!context.p && is_relevant(c)) {
 					context.p = c.ownerDocument.createElement('P');
 					node.insertBefore(context.p, c);
@@ -350,10 +352,9 @@ Util.Block = {
 					if (!multi) {
 						next = c.nextSibling;
 						
-						if (c.tagName == 'P')
-							add_paragraph(c);
-						
-						if (!belongs_inside_paragraph(c)) {
+						if (c.tagName == 'P') {
+							multi = add_paragraph(c);
+						} else if (!belongs_inside_paragraph(c)) {
 							multi = add_paragraph(create_upto(c));
 						} else if (br = is_breaker(c)) { // assignment intent.
 							multi = add_paragraph(create_upto(c));
