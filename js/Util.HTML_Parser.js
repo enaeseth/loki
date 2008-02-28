@@ -15,7 +15,7 @@ Util.HTML_Parser = function SAX_HTML_Parser()
 		close: [],
 		text: [],
 		cdata: [],
-		comment: [],
+		comment: []
 	};
 	
 	var self_closing_tags = Util.HTML_Parser.self_closing_tags.toSet();
