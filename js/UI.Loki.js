@@ -6,7 +6,7 @@
  *
  * @class A WYSIWYG HTML editor.
  */
-UI.Loki = function()
+UI.Loki = function Loki()
 {
 	var _owner_window;
 	var _owner_document; // that of _textarea etc.
@@ -27,10 +27,10 @@ UI.Loki = function()
 
 	var _settings;
 	var _use_p_hack;
-	var _state_change_listeners = Array();
-	var _masseuses = Array();
-	var _menugroups = Array();
-	var _keybindings = Array();
+	var _state_change_listeners = [];
+	var _masseuses = [];
+	var _menugroups = [];
+	var _keybindings = [];
 	var _editor_domain;
 
 	var self = this;
@@ -158,15 +158,29 @@ UI.Loki = function()
 	 *
 	 * @param	textarea	the textarea to replace with Loki
 	 */
-	this.init = function(textarea, settings)
+	this.init = function init_loki(textarea, settings)
 	{
 		// Incompatible browser check.
 		if (!(Util.Browser.IE || Util.Browser.Gecko)) {
-			throw new Error('Loki does not currently support your browser.');
+			throw new Error('The Loki HTML editor does not currently support ' +
+				'your browser.');
 		}
 		
 		_settings = settings;
-
+		
+		// Clean up the settings, if necessary.
+		if (!settings.options)
+			settings.options = 'default';
+		if (Util.is_string(settings.options) || !settings.options.test) {
+			settings.options = (new UI.Loki_Options).init(settings.options, '');
+		}
+		['site', 'type'].each(function cleanup_default_regexp(which) {
+			var setting = 'default_' + which + '_regexp';
+			if (!(settings[setting].exec && settings[setting].test)) {
+				settings[setting] = new RegExp(settings[setting]);
+			}
+		});
+		
 		_textarea = textarea;
 		_owner_window = window;
 		_owner_document = _textarea.ownerDocument;
