@@ -1,7 +1,7 @@
-UI.Loki_Options = function(pluses, minuses)
+UI.Loki_Options = function()
 {
-	this._all;
-	this._sel;
+	this._all = null;
+	this._sel = null;
 };
 
 /**
@@ -17,6 +17,8 @@ UI.Loki_Options.prototype.init = function(pluses, minuses)
 {
 	this._init_all();
 	this._init_sel(pluses, minuses);
+	
+	return this;
 };
 
 /**
@@ -77,44 +79,41 @@ UI.Loki_Options.prototype._init_all = function()
 	var all = 0;
 	for ( var i in this._all )
 		if ( i != 'merge' )
-			all += this._all[i];
-	this._all.all = all - this._all.source; // we never want to assign the ability to edit source on a site-wide basis
-	//this._all.all = this._all["default"] + this._all.lists + this._all.align + this._all.headline + this._all.indenttext + this._all.findtext + this._all.image + this._all.assets + this._all.spell + this._all.table + this._all.pre;
+			all |= this._all[i];
+	this._all.all = all & ~this._all.source; // we never want to assign the ability to edit source on a site-wide basis
+	//this._all.all = this._all["default"] | this._all.lists | this._all.align | this._all.headline | this._all.indenttext | this._all.findtext | this._all.image | this._all.assets | this._all.spell | this._all.table | this._all.pre;
 					  
 	// (we need to use the bracket syntax to access default because default is a reserved word in js)
-	this._all["default"] = this._all.strong + this._all.em + this._all.linebreak + this._all.hrule + this._all.link + this._all.anchor + this._all.clipboard;
-	this._all.lists = this._all.olist + this._all.ulist;
+	this._all["default"] = this._all.strong | this._all.em | this._all.linebreak | this._all.hrule | this._all.link | this._all.anchor | this._all.clipboard;
+	this._all.lists = this._all.olist | this._all.ulist;
 
-	this._all.all_minus_pre = this._all.all - this._all.pre;
-	this._all.notables = this._all.all_minus_pre - this._all.table;
-	this._all.notables_plus_pre = this._all.notables + this._all.pre;
+	this._all.all_minus_pre = this._all.all & ~this._all.pre;
+	this._all.notables = this._all.all_minus_pre & ~this._all.table;
+	this._all.notables_plus_pre = this._all.notables | this._all.pre;
 
-	this._all.wellstone = this._all["default"] + this._all.lists + this._all.align + this._all.headline + this._all.indenttext + this._all.findtext;
-	this._all.ocs = this._all["default"] + this._all.lists + this._all.align + this._all.headline + this._all.indenttext + this._all.findtext + this._all.table;
-	this._all.commencement = this._all["default"] + this._all.lists + this._all.align + this._all.headline + this._all.indenttext + this._all.findtext + this._all.table;
+	this._all.wellstone = this._all["default"] | this._all.lists | this._all.align | this._all.headline | this._all.indenttext | this._all.findtext;
+	this._all.ocs = this._all["default"] | this._all.lists | this._all.align | this._all.headline | this._all.indenttext | this._all.findtext | this._all.table;
+	this._all.commencement = this._all["default"] | this._all.lists | this._all.align | this._all.headline | this._all.indenttext | this._all.findtext | this._all.table;
 };
 
 UI.Loki_Options.prototype._init_sel = function(pluses, minuses)
 {
-	if ( !pluses )
-		pluses = ['default'];
-	if ( !minuses)
-		minuses = [];
-	if ( typeof(pluses) == 'string' )
-		pluses = [pluses];
-	if ( typeof(minuses) == 'string' )
-		minuses = [minuses];
+	var i;
+	
+	pluses = (typeof(pluses) == 'string')
+		? [pluses]
+		: pluses || ['default'];
+	minuses = (typeof(minuses) == 'string')
+		? [minuses]
+		: minuses || [];
 
 	this._sel = 0;
-
-	for ( var i = 0; i < pluses.length; i++ )
-	{
-		if ( !this.test(pluses[i]) ) // we don't want to add anything twice
-			this._sel += this._all[pluses[i]];
+	
+	for (i = 0; i < pluses.length; i++) {
+		this._sel |= this._all[pluses[i]] || 0;
 	}
-	for ( var i = 0; i < minuses.length; i++ )
-	{
-		if ( this.test(minuses[i]) ) // we don't want to add anything twice
-			this._sel -= this._all[minuses[i]];
+	
+	for (i = 0; i < minuses.length; i++) {
+		this._sel &= ~(this._all[minuses[i]] || 0);
 	}
 };
