@@ -7,8 +7,8 @@
  * @param {string}	identifier	a short string used for selecting the style
  * @param {string}	name	a descriptive name for the style
  * @param {string}	tag		the name of the tag of the style's container
- * @param {string}	class_name	the name of the CSS class that this style uses
- * @param {object}	options	optional style settings
+ * @param {string}	[class_name]	the name of the CSS class used by this style
+ * @param {object}	[options]	optional style settings
  */
 UI.Style = function Style(identifier, name, tag, class_name, options)
 {
@@ -124,7 +124,7 @@ UI.Style = function Style(identifier, name, tag, class_name, options)
 				return;
 			}
 			
-			store = event.manager.get_storage();
+			store = event.manager.get_storage(style);
 			store.button = new UI.Toolbar.Button(s.icon, s.name || style.name,
 				function style_toolbar_button_clicked() {
 					if (event.manager.is_active(style)) {
@@ -217,6 +217,8 @@ UI.Style.Event = function StyleEvent(type, loki, manager)
 UI.Style.Context = function StyleContext(manager, selection, selected_range,
 	style_hierarchy)
 {
+	var rb;
+	
 	if (!Util.is_valid_object(manager)) {
 		throw new TypeError('A style manager must be provided to a context.');
 	}
