@@ -65,8 +65,10 @@ UI.Keybinding_Manager = function(event_source)
 	{
 		function invoke_binding(binding)
 		{
-			var result = binding.action.call(binding.context,
-				keyboard_event);
+			var action = (Util.is_string(binding.action))
+				? binding.context[binding.action]
+				: binding.action;
+			var result = action.call(binding.context, keyboard_event);
 			
 			if (result == undefined || result === false) {
 				Util.Event.prevent_default(keyboard_event);

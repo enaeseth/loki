@@ -420,8 +420,6 @@ UI.Loki = function Loki(settings)
 			// Keybindings
 			cap.keybindings.each(function (binding) {
 				var action = binding.action;
-				if ('string' == typeof(action)) // Method name given
-					action = cap[action];
 				
 				keybinder.bind(binding.test, action, cap);
 			});
