@@ -203,11 +203,11 @@ UI.Loki = function Loki(settings)
 	 * Gets a capability instance by its selector name.
 	 * Returns undefined if the capability is not available.
 	 * @param {string}	name	the selector name of the desired capability
-	 * @type UI.Capability
+	 * @return {UI.Capability}	the desired capability, or null if not found
 	 */
 	this.get_capability = function get_capability(name)
 	{
-		return capabilities[name];
+		return capabilities[name] || null;
 	}
 	
 	
