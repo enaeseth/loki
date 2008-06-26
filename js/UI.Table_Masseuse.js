@@ -111,8 +111,6 @@ UI.Table_Masseuse = function TableMasseuse()
 				"non-table.");
 		}
 		
-		console.debug(table);
-		
 		if (first_row_is_head) {
 			promote_row(get_first_row(), 'head');
 		}
@@ -122,7 +120,6 @@ UI.Table_Masseuse = function TableMasseuse()
 		if (head.getElementsByTagName("TR").length == 0) {
 			// See if the first row of the table is actually a header row.
 			var candidate = get_first_row();
-			console.debug(candidate);
 			if (is_header_row(candidate)) {
 				promote_row(candidate, 'head');
 			} else {
