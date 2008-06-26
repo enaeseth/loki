@@ -132,7 +132,10 @@ def compile_js(version, js_path, outfile=None):
 		src_file = open(os.path.join(js_path, name), 'rt')
 		try:
 			for line in src_file:
-				print >>f, line,
+				if name == 'UI.Loki.js':
+					print >>f, re.sub('\$Rev[^\$]*\$', version, line),
+				else:
+					print >>f, line,
 		finally:
 			src_file.close()
 	
