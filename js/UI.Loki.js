@@ -2,8 +2,6 @@
  * Declares instance variables. <code>init</code> must be called to initialize them.
  * @constructor
  *
- * @param	textarea	the textarea to replace with Loki
- *
  * @class A WYSIWYG HTML editor.
  */
 UI.Loki = function Loki()
@@ -156,7 +154,9 @@ UI.Loki = function Loki()
 	/**
 	 * Initializes instance variables.
 	 *
-	 * @param	textarea	the textarea to replace with Loki
+	 * @param {HTMLTextAreaElement} textarea the textarea to replace with Loki
+	 * @param {object} settings Loki settings
+	 * @see http://code.google.com/p/loki-editor/wiki/Settings
 	 */
 	this.init = function init_loki(textarea, settings)
 	{
@@ -180,6 +180,10 @@ UI.Loki = function Loki()
 				settings[setting] = new RegExp(settings[setting]);
 			}
 		});
+		
+		if (!settings.base_uri) {
+			settings.base_uri = autodetect_base_uri();
+		}
 		
 		_textarea = textarea;
 		_owner_window = window;
@@ -219,6 +223,25 @@ UI.Loki = function Loki()
 		// Continue the initialization, but asynchronously
 		_init_async();
 	};
+	
+	/*
+	 * Attempts to automatically detect the Loki base URI.
+	 */
+	function autodetect_base_uri()
+	{
+		var scripts = document.getElementsByTagName('SCRIPT');
+		var pattern = /\bloki\.js(\?[^#]*)?(#\S+)?$/;
+		
+		for (var i = 0; i < scripts.length; i++) {
+			if (pattern.test(scripts[i].src)) {
+				// Found Loki!
+				return scripts[i].src.replace(pattern, '');
+			}
+		}
+		
+		throw new Error("Unable to automatically determine the Loki base URI." +
+			" Please set it explicitly.");
+	}
 
 	/**
 	 * Finishes initializing instance variables, but does so
@@ -1308,4 +1331,54 @@ UI.Loki = function Loki()
 			_exec_command(command); // turn on the list
 		}
 	};
+};
+
+var Loki = {
+	/**
+	 * Converts the given textareas to instances of the Loki WYSIWYG editor.
+	 * @param {HTMLTextAreaElement[]} areas an array of TEXTAREA elements to
+	 * convert, or the ID's of the elements
+	 * @param {object} settings Loki settings
+	 * @see UI.Loki#init
+	 * @see http://code.google.com/p/loki-editor/wiki/Settings
+	 * @returns {void}
+	 */
+	convert_textareas: function loki_convert_textareas(areas, settings)
+	{	
+		var area;
+		
+		for (var i = 0; i < areas.length; i++) {
+			if (typeof(areas[i]) == 'string') {
+				area = document.getElementById(areas[i]);
+				if (!area) {
+					throw new Error('No element with the ID of "' +
+						areas[i] + '" exists in the document.');
+				}
+			} else {
+				area = areas[i];
+			}
+			
+			if (!Util.Node.is_tag(area, "TEXTAREA")) {
+				throw new TypeError("Unable to convert a non-textarea to a " +
+					"Loki instance.");
+			}
+			
+			(new UI.Loki).init(area, settings || {});
+		}
+	},
+	
+	/**
+	 * Converts all of the textareas on the document into Loki instances.
+	 * @param {object} settings Loki settings
+	 * @see UI.Loki#init
+	 * @see http://code.google.com/p/loki-editor/wiki/Settings
+	 * @returns {void}
+	 */
+	convert_all_textareas: function loki_convert_all_textareas(settings)
+	{
+		UI.Loki.convert_textareas(document.getElementsByTagName("TEXTAREA"),
+			settings || {});
+	},
+	
+	version: "$Rev$"
 };
