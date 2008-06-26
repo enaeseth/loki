@@ -535,6 +535,7 @@ Util.Block = {
 				
 				HR: Util.Block.EMPTY,
 				IFRAME: Util.Block.EMPTY,
+				PARAM: Util.Block.EMPTY,
 				
 				// XXX: browsers seem to treat these as inline always
 				INS: Util.Block.MIXED,
