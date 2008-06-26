@@ -290,6 +290,10 @@ Util.Block = {
 						next = c.nextSibling;
 				}
 				
+				if (!node.hasChildNodes()) {
+					node.parentNode.removeChild(node);
+				}
+				
 				return false;
 			},
 			
