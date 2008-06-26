@@ -179,15 +179,18 @@ Util.Block = {
 		}
 		
 		// Factored out this enforcement because both normal paragraph
-		// containers and containers that can only contain 0 or >2 paragraphs
+		// containers and containers that can only contain 0 or ≥2 paragraphs
 		// both potentially use the same behavior.
 		function enforce_container_child(context, node, c)
 		{
 			var br;
 			var next;
+			var created_p;
 			
 			if (!context.p)
 				context.p = null;
+			if (context.created_p)
+				delete context.created_p;
 			
 			if (br = is_breaker(c)) { // assignment intentional
 				context.p = c.ownerDocument.createElement('P');
@@ -196,9 +199,12 @@ Util.Block = {
 					node.removeChild(b);
 				});
 				node.insertBefore(context.p, next);
-			} else if (belongs_inside_paragraph(c)) {
+			} else if (belongs_inside_paragraph(c)
+				&& Util.Node.is_non_whitespace_text_node(c)) 
+			{
 				if (!context.p && is_relevant(c)) {
 					context.p = c.ownerDocument.createElement('P');
+					context.created_p = context.p;
 					node.insertBefore(context.p, c);
 				}
 				
@@ -284,6 +290,10 @@ Util.Block = {
 						next = c.nextSibling;
 				}
 				
+				if (!node.hasChildNodes()) {
+					node.parentNode.removeChild(node);
+				}
+				
 				return false;
 			},
 			
@@ -301,12 +311,24 @@ Util.Block = {
 			
 			MULTI_PARAGRAPH_CONTAINER: function enforce_multi_p_container(node)
 			{
-				var multi = false;
+				var paragraphs = [];
+				var multi = get_paragraph_children(node).length > 1;
 				var context = {};
 				var br;
 				var next;
 				
-				var paragraphs = [];
+				function get_paragraph_children(node)
+				{
+					var paras = [];
+					
+					for (var n = node.firstChild; n; n = n.nextSibling) {
+						if (n.tagName == 'P')
+							paras.push(n);
+					}
+					
+					return paras;
+				}
+				
 				function add_paragraph(para)
 				{
 					if (para)
@@ -350,11 +372,10 @@ Util.Block = {
 					if (!multi) {
 						next = c.nextSibling;
 						
-						if (c.tagName == 'P')
-							add_paragraph(c);
-						
 						if (!belongs_inside_paragraph(c)) {
 							multi = add_paragraph(create_upto(c));
+							if (c.tagName == 'P')
+								multi = add_paragraph(c);
 						} else if (br = is_breaker(c)) { // assignment intent.
 							multi = add_paragraph(create_upto(c));
 							next = br[1].nextSibling;
@@ -364,10 +385,12 @@ Util.Block = {
 						}
 					} else {
 						next = enforce_container_child(context, node, c);
+						if (context.created_p)
+							paragraphs.push(context.created_p);
 					}
 				}
 				
-				if (!multi && paragraphs.length == 1) {
+				if (paragraphs.length == 1) {
 					replace_with_children(paragraphs[0]);
 				}
 				
