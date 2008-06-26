@@ -498,7 +498,6 @@ Util.Block = {
 				P: Util.Block.PARAGRAPH,
 				
 				BODY: Util.Block.PARAGRAPH_CONTAINER,
-				OBJECT: Util.Block.PARAGRAPH_CONTAINER,
 				BLOCKQUOTE: Util.Block.PARAGRAPH_CONTAINER,
 				FORM: Util.Block.PARAGRAPH_CONTAINER,
 				FIELDSET: Util.Block.PARAGRAPH_CONTAINER,
@@ -522,6 +521,8 @@ Util.Block = {
 				DT: Util.Block.MULTI_PARAGRAPH_CONTAINER,
 				DD: Util.Block.MULTI_PARAGRAPH_CONTAINER, // changed from pc
 				
+				OBJECT: NORMAL,
+				
 				UL: NORMAL,
 				OL: NORMAL,
 				DL: NORMAL,
@@ -535,6 +536,7 @@ Util.Block = {
 				
 				HR: Util.Block.EMPTY,
 				IFRAME: Util.Block.EMPTY,
+				PARAM: Util.Block.EMPTY,
 				
 				// XXX: browsers seem to treat these as inline always
 				INS: Util.Block.MIXED,
