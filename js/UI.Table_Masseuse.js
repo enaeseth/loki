@@ -49,7 +49,8 @@ UI.Table_Masseuse = function TableMasseuse()
 		
 		function promote_row(row, where)
 		{
-			var method = 'createT' + where[0].toUpperCase() + where.substr(1);
+			var method = ('createT' + where.charAt(0).toUpperCase() 
+				+ where.substr(1));
 			var dest = table[method]();
 			
 			if (!row)
