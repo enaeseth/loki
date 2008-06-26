@@ -13,7 +13,7 @@ if (!defined('LOKI_2_PATH')) {
 		// old constant name
 		define('LOKI_2_PATH', LOKI_2_INC);
 	} else {
-		Loki2::_guess_path();
+		guess_loki2_path();
 	}
 }
 
@@ -209,6 +209,8 @@ class Loki2
 			$options_str .= ' +source';
 			
 		$textarea_id = 'loki__'.$this->_field_name.'__textarea';
+		
+		$jss = $this->_get_js_settings_object();
 		?>
 		
 		<script type="text/javascript">
@@ -221,22 +223,7 @@ class Loki2
 						return;
 					created = true;
 					
-					var settings = {
-						base_uri : '<?php echo $this->_asset_path; ?>',
-						<?php $this->_feed('images') ?>
-						<?php $this->_feed('sites') ?>
-						<?php $this->_feed('finder') ?>
-						default_site_regexp : new RegExp('<?php echo $this->_default_site_regexp; ?>'),
-						default_type_regexp : new RegExp('<?php echo $this->_default_type_regexp; ?>'),
-						use_xhtml : true,
-						<?php $this->_bool_param('sanitize_unsecured') ?>
-						<?php $this->_bool_param('monopolize_clipboard') ?>
-						<?php $this->_o_param('styles') ?>
-						<?php $this->_o_param('document_style_sheets') ?>
-						capabilities : <?php echo $this->_js_translate($options_str) ?>,
-						<?php $this->_o_param('allowable_tags', true) ?>
-
-					};
+					var settings = <?php echo _js_serialize($jss) ?>;
 					
 					var loki = new UI.Loki(settings);
 					loki.replace_textarea(document.getElementById('<?php echo $textarea_id ?>'));
@@ -451,25 +438,6 @@ class Loki2
 		$this->_allowable_tags = $tags;
 	}
 	
-	/**
-	 * @static
-	 * @return void
-	 */
-	function _guess_path()
-	{
-		$php_helper = dirname(__FILE__);
-		if (basename($php_helper) == 'php') {
-			$helpers = dirname($php_helper);
-			if (basename($helpers) == 'helpers') {
-				define('LOKI_2_PATH', dirname($helpers).DIRECTORY_SEPARATOR);
-				return;
-			}
-		}
-		
-		user_error('Cannot automatically determine the path to Loki 2; please '.
-			'define the LOKI_2_PATH constant.', E_USER_ERROR);
-	}
-	
 	function _bool_param($which, $last=false)
 	{
 		$var = '_'.$which;
@@ -487,7 +455,7 @@ class Loki2
 		$var = '_'.$which;
 		
 		if (!empty($this->$var)) {
-			echo $which.' : ', Loki2::_js_translate($this->$var);
+			echo $which.' : ', _js_serialize($this->$var);
 			if (!$last)
 				echo ',';
 		}
@@ -498,52 +466,11 @@ class Loki2
 	{
 		if (!empty($this->_feeds[$which])) {
 			echo $which, '_feed : ',
-				Loki2::_js_translate($this->_feeds[$which]);
+				_js_serialize($this->_feeds[$which]);
 			if (!$last)
 				echo ',';
 		}
 		echo "\n";
-	}
-	
-	function _js_translate($item)
-	{
-		if (is_scalar($item)) {
-			if (is_string($item)) {
-				return '"'.addslashes($item).'"';
-			} else if (is_numeric($item)) {
-				return $item;
-			} else if (is_bool($item)) {
-				return ($item) ? 'true' : 'false';
-			} else {
-				trigger_error('Unknown scalar type "'.gettype($item).'".',
-					E_USER_WARNING);
-				return 'undefined';
-			}
-		} else {
-			if (is_null($item)) {
-				return 'null';
-			} else if (is_array($item)) {
-				return '['.implode(', ',
-					array_map(array('Loki2', '_js_translate'), $item)).']';
-			} else if (is_object($item)) {
-				$repr = '{';
-				$first = true;
-				foreach ((array) $item as $k => $v) {
-					if ($first)
-						$first = false;
-					else
-						$repr .= ', ';
-					
-					$repr .= "'".addslashes($k)."': ".Loki2::_js_translate($v);
-				}
-				$repr .= '}';
-				return $repr;
-			} else {
-				trigger_error('Unknown non-scalar type "'.gettype($item).'".',
-					E_USER_WARNING);
-				return 'undefined';
-			}
-		}
 	}
 	
 	/**
@@ -564,5 +491,91 @@ class Loki2
 		// Make a (very) good guess.
 		return 'http';
 	}
+	
+	/**
+	 * @access private
+	 * @return object
+	 */
+	function _get_js_settings_object()
+	{
+		$s = new stdClass; // create an anonymous object
+		
+		$s->base_uri = $this->_asset_path;
+		$s->capabilities = $this->_current_options;
+		foreach (array('images', 'sites', 'finder') as $f) {
+			$s->{$f.'_feed'} = 	(!empty($this->_feeds[$f]))
+				? $this->_feeds[$f]
+				: null;
+		}
+		$s->default_site_regexp = $this->_default_site_regexp;
+		$s->default_type_regexp = $this->_default_type_regexp;
+		$s->use_xhtml = true;
+		$s->sanitize_unsecured = $this->_sanitize_unsecured;
+		$s->document_style_sheets = $this->_document_style_sheets;
+		$s->allowable_tags = $this->_allowable_tags;
+		
+		return $s;
+	}
 }
-?>
+
+/** @ignore */
+function guess_loki2_path()
+{
+	if (defined('LOKI_2_PATH'))
+		return;
+	
+	$php_helper = dirname(__FILE__);
+	if (basename($php_helper) == 'php') {
+		$helpers = dirname($php_helper);
+		if (basename($helpers) == 'helpers') {
+			define('LOKI_2_PATH', dirname($helpers).DIRECTORY_SEPARATOR);
+			return;
+		}
+	}
+	
+	user_error('Cannot automatically determine the path to Loki 2; please '.
+		'define the LOKI_2_PATH constant.', E_USER_ERROR);
+}
+
+/** @ignore */
+function _js_serialize($item)
+{
+	if (is_scalar($item)) {
+		if (is_string($item)) {
+			return '"'.addslashes($item).'"';
+		} else if (is_numeric($item)) {
+			return $item;
+		} else if (is_bool($item)) {
+			return ($item) ? 'true' : 'false';
+		} else {
+			trigger_error('Unknown scalar type "'.gettype($item).'".',
+				E_USER_WARNING);
+			return 'undefined';
+		}
+	} else {
+		if (is_null($item)) {
+			return 'null';
+		} else if (is_array($item)) {
+			return '['.implode(', ',
+				array_map('_js_serialize', $item)).']';
+		} else if (is_object($item)) {
+			$repr = '{';
+			$first = true;
+			foreach ((array) $item as $k => $v) {
+				if ($first)
+					$first = false;
+				else
+					$repr .= ', ';
+				
+				$repr .= "'".addslashes($k)."': "._js_serialize($v);
+			}
+			$repr .= '}';
+			return $repr;
+		} else {
+			trigger_error('Unknown non-scalar type "'.gettype($item).'".',
+				E_USER_WARNING);
+			return 'undefined';
+		}
+	}
+}
+
