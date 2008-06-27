@@ -10,7 +10,7 @@ UI.Source_Button = function()
 	var self = this;
 	Util.OOP.inherits(self, UI.Button);
 
-	this.image = 'source.gif';
+	this.image = 'source.png';
 	this.title = 'Toggle source';
 	this.show_on_source_toolbar = true;
 	this.click_listener = function() { self._loki.toggle_iframe_textarea(); };

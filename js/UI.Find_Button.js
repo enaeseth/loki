@@ -10,7 +10,7 @@ UI.Find_Button = function()
 	var self = this;
 	Util.OOP.inherits(self, UI.Button);
 
-	this.image = 'findReplace.gif';
+	this.image = 'search_replace.png';
 	this.title = 'Find and replace (Ctrl+F)';
 	this.click_listener = function() { self._find_helper.open_dialog(); };
 

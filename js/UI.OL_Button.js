@@ -10,7 +10,7 @@ UI.OL_Button = function()
 	var self = this;
 	Util.OOP.inherits(self, UI.Button);
 
-	this.image = 'ol.gif';
+	this.image = 'ol.png';
 	this.title = 'Ordered list';
 	this.click_listener = function() { self._loki.toggle_list('ol'); };
 };

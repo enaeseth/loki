@@ -9,7 +9,7 @@ UI.Cut_Button = function()
 {
 	Util.OOP.inherits(this, UI.Button);
 
-	this.image = 'cut.gif';
+	this.image = 'cut.png';
 	this.title = 'Cut (Ctrl+X)';
 	this.click_listener = function()
 	{

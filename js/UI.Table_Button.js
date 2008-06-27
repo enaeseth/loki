@@ -10,7 +10,7 @@ UI.Table_Button = function()
 	var self = this;
 	Util.OOP.inherits(self, UI.Button);
 
-	this.image = 'insertTable.gif';
+	this.image = 'table.png';
 	this.title = 'Insert table';
 	this.click_listener = function() { self._table_helper.open_table_dialog(); };
 

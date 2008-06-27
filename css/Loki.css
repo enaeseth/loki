@@ -26,7 +26,7 @@
 
 .loki .toolbar
 {
-	line-height:23px;
+	line-height: 23px;
 }
 
 .loki .toolbar a
@@ -40,10 +40,10 @@
 .loki .toolbar a img
 {
 	vertical-align: top;
-	/* this makes a weird blue border in IE (maybe b/c it's a link?) ... */
-	/*border: transparent solid 1px;*/
-	/* ... so instead we add a margin here and take it away below: */
-	margin: 1px;
+	padding: 2px 1px;
+	margin: 2px 1px;
+	height: 16px;
+	width: 16px;
 }
 
 .loki .toolbar a.hover img    /* use real classes rather than pseudo-classes to accomodate IE */
@@ -53,7 +53,7 @@
 	border-left: buttonhighlight solid 1px;
 	border-right: buttonshadow solid 1px;
 	border-top:  buttonhighlight solid 1px;
-	margin: 0px;
+	margin: 1px 0px;
 }
 
 .loki .toolbar a.active img   /* use real classes rather than pseudo-classes to accomodate IE */

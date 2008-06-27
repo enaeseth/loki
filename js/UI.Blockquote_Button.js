@@ -10,7 +10,7 @@ UI.Blockquote_Button = function()
 	var self = this;
 	Util.OOP.inherits(self, UI.Button);
 
-	this.image = 'blockquote.gif';
+	this.image = 'quote.png';
 	this.title = 'Blockquote';
 	this.click_listener = function() { self._helper.toggle_blockquote_paragraph(); };
 	this.state_querier = function() { return self._helper.query_blockquote_paragraph(); };

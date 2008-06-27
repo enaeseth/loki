@@ -10,7 +10,7 @@ UI.Indent_Button = function()
 	var self = this;
 	Util.OOP.inherits(self, UI.Button);
 
-	this.image = 'indent.gif';
+	this.image = 'indent.png';
 	this.title = 'Indent list item(s)';
 	this.helper = null;
 	

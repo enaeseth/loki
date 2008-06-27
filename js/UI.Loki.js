@@ -410,10 +410,8 @@ UI.Loki = function Loki()
 				}
 
 				var img = _owner_document.createElement('IMG');
-				img.src = _settings.base_uri + 'images/nav/' + b.image;
+				img.src = _settings.base_uri + 'images/toolbar/' + b.image;
 				img.title = b.title;
-				img.width = 21;
-				img.height = 20;
 				img.border = 0;
 				img.setAttribute('unselectable', 'on');
 				button.appendChild(img);

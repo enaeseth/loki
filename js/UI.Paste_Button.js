@@ -9,7 +9,7 @@ UI.Paste_Button = function()
 {
 	Util.OOP.inherits(this, UI.Button);
 
-	this.image = 'paste.gif';
+	this.image = 'paste.png';
 	this.title = 'Paste (Ctrl+V)';
 	this.click_listener = function()
 	{
