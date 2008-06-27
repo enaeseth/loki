@@ -176,6 +176,8 @@ UI.Loki = function Loki()
 		}
 		['site', 'type'].each(function cleanup_default_regexp(which) {
 			var setting = 'default_' + which + '_regexp';
+			if (!settings[setting])
+				return;
 			if (!(settings[setting].exec && settings[setting].test)) {
 				settings[setting] = new RegExp(settings[setting]);
 			}
