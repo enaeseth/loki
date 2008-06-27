@@ -6,7 +6,7 @@ Util.Element = {
 	 * Gets an element's computed styles.
 	 * @param {Window}	window	the element's window
 	 * @param {Element}	elem	the element whose computed style is desired
-	 * @type object
+	 * @return {object}
 	 */
 	get_computed_style: function get_element_computed_style(window, elem)
 	{
@@ -35,7 +35,7 @@ Util.Element = {
 	 * Cf. Util.Node.is_block_level_element; this uses different logic.
 	 * @param {Window}	window	the element's window
 	 * @param {Element}	elem	the element whose block level status is desired
-	 * @type boolen
+	 * @return {boolean}
 	 */
 	is_block_level: function is_block_level_element(window, elem)
 	{
@@ -188,7 +188,7 @@ Util.Element = {
 	 * Adds a class to an element.
 	 * @param {Element}	elem	the element to which the class will be added
 	 * @param {string}	class_name	the name of the class to add
-	 * @type void
+	 * @return {void}
 	 */
 	add_class: function add_class_to_element(elem, class_name)
 	{
@@ -201,7 +201,7 @@ Util.Element = {
 	 * Removes a class from an element.
 	 * @param {Element}	elem	the element from which the class will be removed
 	 * @param {string}	class_name	the name of the class to remove
-	 * @type void
+	 * @return {void}
 	 */
 	remove_class: function remove_class_from_element(elem, class_name)
 	{
@@ -220,7 +220,7 @@ Util.Element = {
 	 * @param {Element}	elem	the element to check
 	 * @param {string}	class_name	the name of the class to check for
 	 * @return true if the element has the class, false otherwise
-	 * @type boolean
+	 * @return {boolean}
 	 */
 	has_class: function element_has_class(elem, class_name)
 	{
@@ -232,7 +232,7 @@ Util.Element = {
 	 * @param {Element}	elem	the element to check
 	 * @param {mixed}	classes	either a string or an array of class names
 	 * @return true if the element has all of the classes, false if otherwise
-	 * @type boolean
+	 * @return {boolean}
 	 */
 	has_classes: function element_has_classes(elem, classes)
 	{
@@ -248,7 +248,7 @@ Util.Element = {
 	/**
 	 * Returns a string with all of an element's classes or null.
 	 * @param {Element}	elem
-	 * @type string
+	 * @return {string}
 	 */
 	get_all_classes: function get_all_classes_from_element(elem)
 	{
@@ -260,7 +260,7 @@ Util.Element = {
 	/**
 	 * Gets all of an element's classes as an array.
 	 * @param {Element}	elem
-	 * @type array
+	 * @return {array}
 	 */
 	get_class_array: function get_array_of_classes_from_element(elem)
 	{
@@ -273,7 +273,7 @@ Util.Element = {
 	 * Sets all of the classes on an element.
 	 * @param {Element} elem
 	 * @param {string} class_names
-	 * @type void
+	 * @return {void}
 	 */
 	set_all_classes: function set_all_classes_on_element(elem, class_names)
 	{
@@ -284,7 +284,7 @@ Util.Element = {
 	 * Sets all of the classes on an element.
 	 * @param {Element} elem
 	 * @param {array} class_names
-	 * @type void
+	 * @return {void}
 	 */
 	set_class_array: function set_array_of_classes_on_element(elem, class_names)
 	{
@@ -297,7 +297,7 @@ Util.Element = {
 	/**
 	 * Removes all of an element's classes.
 	 * @param {Element}	elem
-	 * @type void
+	 * @return {void}
 	 */
 	remove_all_classes: function remove_all_classes_from_element(elem)
 	{
@@ -306,10 +306,67 @@ Util.Element = {
 	},
 	
 	/**
+	 * Find all elements below the given root with a matching class name.
+	 * @param {Element|Document} root	the root element
+	 * @param {string} classes	the class name(s) to search for
+	 * @return {array}	an array (NOT a NodeList) of elements
+	 */
+	find_by_class: function find_elements_by_class_name(root, classes)
+	{
+		if (root.getElementsByClassName) { // use native impl. where available
+			return Util.Array.from(root.getElementsByClassName(classes));
+		}
+		
+		function xpath_evaluate(expression)
+		{
+			var results = [];
+			var query;
+			var i, length;
+			
+			if (!document.evaluate || !XPathResult) {
+				throw new Util.Unsupported_Error("XPath");
+			}
+			
+			query = document.evaluate(expression, root, null,
+				XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+			for (i = 0, length = query.snapshotLength; i < length; i++) {
+				results.push(query.snapshotItem(i));
+			}
+			return results;
+		}
+		
+		classes = classes.toString().replace(/^\s*/, '').replace(/\s*$/, '');
+		if (document.evaluate) {
+			function convert(cn) {
+				return (cn.length > 0) ? "[contains(concat(' ', @class, ' '), "
+					+ "' " + cn + " ')]" : null;
+			}
+			var expr = classes.split(/\s+/).map(convert).join('');
+			return (expr.length) ? xpath_evaluate('.//*' + expr) : [];
+		} else {
+			var found = [];
+			var children = root.getElementsByTagName("*")
+			var child;
+			
+			classes = classes.split(/\s+/);
+			var test = (classes.length == 1)
+				? function(e) { return Util.Element.has_class(e, classes[0]); }
+				: function(e) { return Util.Element.has_classes(e, classes); };
+			
+			for (var i = 0; child = children[i]; i++) {
+				if (test(child))
+					found.push(child);
+			}
+			
+			return found;
+		}
+	},
+	
+	/**
 	 * Returns an element's name's prefix or an empty string if there is none.
 	 * (e.g. <o:p> --> 'o';  <p> --> '')
 	 * @param {Element}	elem
-	 * @type string
+	 * @return {string}
 	 */
 	get_prefix: function get_element_name_prefix(elem)
 	{
@@ -326,7 +383,7 @@ Util.Element = {
 	 * Finds the absolute position of the element; i.e. its position relative to
 	 * the window.
 	 * @param {HTMLElement} elem
-	 * @type object
+	 * @return {object}
 	 */
 	get_position: function get_element_position(elem)
 	{

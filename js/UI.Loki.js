@@ -226,6 +226,8 @@ UI.Loki = function Loki()
 
 		// Continue the initialization, but asynchronously
 		_init_async();
+		
+		return self;
 	};
 	
 	/*
@@ -1339,28 +1341,35 @@ var Loki = {
 	/**
 	 * Converts the given textarea to instances of the Loki WYSIWYG editor.
 	 * @param {HTMLTextAreaElement} area a TEXTAREA element or the ID of one
-	 * @param {object} settings Loki settings
+	 * @param {object} [settings] Loki settings
+	 * @param {function} [callback] a function that will be called when the
+	 *        conversion is finished
 	 * @see UI.Loki#init
 	 * @see http://code.google.com/p/loki-editor/wiki/Settings
 	 * @returns {void}
 	 */
-	convert_textarea: function loki_convert_textareas(area, settings)
+	convert_textarea: function loki_convert_textarea(area, settings,
+		callback)
 	{
-		Loki.convert_textareas([area], settings || {});
+		Loki.convert_textareas([area], settings || {}, callback || null);
 	},
 	
 	/**
 	 * Converts the given textareas to instances of the Loki WYSIWYG editor.
 	 * @param {HTMLTextAreaElement[]} areas an array of TEXTAREA elements to
 	 * convert, or the ID's of the elements
-	 * @param {object} settings Loki settings
+	 * @param {object} [settings] Loki settings
+	 * @param {function} [callback] a function that will be called as the
+	 *        conversions are finished
 	 * @see UI.Loki#init
 	 * @see http://code.google.com/p/loki-editor/wiki/Settings
 	 * @returns {void}
 	 */
-	convert_textareas: function loki_convert_textareas(areas, settings)
+	convert_textareas: function loki_convert_textareas(areas, settings,
+		callback)
 	{	
 		var area;
+		var instance;
 		
 		for (var i = 0; i < areas.length; i++) {
 			if (typeof(areas[i]) == 'string') {
@@ -1370,7 +1379,7 @@ var Loki = {
 						throw new Error('No element with the ID of "' +
 							areas[i] + '" exists in the document.');
 					}
-					Loki._pend(areas[i], settings);
+					Loki._pend(areas[i], settings || {}, callback || null);
 					continue;
 				}
 			} else {
@@ -1382,37 +1391,76 @@ var Loki = {
 					"Loki instance.");
 			}
 			
-			(new UI.Loki).init(area, settings || {});
+			instance = (new UI.Loki).init(area, settings || {});
+			
+			if (callback) {
+				callback(instance, area);
+			}
+		}
+	},
+	
+	/**
+	 * Converts all of the textareas in the document which have the specified
+	 * class(es).
+	 * @param {string} classes	one or more class names
+	 * @param {object} [settings] Loki settings
+	 * @param {function} [callback] a function that will be called as the
+	 *        conversions are finished
+	 * @returns {void}
+	 */
+	convert_textareas_by_class: function loki_convert_classed_textareas(classes,
+		settings, callback)
+	{
+		function get_textareas()
+		{
+			return Util.Element.find_by_class(document, classes);
+		}
+		
+		if (this._loaded) {
+			Loki.convert_textareas(get_textareas(), settings, callback);
+		} else {
+			Loki._pend(get_textareas, settings || {}, callback || null);
 		}
 	},
 	
 	/**
 	 * Converts all of the textareas on the document into Loki instances.
-	 * @param {object} settings Loki settings
+	 * @param {object} [settings] Loki settings
+	 * @param {function} [callback] a function that will be called as the
+	 *        conversions are finished
 	 * @see UI.Loki#init
 	 * @see http://code.google.com/p/loki-editor/wiki/Settings
 	 * @returns {void}
 	 */
-	convert_all_textareas: function loki_convert_all_textareas(settings)
+	convert_all_textareas: function loki_convert_all_textareas(settings,
+		callback)
 	{
 		if (this._loaded) {
 			Loki.convert_textareas(document.getElementsByTagName("TEXTAREA"),
-				settings || {});
+				settings || {}, callback);
 		} else {
-			Loki._pend(null, settings || {});
+			Loki._pend(null, settings || {}, callback || null);
 		}
 		
 	},
 	
+	/**
+	 * The Loki version.
+	 * @type string
+	 */
 	version: "$Rev$",
 	
+	/** @private */
 	_pending: [],
+	/** @private */
 	_loaded: false,
 	
-	_pend: function loki_pend_textarea(area, settings) {
-		this._pending.push([area, settings || {}]);
+	/** @private */
+	_pend: function loki_pend_textarea(area, settings, callback) {
+		this._pending.push([area, settings, callback]);
 	},
 	
+	/** @private */
 	_finish_conversions: function loki_finish_conversions() {
 		var a;
 		
@@ -1422,10 +1470,13 @@ var Loki = {
 		
 		while (a = this._pending.pop()) {
 			if (a[0] == null) {
-				Loki.convert_all_textareas(a[1]);
+				Loki.convert_all_textareas(a[1], a[2]);
 				return true;
+			} else if (typeof(a[0]) == 'function') {
+				Loki.convert_textareas(a[0](), a[1], a[2]);
+			} else {
+				Loki.convert_textarea(a[0], a[1], a[2]);
 			}
-			Loki.convert_textarea(a[0], a[1]);
 		}
 		
 		return true;
