@@ -5,6 +5,7 @@
  */
 Util.URI = function()
 {
+	throw new Error("Util.URI objects may not be constructed.");
 };
 
 /**
@@ -13,38 +14,13 @@ Util.URI = function()
  * Special handling that this function performs:
  *	- Does not distinguish between http and https.
  * 	- Domain-relative links are assumed to be relative to the current domain.
- * @param {string or object}
- * @param {string or object}
- * @type boolean
+ * @param {string|object}
+ * @param {string|object}
+ * @return {boolean}
  */
-Util.URI.equal = function(a, b)
+Util.URI.equal = function uri_equal(a, b)
 {
-	function normalize(url)
-	{
-		if (typeof(url) != 'string') {
-			if (url.scheme === undefined)
-				throw TypeError();
-			url = Util.Object.clone(url);
-		} else {
-			url = Util.URI.parse(url);
-		}
-		
-		if (!url.scheme) {
-			url.scheme = 'http';
-		} else if (url.scheme = 'https') {
-			if (url.port == 443)
-				url.port = null;
-			url.scheme = 'http';
-		}
-		
-		if (!url.host)
-			url.host = Util.URI.extract_domain(window.location);
-			
-		if (url.scheme == 'http' && url.port == 80)
-			url.port = null;
-			
-		return url;
-	}
+	var normalize = Util.URI.normalize;
 	
 	a = normalize(a);
 	b = normalize(b);
@@ -60,7 +36,7 @@ Util.URI.equal = function(a, b)
 /**
  * Parses a URI into its constituent parts.
  */
-Util.URI.parse = function(uri)
+Util.URI.parse = function parse_uri(uri)
 {
 	var match = Util.URI.uri_pattern.exec(uri);
 	
@@ -104,7 +80,7 @@ Util.URI.parse = function(uri)
 /**
  * Parses a query fragment into its constituent variables.
  */
-Util.URI.parse_query = function(fragment)
+Util.URI.parse_query = function parse_query(fragment)
 {
 	var vars = {};
 	
@@ -127,7 +103,7 @@ Util.URI.parse_query = function(fragment)
 /**
  * Builds a query fragment from an object.
  */
-Util.URI.build_query = function(variables)
+Util.URI.build_query = function build_query(variables)
 {
 	var parts = [];
 	
@@ -141,7 +117,7 @@ Util.URI.build_query = function(variables)
 /**
  * Builds a URI from a parsed URI object.
  */
-Util.URI.build = function(parsed)
+Util.URI.build = function build_uri_from_parsed(parsed)
 {
 	var uri = parsed.scheme || '';
 	if (parsed.authority) {
@@ -174,7 +150,7 @@ Util.URI.build = function(parsed)
  * Safely appends query parameters to an existing URI.
  * Previous occurrences of a query parameter are replaced.
  */
-Util.URI.append_to_query = function(uri, params)
+Util.URI.append_to_query = function append_params_to_query(uri, params)
 {
 	var parsed = Util.URI.parse(uri);
 	var query_params = Util.URI.parse_query(parsed.query);
@@ -188,13 +164,65 @@ Util.URI.append_to_query = function(uri, params)
 }
 
 /**
+ * Normalizes a URI, expanding it to an absolute form and removing redundant
+ * port information.
+ * @param {string|object}	uri	a parsed URI object or a URI string
+ * @param {string|object}	[base]	an explicit base URI to use
+ * @return {object}	the parsed normalized URI
+ */
+Util.URI.normalize = function normalize_uri(uri, base)
+{
+	if (typeof(base) == 'string') {
+		base = Util.URI.parse(base);
+	} else {
+		if (!base)
+			base = Util.URI.parse(window.location);
+		else if (Util.is_object(base))
+			base = Util.Object.clone(base);
+		else if (typeof(base) != 'object' || typeof(base.path) == 'undefined')
+			throw new TypeError("Invalid base URI.");
+		
+		// take the path's basename and add a trailing slash:
+		base.path = base.path.split('/').slice(0, -1).join('/') + '/';
+	}
+	
+	if (typeof(uri) != 'string') {
+		if (uri.scheme === undefined)
+			throw TypeError();
+		uri = Util.Object.clone(uri);
+	} else {
+		uri = Util.URI.parse(uri);
+	}
+	
+	if (!uri.scheme) {
+		uri.scheme = base.scheme;
+	} else if (uri.scheme = 'https') {
+		if (uri.port == 443)
+			uri.port = null;
+		uri.scheme = 'http';
+	}
+	
+	if (!uri.host)
+		uri.host = base.host;
+	
+	if (uri.path.charAt(0) != '/') {
+		uri.path = base.path + uri.path;
+	}
+		
+	if (uri.scheme == 'http' && uri.port == 80)
+		uri.port = null;
+		
+	return uri;
+}
+
+/**
  * Strips leading "https:" or "http:" from a uri, to avoid warnings about
  * mixing https and http. E.g.: https://apps.carleton.edu/asdf ->
  * //apps.carleton.edu/asdf.
  * 
- * @param	uri			the uri
+ * @param	{string}	uri			the uri
  */
-Util.URI.strip_https_and_http = function(uri)
+Util.URI.strip_https_and_http = function strip_https_and_http(uri)
 {
 	return (typeof(uri) == 'string')
 		? uri.replace(new RegExp('^https?:', ''), '')
@@ -206,7 +234,7 @@ Util.URI.strip_https_and_http = function(uri)
  * @param	uri	the URI
  * @return	the domain name or null if an invalid URI was provided
  */
-Util.URI.extract_domain = function(uri)
+Util.URI.extract_domain = function extract_domain_from_uri(uri)
 {
 	var match = Util.URI.uri_pattern.exec(uri);
 	return (!match || !match[4]) ? null : match[4].toLowerCase();
@@ -216,7 +244,7 @@ Util.URI.extract_domain = function(uri)
  * Makes the given URI relative to its domain
  * (i.e. strips the protocol and domain).
  */
-Util.URI.make_domain_relative = function(uri)
+Util.URI.make_domain_relative = function make_uri_domain_relative(uri)
 {
 	return uri.replace(Util.URI.protocol_host_pattern, '');
 }

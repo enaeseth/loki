@@ -90,7 +90,7 @@ Util.Function = {
 var $S = Util.Function.synchronize;
 
 Util.Function.Methods = {
-	bind: function(function_)
+	bind: function bind(function_)
 	{
 		if (arguments.length < 2 && arguments[0] === undefined)
 			return function_;
@@ -101,7 +101,7 @@ Util.Function.Methods = {
 		}
 	},
 	
-	bind_to_event: function(function_)
+	bind_to_event: function bind_to_event(function_)
 	{
 		var args = Util.Array.from(arguments), object = args.shift();
 		return function event_binder(event) {
@@ -109,7 +109,7 @@ Util.Function.Methods = {
 		}
 	},
 	
-	curry: function(function_)
+	curry: function curry(function_)
 	{
 		if (arguments.length <= 1)
 			return function_;
@@ -121,7 +121,7 @@ Util.Function.Methods = {
 		}
 	},
 	
-	dynamic_curry: function(function_)
+	dynamic_curry: function dynamic_curry(function_)
 	{
 		if (arguments.length <= 1)
 			return function_;
@@ -137,7 +137,7 @@ Util.Function.Methods = {
 		}
 	},
 	
-	methodize: function(function_)
+	methodize: function methodize(function_)
 	{
 		if (!function_.methodized) {
 			function_.methodized = function methodized() {
@@ -148,12 +148,12 @@ Util.Function.Methods = {
 		return function_.methodized;
 	},
 	
-	delay: function(function_, delay)
+	delay: function delay(function_, delay)
 	{
 		return Util.Scheduler.delay(function_, delay);
 	},
 	
-	defer: function(function_)
+	defer: function defer(function_)
 	{
 		return Util.Scheduler.defer(function_);
 	}
