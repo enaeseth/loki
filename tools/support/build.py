@@ -85,7 +85,7 @@ def main():
 	
 		def add_recursive(base, logical_base):
 			def acceptable(filename):
-				if filename == '.svn':
+				if filename[0] == '.':
 					return False
 				if not source_build and filename in ('js', 'tools'):
 					return False
