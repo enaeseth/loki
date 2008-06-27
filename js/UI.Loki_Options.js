@@ -101,10 +101,10 @@ UI.Loki_Options.prototype._init_sel = function(pluses, minuses)
 	var i;
 	
 	pluses = (typeof(pluses) == 'string')
-		? [pluses]
+		? pluses.split(/s+/)
 		: pluses || ['default'];
 	minuses = (typeof(minuses) == 'string')
-		? [minuses]
+		? minuses.split(/s+/)
 		: minuses || [];
 
 	this._sel = 0;

@@ -327,9 +327,7 @@ class Loki2
 	function js_regexp_quote($s)
 	{
 		$specials_pat = '/(\/|\.|\*|\+|\?|\||\(|\)|\[|\]|\{|\}|\\\\)/';
-		// first two \\\\ are for one \ each in the ultimate javascript code,
-		// and the ending \1 is a backreference:
-		return preg_replace($specials_pat, '\\\\\\\\\1', $s);
+		return preg_replace($specials_pat, '\\\\\1', $s);
 	}
 
 	/**
