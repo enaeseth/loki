@@ -199,7 +199,6 @@ Util.URI.normalize = function normalize_uri(uri, base)
 	} else if (uri.scheme = 'https') {
 		if (uri.port == 443)
 			uri.port = null;
-		uri.scheme = 'http';
 	}
 	
 	if (!uri.host)
