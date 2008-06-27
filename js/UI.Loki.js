@@ -185,6 +185,8 @@ UI.Loki = function Loki()
 			settings.base_uri = autodetect_base_uri();
 		}
 		
+		UI.Clipboard_Helper._setup(settings.base_uri);
+		
 		_textarea = textarea;
 		_owner_window = window;
 		_owner_document = _textarea.ownerDocument;
@@ -1335,6 +1337,19 @@ UI.Loki = function Loki()
 
 var Loki = {
 	/**
+	 * Converts the given textarea to instances of the Loki WYSIWYG editor.
+	 * @param {HTMLTextAreaElement} area a TEXTAREA element or the ID of one
+	 * @param {object} settings Loki settings
+	 * @see UI.Loki#init
+	 * @see http://code.google.com/p/loki-editor/wiki/Settings
+	 * @returns {void}
+	 */
+	convert_textarea: function loki_convert_textareas(area, settings)
+	{
+		Loki.convert_textareas([area], settings || {});
+	},
+	
+	/**
 	 * Converts the given textareas to instances of the Loki WYSIWYG editor.
 	 * @param {HTMLTextAreaElement[]} areas an array of TEXTAREA elements to
 	 * convert, or the ID's of the elements
@@ -1351,8 +1366,12 @@ var Loki = {
 			if (typeof(areas[i]) == 'string') {
 				area = document.getElementById(areas[i]);
 				if (!area) {
-					throw new Error('No element with the ID of "' +
-						areas[i] + '" exists in the document.');
+					if (Loki._loaded) {
+						throw new Error('No element with the ID of "' +
+							areas[i] + '" exists in the document.');
+					}
+					Loki._pend(areas[i], settings);
+					continue;
 				}
 			} else {
 				area = areas[i];
@@ -1376,9 +1395,45 @@ var Loki = {
 	 */
 	convert_all_textareas: function loki_convert_all_textareas(settings)
 	{
-		UI.Loki.convert_textareas(document.getElementsByTagName("TEXTAREA"),
-			settings || {});
+		if (this._loaded) {
+			Loki.convert_textareas(document.getElementsByTagName("TEXTAREA"),
+				settings || {});
+		} else {
+			Loki._pend(null, settings || {});
+		}
+		
 	},
 	
-	version: "$Rev$"
+	version: "$Rev$",
+	
+	_pending: [],
+	_loaded: false,
+	
+	_pend: function loki_pend_textarea(area, settings) {
+		this._pending.push([area, settings || {}]);
+	},
+	
+	_finish_conversions: function loki_finish_conversions() {
+		var a;
+		
+		if (this._loaded)
+			return false;
+		this._loaded = true;
+		
+		while (a = this._pending.pop()) {
+			if (a[0] == null) {
+				Loki.convert_all_textareas(a[1]);
+				return true;
+			}
+			Loki.convert_textarea(a[0], a[1]);
+		}
+		
+		return true;
+	}
 };
+
+(function loki_wait_for_load() {
+	var done = Loki._finish_conversions.bind(Loki);
+	Util.Event.observe(document, 'DOMContentLoaded', done);
+	Util.Event.observe(window, 'load', done);
+})();
