@@ -23,7 +23,7 @@ UI.Clean = new Object;
  *                                   Util.Block.enforce_rules
  */
 UI.Clean.clean = function(root, settings, live, block_settings)
-{
+{	
 	/**
 	 * Removes the given node from the tree.
 	 */
@@ -231,17 +231,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			try {
 				return Util.Element.is_block_level(wdw, node);
 			} catch (e) {
-				if (typeof(console) == 'object' && console.firebug) {
-					console.error(e);
-					console.warn('Warning: Loki was unable to determine the',
-						'block-level status of', node, 'using',
-						'computed CSS; falling back to tag name.');
-				}
-			}
-		} else {
-			if (typeof(console) == 'object' && console.firebug) {
-				console.warn('Warning: Loki was unable to find the window of',
-					node, '; using tag name to get block-level status.');
+				// try using tag name below
 			}
 		}
 		
