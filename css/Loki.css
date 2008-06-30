@@ -46,6 +46,10 @@
 	width: 16px;
 }
 
+* html .loki .toolbar img {
+	behavior: url("../auxil/pngbehavior.htc");
+}
+
 .loki .toolbar a.hover img    /* use real classes rather than pseudo-classes to accomodate IE */
 {
 	background-color: buttonface;
