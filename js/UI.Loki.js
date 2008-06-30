@@ -852,6 +852,7 @@ UI.Loki = function Loki()
 		
 		var paste_dni; // a DOMNodeInserted event handler has been registered
 		var ni_count = 0;
+		var cleaning = false;
 
 		var paragraph_helper = (new UI.Paragraph_Helper).init(self);
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
@@ -961,7 +962,12 @@ UI.Loki = function Loki()
 				}
 				
 				ni_count = 0;
-				UI.Clean.clean(_body, _settings, true);
+				try {
+					cleaning = true;
+					UI.Clean.clean(_body, _settings, true);
+				} finally {
+					cleaning = false;
+				}
 			}
 			
 			function handle_paste_event(ev)
@@ -987,6 +993,9 @@ UI.Loki = function Loki()
 			
 			function node_inserted(ev)
 			{
+				if (cleaning)
+					return;
+				
 				if (ni_count <= 0) {
 					ni_count = 1;
 					wait_to_cleanup(1);
