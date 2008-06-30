@@ -1201,7 +1201,7 @@ UI.Loki = function Loki()
 
 		// Determine the coordinates at which the menu should be displayed.
 		var frame_pos = Util.Element.get_position(_iframe);
-		var event_pos = Util.Event.get_coordinates(event);
+		var event_pos = {x: event.clientX, y: event.clientY};
 		var root_offset = Util.Element.get_relative_offsets(_owner_window,
 			_root);
 		
