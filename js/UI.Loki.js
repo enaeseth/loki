@@ -881,31 +881,6 @@ UI.Loki = function Loki()
 			}
 		});
 
-		Util.Event.add_event_listener(_document, 'keydown', function(event)
-		{
-			return;
-			/*
-			event = event == null ? _window.event : event;
-			//Util.Fix_Keys.fix_enter_keydown(event, _window);
-			Util.Fix_Keys.tinymce_fix_keyupdown(event, _window);
-
-			// This does fix the display-spacing bug,--but breaks 
-			// the motion keys 
-			//_body.style.display = 'none';
-			//_body.style.display = 'block';
-			*/
-		});
-
-		/* 2006-07-11 commented for testing: not at all sure it should be commented.
-		(Nothing seems to have changed after commenting, so I will leave commented.
-		Util.Event.add_event_listener(_document, 'keyup', function(event) 
-		{
-			event = event == null ? _window.event : event;
-			//Util.Fix_Keys.fix_enter_keyup(event, _window);
-			Util.Fix_Keys.tinymce_fix_keyupdown(event, _window);
-		});
-		*/
-
 		Util.Event.add_event_listener(_document, 'contextmenu', function(event) 
 		{
 			return _show_contextmenu(event || _window.event);
@@ -1018,8 +993,9 @@ UI.Loki = function Loki()
 			try {
 				self.copy_iframe_to_hidden();
 			} catch (ex) {
-				alert("Loki encountered an error and was unable to translate " +
-					"your document into normal HTML.\n\n" + ex);
+				alert("An error occurred that is preventing your document " +
+					"from being safely submitted.\n\nTechnical details:\n" +
+					ex);
 				Util.Event.prevent_default(ev);
 				return false;
 			}

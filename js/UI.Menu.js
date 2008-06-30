@@ -112,7 +112,7 @@ UI.Menu = function()
 			Util.Event.add_event_listener(popup.document, 'click', function() { popup.hide(); });
 
 			// Show the popup
-			popup.show(x, y, width, height);
+			popup.show(x, y, width, height, _loki.owner_document.body);
 		}
 		catch(e)
 		{
@@ -154,10 +154,8 @@ UI.Menu = function()
 			}
 			catch(f)
 			{
-				throw(new Error('UI.Menu.display(): Neither the IE nor the Gecko way of displaying a menu worked. ' +
-								'When the IE way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-								'When the Gecko way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
+				throw new Util.Unsupported_Error("showing a contextual menu");
 			}
 		}
-	};
-};
+	}
+}
