@@ -853,6 +853,46 @@ UI.Loki = function Loki()
 		var paste_dni; // a DOMNodeInserted event handler has been registered
 		var ni_count = 0;
 		var cleaning = false;
+		var node_monitor = {
+			start: 0,
+			length: 0,
+			entries: [],
+			
+			add: function monitor_node(node) {
+				while (this.length - this.start > 30) {
+					delete this.entries[this.start++];
+				}
+				
+				this.entries[this.length++] = {
+					node: node,
+					length: node.nodeValue.length
+				};
+			},
+			
+			find_change: function check_if_a_node_changed() {
+				var e;
+				var found = false;
+				for (var i = this.start; i < this.length; i++) {
+					e = this.entries[i];
+					if (e) {
+						if (e.node.nodeValue.length > e.length) {
+							e.length = e.node.nodeValue.length;
+							found = true;
+						} else if (!found) {
+							delete this.entries[i];
+							this.start = (i + 1);
+						}
+					}
+				}
+				return false;
+			},
+			
+			reset: function reset_node_monitor()
+			{
+				this.start = this.length = 0;
+				this.entries = [];
+			}
+		};
 
 		var paragraph_helper = (new UI.Paragraph_Helper).init(self);
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
@@ -955,13 +995,14 @@ UI.Loki = function Loki()
 			{
 				var c_count = ni_count; // current count
 				
-				if (Util.is_number(last_ni_count) && c_count > last_ni_count) {
+				if (c_count > last_ni_count || node_monitor.find_change()) {
 					// More has happened since we last looked; wait some more.
 					wait_to_cleanup(c_count);
 					return;
 				}
 				
 				ni_count = 0;
+				node_monitor.reset();
 				try {
 					cleaning = true;
 					UI.Clean.clean(_body, _settings, true);
@@ -987,7 +1028,7 @@ UI.Loki = function Loki()
 			function wait_to_cleanup(current_ni_count)
 			{
 				(function call_cleanup_performer() {
-					perform_cleanup(current_ni_count);
+					perform_cleanup(current_ni_count || 0);
 				}).delay(0.15);
 			}
 			
@@ -995,6 +1036,11 @@ UI.Loki = function Loki()
 			{
 				if (cleaning)
 					return;
+					
+				if (ev.target && ev.target.nodeType == Util.Node.TEXT_NODE) {
+					node_monitor.add(ev.target);
+				}
+				
 				
 				if (ni_count <= 0) {
 					ni_count = 1;
