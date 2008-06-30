@@ -850,49 +850,9 @@ UI.Loki = function Loki()
 		var tinyMCE = new TinyMCE();
 		tinyMCE.init(_window, control);
 		
-		var paste_dni; // a DOMNodeInserted event handler has been registered
-		var ni_count = 0;
-		var cleaning = false;
-		var node_monitor = {
-			start: 0,
-			length: 0,
-			entries: [],
-			
-			add: function monitor_node(node) {
-				while (this.length - this.start > 30) {
-					delete this.entries[this.start++];
-				}
-				
-				this.entries[this.length++] = {
-					node: node,
-					length: node.nodeValue.length
-				};
-			},
-			
-			find_change: function check_if_a_node_changed() {
-				var e;
-				var found = false;
-				for (var i = this.start; i < this.length; i++) {
-					e = this.entries[i];
-					if (e) {
-						if (e.node.nodeValue.length > e.length) {
-							e.length = e.node.nodeValue.length;
-							found = true;
-						} else if (!found) {
-							delete this.entries[i];
-							this.start = (i + 1);
-						}
-					}
-				}
-				return false;
-			},
-			
-			reset: function reset_node_monitor()
-			{
-				this.start = this.length = 0;
-				this.entries = [];
-			}
-		};
+		var paste_keyup = false; // a keyup event listener has been registered
+		var mod_key = (Util.Browser.Mac ? 'meta' : 'ctrl') + 'Key';
+		var mod_key_pressed = null;
 
 		var paragraph_helper = (new UI.Paragraph_Helper).init(self);
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
@@ -991,73 +951,64 @@ UI.Loki = function Loki()
 		}
 		
 		if (_settings.options.test('clipboard')) {
-			function perform_cleanup(last_ni_count)
+			function perform_cleanup()
 			{
-				var c_count = ni_count; // current count
-				
-				if (c_count > last_ni_count || node_monitor.find_change()) {
-					// More has happened since we last looked; wait some more.
-					wait_to_cleanup(c_count);
-					return;
-				}
-				
-				ni_count = 0;
-				node_monitor.reset();
-				try {
-					cleaning = true;
-					UI.Clean.clean(_body, _settings, true);
-				} finally {
-					cleaning = false;
-				}
+				UI.Clean.clean(_body, _settings, true);
 			}
 			
 			function handle_paste_event(ev)
 			{
-				if (paste_dni && ev.type == 'paste') {
+				if (paste_keyup && ev.type == 'paste') {
 					// If the browser is capable of generating actual paste
 					// events, then remove the DOMNodeInserted handler.
 					
-					Util.Event.remove_event_handler(_document, 'DOMNodeInserted',
-						node_inserted);
-					paste_dni = false;
+					Util.Event.remove_event_handler(_document, 'keyup',
+						key_raised);
+					paste_keyup = false;
 				}
 				
-				perform_cleanup(null);
+				perform_cleanup();
 			}
 			
-			function wait_to_cleanup(current_ni_count)
-			{
-				(function call_cleanup_performer() {
-					perform_cleanup(current_ni_count || 0);
-				}).delay(0.15);
-			}
+			// Q: Eric, why is there all this code to accomplish the simple task
+			//    of figuring out if the user pressed (Command|Ctrl)+V?
+			// A: Firefox/Mac does not always give us a keydown event for when
+			//    Cmd+V is pressed. We can't simply look for a Cmd+V keyup, as
+			//    it's perfectly acceptable to release the command key before
+			//    the V key, so the V's keyup event may have metaKey set to
+			//    false. Therefore, we look for a Command keydown and store the
+			//    time at which it happened. If we get a keyup for V within 2
+			//    seconds of this, run a cleanup.
 			
-			function node_inserted(ev)
+			function key_pressed(ev)
 			{
-				if (cleaning)
+				if (!paste_keyup)
 					return;
-					
-				if (ev.target && ev.target.nodeType == Util.Node.TEXT_NODE) {
-					node_monitor.add(ev.target);
+				if (ev[mod_key]) {
+					// We might be starting a paste.
+					mod_key_pressed = (new Date()).getTime();
 				}
-				
-				
-				if (ni_count <= 0) {
-					ni_count = 1;
-					wait_to_cleanup(1);
-				} else {
-					ni_count++;
+			}
+			
+			function key_raised(ev)
+			{
+				if (!paste_keyup)
+					return;
+				if (mod_key_pressed && ev.keyCode == 86 /* V */) {
+					if (mod_key_pressed + 2000 >= (new Date()).getTime())
+						perform_cleanup();
+					mod_key_pressed = null;
 				}
 			}
 			
 			Util.Event.observe(_document, 'paste', handle_paste_event);
 			if (Util.Browser.IE) {
 				// We know that we have paste events.
-				paste_dni = false;
+				paste_keyup = false;
 			} else {
-				paste_dni = true;
-				Util.Event.observe(_document, 'DOMNodeInserted',
-					node_inserted);
+				paste_keyup = true;
+				Util.Event.observe(_document, 'keydown', key_pressed);
+				Util.Event.observe(_document, 'keyup', key_raised);
 			}
 			
 		}
