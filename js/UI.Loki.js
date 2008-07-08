@@ -387,7 +387,7 @@ UI.Loki = function Loki()
 
 			function create_button()
 			{
-				var button = _owner_document.createElement('A');
+				var button = _owner_document.createElement('A'), img, img_src;
 				button.href = 'javascript:void(0);';
 
 				Util.Event.add_event_listener(button, 'mouseover', function() { Util.Element.add_class(button, 'hover'); });
@@ -396,28 +396,26 @@ UI.Loki = function Loki()
 				Util.Event.add_event_listener(button, 'mouseup', function() { Util.Element.remove_class(button, 'active'); });
 				Util.Event.add_event_listener(button, 'click', function() { b.click_listener(); });
 
-				// make the button appear depressed whenever the current selection is in a relevant (bold, heading, etc) region
-				if ( b.state_querier != null )
-				{
-					_state_change_listeners.push( 
-						function()
-						{
-							if ( b.state_querier() &&	(Util.Element.get_all_classes(button)).indexOf('active') == -1 ) 
-								Util.Element.add_class(button, 'active' /*'selected'*/);
-							else
-								if ( !b.state_querier() && (Util.Element.get_all_classes(button)).indexOf('active') > -1 )
-									Util.Element.remove_class(button, 'active' /*'selected'*/);
-						}
-					);
+				img_src = _settings.base_uri + 'images/toolbar/' + b.image;
+
+				// Apply PNG fix.
+				if (Util.Browser.IE && /MSIE 6/.test(navigator.userAgent)) {
+					button.title = b.title;
+					img = _owner_document.createElement('SPAN');
+					img_src = Util.URI.build(Util.URI.normalize(img_src));
+					img.style.filter = "progid:" +
+						"DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+					    img_src + "', sizingMethod='image')";
+					img.setAttribute('unselectable', 'on');
+				} else {
+					img = _owner_document.createElement('IMG');
+					img.src = img_src;
+					img.title = b.title;
+					img.border = 0;
+					img.setAttribute('unselectable', 'on')
 				}
-
-				var img = _owner_document.createElement('IMG');
-				img.src = _settings.base_uri + 'images/toolbar/' + b.image;
-				img.title = b.title;
-				img.border = 0;
-				img.setAttribute('unselectable', 'on');
+				
 				button.appendChild(img);
-
 				return button;
 			};
 
