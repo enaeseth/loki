@@ -875,6 +875,16 @@ Util.Range.compare_boundary_points =
 	}
 };
 
+Util.Range.select_node = function range_select_node(rng, node)
+{
+	if (rng.selectNode) {
+		rng.selectNode(node);
+	} else {
+		Util.Range.set_start_before(rng, node);
+		Util.Range.set_start_after(rng, node);
+	}
+};
+
 /**
  * A good explanation of what this does from <http://www.dotvoid.com/view.php?id=11>:
  * 
