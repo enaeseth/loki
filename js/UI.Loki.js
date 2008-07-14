@@ -434,7 +434,7 @@ UI.Loki = function Loki()
 			pre: [UI.Pre_Button],
 			linebreak: [UI.BR_Button],
 			hrule: [UI.HR_Button],
-			clipboard: [UI.Copy_Button, UI.Cut_Button, UI.Paste_Button],
+			clipboard: [UI.Cut_Button, UI.Copy_Button, UI.Paste_Button],
 			// align: [UI.Left_Align_Button, UI.Center_Align_Button, UI.Right_Align_Button],
 			highlight: [UI.Highlight_Button],
 			blockquote: [UI.Blockquote_Button],
