@@ -71,7 +71,7 @@ Util.URI.parse = function parse_uri(uri)
 		password: get_match(authority_match, 4),
 		host: get_match(authority_match, 5),
 		port: (port ? Number(port) : port),
-		path: get_match(match, 5),
+		path: get_match(match, 5) || '/',
 		query: get_match(match, 7),
 		fragment: get_match(match, 9)
 	};
@@ -204,7 +204,7 @@ Util.URI.normalize = function normalize_uri(uri, base)
 	if (!uri.host)
 		uri.host = base.host;
 	
-	if (uri.path.charAt(0) != '/') {
+	if (uri.path.charAt(0) != '/' && uri.host == base.host) {
 		uri.path = base.path + uri.path;
 	}
 		
