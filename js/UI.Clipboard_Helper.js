@@ -26,7 +26,7 @@ UI.Clipboard_Helper = function ClipboardHelper()
 		self._loki.focus();
 	};
 
-	this.copy = function clipboard_copy(command)
+	this.copy = function clipboard_copy(command, accel)
 	{
 		// Get the HTML to copy
 		var sel = Util.Selection.get_selection(self._loki.window);
