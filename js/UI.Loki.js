@@ -24,6 +24,7 @@ UI.Loki = function Loki()
 	var _hidden;             // |--- hidden (input)
 
 	var _settings;
+	var _options;
 	var _use_p_hack;
 	var _state_change_listeners = [];
 	var _masseuses = [];
@@ -149,13 +150,29 @@ UI.Loki = function Loki()
 		_root.replaceChild(_toolbar, old_toolbar);
 		_window.focus();
 	};
+	
+	function enumerate_options(property) {
+		var key, results = [];
+		
+		if (_options) {
+			for (key in _options) {
+				if (!property)
+					results.append(_options[key]);
+				else if (_options[key][property])
+					results.append(_options[key][property]);
+			}
+		}
+		
+		return results;
+	}
 
 
 	/**
 	 * Initializes instance variables.
 	 *
 	 * @param {HTMLTextAreaElement} textarea the textarea to replace with Loki
-	 * @param {object} settings Loki settings
+	 * @param {Object} settings Loki settings
+	 * @returns {UI.Loki} this Loki instance
 	 * @see http://code.google.com/p/loki-editor/wiki/Settings
 	 */
 	this.init = function init_loki(textarea, settings)
@@ -166,28 +183,24 @@ UI.Loki = function Loki()
 				'your browser.');
 		}
 		
-		_settings = settings;
+		_settings = (settings) ? Util.Object.clone(settings) : {};
+		self.options = _options = UI.Loki.Options.get(_settings.options || 'default');
+		_settings.options = _options;
 		
-		// Clean up the settings, if necessary.
-		if (!settings.options)
-			settings.options = 'default';
-		if (Util.is_string(settings.options) || !settings.options.test) {
-			settings.options = (new UI.Loki_Options).init(settings.options, '');
-		}
 		['site', 'type'].each(function cleanup_default_regexp(which) {
 			var setting = 'default_' + which + '_regexp';
-			if (!settings[setting])
+			if (!_settings[setting])
 				return;
-			if (!(settings[setting].exec && settings[setting].test)) {
-				settings[setting] = new RegExp(settings[setting]);
+			if (!(_settings[setting].exec && _settings[setting].test)) {
+				_settings[setting] = new RegExp(_settings[setting]);
 			}
 		});
 		
-		if (!settings.base_uri) {
-			settings.base_uri = autodetect_base_uri();
+		if (!_settings.base_uri) {
+			_settings.base_uri = autodetect_base_uri();
 		}
 		
-		UI.Clipboard_Helper._setup(settings.base_uri);
+		UI.Clipboard_Helper._setup(_settings.base_uri);
 		
 		_textarea = textarea;
 		_owner_window = window;
@@ -199,7 +212,7 @@ UI.Loki = function Loki()
 		_create_root();
 		_create_toolbars();
 		_create_iframe();
-		if ( _settings.options.test('statusbar') )
+		if ( _options.statusbar )
 			_create_statusbar();
 		_create_grippy();
 		_create_hidden();
@@ -207,7 +220,7 @@ UI.Loki = function Loki()
 		// And append them to root
 		_root.appendChild( _toolbar );
 		_root.appendChild( _iframe_wrapper );
-		if ( _settings.options.test('statusbar') )
+		if ( _options.statusbar )
 			_root.appendChild( _statusbar );
 		_root.appendChild( _grippy_wrapper );
 		_root.appendChild( _hidden );
@@ -317,6 +330,7 @@ UI.Loki = function Loki()
 			_make_document_editable();
 
 			// Add certain event listeners to the document and elsewhere
+			_add_double_click_listeners();
 			_add_document_listeners();
 			_add_state_change_listeners();
 			_add_grippy_listeners();
@@ -380,7 +394,7 @@ UI.Loki = function Loki()
 		Util.Element.add_class(_textarea_toolbar, 'toolbar');
 
 		// Function to add a button to a the toolbars
-		var add_button = function(button_class)
+		function add_button(button_class)
 		{
 			var b = new button_class();
 			b.init(self);
@@ -425,36 +439,7 @@ UI.Loki = function Loki()
 		};
 
 		// Add each button to the toolbars
-		
-		var button_map = {
-			strong: [UI.Bold_Button],
-			em: [UI.Italic_Button],
-			underline: [UI.Underline_Button],
-			headline: [UI.Headline_Button],
-			pre: [UI.Pre_Button],
-			linebreak: [UI.BR_Button],
-			hrule: [UI.HR_Button],
-			clipboard: [UI.Cut_Button, UI.Copy_Button, UI.Paste_Button],
-			// align: [UI.Left_Align_Button, UI.Center_Align_Button, UI.Right_Align_Button],
-			highlight: [UI.Highlight_Button],
-			blockquote: [UI.Blockquote_Button],
-			olist: [UI.OL_Button],
-			ulist: [UI.UL_Button],
-			indenttext: [UI.Indent_Button, UI.Outdent_Button],
-			findtext: [UI.Find_Button],
-			table: [UI.Table_Button],
-			image: [UI.Image_Button],
-			link: [UI.Page_Link_Button],
-			anchor: [UI.Anchor_Button],
-			cleanup: [UI.Clean_Button],
-			source: [UI.Source_Button, UI.Raw_Source_Button]
-		};
-		
-		for (var s in button_map) {
-			if (_settings.options.test(s)) {
-				Util.Array.for_each(button_map[s], add_button);
-			}
-		}
+		enumerate_options('buttons').each(add_button);
 	};
 
 	/**
@@ -537,7 +522,7 @@ UI.Loki = function Loki()
 			Util.Event.add_event_listener(_document, 'mousemove', resize);
 			Util.Event.add_event_listener(_document, 'mouseup', stop_resize);
 
-			if ( !document.all ) // XXX bad
+			if ( !Util.Browser.IE ) // XXX bad
 				_owner_document.documentElement.appendChild(resize_mask);
 
 			return Util.Event.prevent_default(event);
@@ -551,7 +536,7 @@ UI.Loki = function Loki()
 		{
 			event = event == null ? window.event : event;
 
-			if ( !document.all ) // XXX bad
+			if ( !Util.Browser.IE ) // XXX bad
 				_owner_document.documentElement.removeChild(resize_mask);
 
 			var coords = determine_coords(event);
@@ -778,20 +763,12 @@ UI.Loki = function Loki()
 	{
 		function add_masseuse(masseuse_class)
 		{
-			var masseuse = new masseuse_class;
+			var masseuse = new masseuse_class();
 			masseuse.init(self);
 			_masseuses.push(masseuse);
-		};
-
-		// innerHTML masseuses must go first, ...
-		if ( _settings.options.test('table') ) add_masseuse(UI.Table_Masseuse);
-		// ... before any add_event_listener masseuses
-		if ( _settings.options.test('anchor') ) add_masseuse(UI.Anchor_Masseuse);
-		if ( _settings.options.test('olist') || _settings.options.test('ulist') ) add_masseuse(UI.UL_OL_Masseuse);
-		if ( _settings.options.test('image') ) add_masseuse(UI.Image_Masseuse);
-		if ( _settings.options.test('hrule') ) add_masseuse(UI.HR_Masseuse);
-		add_masseuse(UI.Italic_Masseuse);
-		add_masseuse(UI.Bold_Masseuse);
+		}
+		
+		enumerate_options('masseuses').each(add_masseuse);
 	};
 
 	/**
@@ -835,6 +812,18 @@ UI.Loki = function Loki()
 			_masseuses[i].unmassage_node_descendants(node);
 		}
 	};
+	
+	function _add_double_click_listeners()
+	{
+		function add(listener_class) {
+			var listener = (new listener_class()).init(self);
+			Util.Event.observe(_body, 'dblclick', function(ev) {
+				listener.double_click(ev);
+			});
+		}
+		
+		enumerate_options('double_click_listeners').each(add);
+	}
 
 	/**
 	 * Add certain event listeners to the document, e.g. to listen to
@@ -862,7 +851,7 @@ UI.Loki = function Loki()
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
 		{
 			event = event == null ? _window.event : event;
-			if ( !_document.all ) // XXX bad
+			if ( !Util.Browser.IE ) // XXX bad
 			{
 				Util.Fix_Keys.fix_delete_and_backspace(event, _window);
 				tinyMCE.handleEvent(event);
@@ -873,7 +862,7 @@ UI.Loki = function Loki()
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
 		{
 			event = event == null ? _window.event : event;
-			if ( _document.all ) // XXX bad
+			if ( Util.Browser.IE ) // XXX bad
 			{
 				return Util.Fix_Keys.fix_enter_ie(event, _window, self);
 			}
@@ -884,108 +873,73 @@ UI.Loki = function Loki()
 			return _show_contextmenu(event || _window.event);
 		});
 
-		// XXX: perhaps you should put these two in classes similar to UI.Keybinding
-		if ( _settings.options.test('link') )
-		{
-			var link_helper = (new UI.Link_Helper).init(self);
-			Util.Event.add_event_listener(_body, 'dblclick', function(event)
-			{
-				if ( link_helper.is_selected() )
-					link_helper.open_page_link_dialog();
-			});
-		}
-
-		if ( _settings.options.test('anchor') )
-		{
-			var anchor_helper = (new UI.Anchor_Helper).init(self);
-			Util.Event.add_event_listener(_body, 'dblclick', function(event)
-			{
-				if ( anchor_helper.is_selected() )
-					anchor_helper.open_dialog();
-			});
-		}
-
-		if ( _settings.options.test('image') )
-		{
-			var image_helper = (new UI.Image_Helper).init(self);
-			Util.Event.add_event_listener(_body, 'dblclick', function(event)
-			{
-				if ( image_helper.is_selected() )
-					image_helper.open_dialog();
-			});
-		}
-
-
-		if ( _settings.options.test('statusbar') )
+		if ( _options.statusbar )
 		{
 			Util.Event.add_event_listener(_document, 'keyup', function() { _update_statusbar(); });
 			Util.Event.add_event_listener(_document, 'click', function() { _update_statusbar(); });
 			Util.Event.add_event_listener(_toolbar, 'click', function() { _update_statusbar(); });
 		}
 		
-		if (_settings.options.test('clipboard')) {
-			function perform_cleanup()
-			{
-				_unmassage_body();
-				UI.Clean.clean(_body, _settings, true);
-				_massage_body();
-			}
-			
-			function handle_paste_event(ev)
-			{
-				if (paste_keyup && ev.type == 'paste') {
-					// If the browser is capable of generating actual paste
-					// events, then remove the DOMNodeInserted handler.
-					
-					Util.Event.remove_event_handler(_document, 'keyup',
-						key_raised);
-					paste_keyup = false;
-				}
+		function perform_cleanup()
+		{
+			_unmassage_body();
+			UI.Clean.clean(_body, _settings, true);
+			_massage_body();
+		}
+		
+		function handle_paste_event(ev)
+		{
+			if (paste_keyup && ev.type == 'paste') {
+				// If the browser is capable of generating actual paste
+				// events, then remove the DOMNodeInserted handler.
 				
-				perform_cleanup();
-			}
-			
-			// Q: Eric, why is there all this code to accomplish the simple task
-			//    of figuring out if the user pressed (Command|Ctrl)+V?
-			// A: Firefox/Mac does not always give us a keydown event for when
-			//    Cmd+V is pressed. We can't simply look for a Cmd+V keyup, as
-			//    it's perfectly acceptable to release the command key before
-			//    the V key, so the V's keyup event may have metaKey set to
-			//    false. Therefore, we look for a Command keydown and store the
-			//    time at which it happened. If we get a keyup for V within 2
-			//    seconds of this, run a cleanup.
-			
-			function key_pressed(ev)
-			{
-				if (!paste_keyup)
-					return;
-				if (ev[mod_key]) {
-					// We might be starting a paste.
-					mod_key_pressed = (new Date()).getTime();
-				}
-			}
-			
-			function key_raised(ev)
-			{
-				if (!paste_keyup)
-					return;
-				if (mod_key_pressed && ev.keyCode == 86 /* V */) {
-					if (mod_key_pressed + 2000 >= (new Date()).getTime())
-						perform_cleanup();
-					mod_key_pressed = null;
-				}
-			}
-			
-			Util.Event.observe(_document, 'paste', handle_paste_event);
-			if (Util.Browser.IE) {
-				// We know that we have paste events.
+				Util.Event.remove_event_handler(_document, 'keyup',
+					key_raised);
 				paste_keyup = false;
-			} else {
-				paste_keyup = true;
-				Util.Event.observe(_document, 'keydown', key_pressed);
-				Util.Event.observe(_document, 'keyup', key_raised);
 			}
 			
+			perform_cleanup();
+		}
+		
+		// Q: Eric, why is there all this code to accomplish the simple task
+		//    of figuring out if the user pressed (Command|Ctrl)+V?
+		// A: Firefox/Mac does not always give us a keydown event for when
+		//    Cmd+V is pressed. We can't simply look for a Cmd+V keyup, as
+		//    it's perfectly acceptable to release the command key before
+		//    the V key, so the V's keyup event may have metaKey set to
+		//    false. Therefore, we look for a Command keydown and store the
+		//    time at which it happened. If we get a keyup for V within 2
+		//    seconds of this, run a cleanup.
+		
+		function key_pressed(ev)
+		{
+			if (!paste_keyup)
+				return;
+			if (ev[mod_key]) {
+				// We might be starting a paste.
+				mod_key_pressed = (new Date()).getTime();
+			}
+		}
+		
+		function key_raised(ev)
+		{
+			if (!paste_keyup)
+				return;
+			if (mod_key_pressed && ev.keyCode == 86 /* V */) {
+				if (mod_key_pressed + 2000 >= (new Date()).getTime())
+					perform_cleanup();
+				mod_key_pressed = null;
+			}
+		}
+		
+		Util.Event.observe(_document, 'paste', handle_paste_event);
+		if (Util.Browser.IE) {
+			// We know that we have paste events.
+			paste_keyup = false;
+		} else {
+			paste_keyup = true;
+			Util.Event.observe(_document, 'keydown', key_pressed);
+			Util.Event.observe(_document, 'keyup', key_raised);
 		}
 		
 		function submit_handler(ev)
@@ -1095,25 +1049,13 @@ UI.Loki = function Loki()
 			return true; // bubble
 		};
 
-		if ( _settings.options.test('strong') ) add_keybinding(UI.Bold_Keybinding); // Ctrl-B
-		if ( _settings.options.test('em') ) add_keybinding(UI.Italic_Keybinding); // Ctrl-I
-		if ( _settings.options.test('underline') ) add_keybinding(UI.Underline_Keybinding); // Ctrl-U
-		if ( _settings.options.test('clipboard') ) add_keybinding(UI.Cut_Keybinding); // Ctrl-X
-		if ( _settings.options.test('clipboard') ) add_keybinding(UI.Copy_Keybinding); // Ctrl-C
-		if ( _settings.options.test('clipboard') ) add_keybinding(UI.Paste_Keybinding); // Ctrl-V
-		if ( _settings.options.test('align') ) add_keybinding(UI.Left_Align_Keybinding); // Ctrl-L
-		if ( _settings.options.test('align') ) add_keybinding(UI.Center_Align_Keybinding); // Ctrl-E
-		if ( _settings.options.test('align') ) add_keybinding(UI.Right_Align_Keybinding); // Ctrl-R
-		if ( _settings.options.test('findtext') ) add_keybinding(UI.Find_Keybinding); // Ctrl-F (H?)
-		if ( _settings.options.test('link') ) add_keybinding(UI.Page_Link_Keybinding); // Ctrl-K
-		//if ( _settings.options.test('source') ) add_keybinding(UI.Source_Keybinding);
-		if ( _settings.options.test('spell') ) add_keybinding(UI.Spell_Keybinding); // F7
+		enumerate_options('keybindings').each(add_keybinding);
 		add_keybinding(UI.Delete_Element_Keybinding); // Delete image, anchor, HR, or table when selected
 		add_keybinding(UI.Tab_Keybinding); // Tab
 
 		// We need to listen for different key events for IE and Gecko,
 		// because their default actions are on different events.
-		if ( document.all ) // IE // XXX: hack
+		if ( Util.Browser.IE ) // IE // XXX: hack
 		{
 			Util.Event.add_event_listener(_document, 'keydown', function(event) 
 			{ 
@@ -1145,17 +1087,9 @@ UI.Loki = function Loki()
 		{
 			var menugroup = (new menugroup_class).init(self);
 			_menugroups.push(menugroup);
-		};
-
-		if ( _settings.options.test('headline') ) add_menugroup(UI.Headline_Menugroup);
-		if ( _settings.options.test('image') ) add_menugroup(UI.Image_Menugroup);
-		if ( _settings.options.test('anchor') ) add_menugroup(UI.Anchor_Menugroup);
-		if ( _settings.options.test('link') ) add_menugroup(UI.Link_Menugroup);
-		if ( _settings.options.test('table') ) add_menugroup(UI.Table_Menugroup);
-		if ( _settings.options.test('align') ) add_menugroup(UI.Align_Menugroup);
-		// This doesn't work properly right now:
-		//if ( _settings.options.test('highlight') ) add_menugroup(UI.Highlight_Menugroup);
-		if ( _settings.options.test('clipboard') ) add_menugroup(UI.Clipboard_Menugroup);
+		}
+		
+		enumerate_options('menugroups').each(add_menugroup);
 	};
 
 	/**
@@ -1315,9 +1249,105 @@ UI.Loki = function Loki()
 	};
 };
 
+UI.Loki.Options = new Util.Chooser();
+UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
+	this.add('strong', {
+		buttons: [UI.Bold_Button],
+		masseuses: [UI.Bold_Masseuse],
+		keybindings: [UI.Bold_Keybinding]
+	});
+	this.add('em', {
+		buttons: [UI.Italic_Button],
+		masseuses: [UI.Italic_Masseuse],
+		keybindings: [UI.Italic_Keybinding]
+	});
+	this.add('underline', {
+		buttons: [UI.Underline_Button],
+		keybindings: [UI.Underline_Keybinding]
+	});
+	this.add('headline', {
+		buttons: [UI.Headline_Button],
+		menugroups: [UI.Headline_Menugroup],
+		keybindings: []
+	});
+	this.add('pre', {
+		buttons: [UI.Pre_Button]
+	});
+	this.add('br', {
+		buttons: [UI.BR_Button]
+	});
+	this.add('hr', {
+		buttons: [UI.HR_Button]
+	});
+	this.add('clipboard', {
+		buttons: [UI.Cut_Button, UI.Copy_Button, UI.Paste_Button],
+		menugroups: [UI.Clipboard_Menugroup],
+		keybindings: [UI.Cut_Keybinding, UI.Copy_Keybinding, UI.Paste_Keybinding]
+	});
+	this.add('highlight', {
+		buttons: [UI.Highlight_Button]
+	});
+	this.add('align', {
+		// buttons: [UI.Left_Align_Button, UI.Center_Align_Button, UI.Right_Align_Button],
+		menugroups: [UI.Align_Menugroup],
+		keybindings: [UI.Left_Align_Keybinding, UI.Center_Align_Keybinding, UI.Right_Align_Keybinding]
+	});
+	this.add('blockquote', {
+		buttons: [UI.Blockquote_Button]
+	});
+	this.add('list', {
+		buttons: [UI.OL_Button, UI.UL_Button, UI.Indent_Button, UI.Outdent_Button],
+		masseuses: [UI.UL_OL_Masseuse]
+	});
+	this.add('find', {
+		buttons: [UI.Find_Button],
+		keybindings: [UI.Find_Keybinding]
+	});
+	this.add('table', {
+		buttons: [UI.Table_Button],
+		masseuses: [UI.Table_Masseuse],
+		menugroups: [UI.Table_Menugroup]
+	});
+	this.add('image', {
+		buttons: [UI.Image_Button],
+		masseuses: [UI.Image_Masseuse],
+		double_click_listeners: [UI.Image_Double_Click]
+	});
+	this.add('link', {
+		buttons: [UI.Page_Link_Button],
+		menugroups: [UI.Link_Menugroup],
+		keybindings: [UI.Page_Link_Keybinding],
+		double_click_listeners: [UI.Link_Double_Click]
+	});
+	this.add('anchor', {
+		buttons: [UI.Anchor_Button],
+		masseuses: [UI.Anchor_Masseuse],
+		menugroups: [UI.Anchor_Menugroup],
+		double_click_listeners: [UI.Anchor_Double_Click]
+	});
+	this.add('cleanup', {
+		buttons: [UI.Clean_Button]
+	});
+	this.add('source', {
+		buttons: [UI.Source_Button]
+	});
+	this.add('debug', {
+		buttons: [UI.Raw_Source_Button]
+	});
+	//this.add('statusbar', true);
+	
+	this.put_set('default', ['strong', 'em', 'headline', 'br', 'hr',
+		'clipboard', 'highlight', 'align', 'blockquote', 'list',
+		'find', 'image', 'link', 'cleanup']);
+	this.put_set('power', ['strong', 'em', 'headline', 'br', 'hr',
+		'clipboard', 'highlight', 'align', 'blockquote', 'list',
+		'find', 'table', 'image', 'link', 'anchor', 'cleanup', 'source']);
+	this.put_set('developer', ['power', 'debug']);
+};
+
 var Loki = {
 	/**
-	 * Converts the given textarea to instances of the Loki WYSIWYG editor.
+	 * Converts the given textarea to an instance of the Loki WYSIWYG editor.
 	 * @param {HTMLTextAreaElement} area a TEXTAREA element or the ID of one
 	 * @param {object} [settings] Loki settings
 	 * @param {function} [callback] a function that will be called when the

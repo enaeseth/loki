@@ -35,7 +35,10 @@ Util.Chooser = function Chooser()
 			'+': function(name) {
 				if (name in self.sets) {
 					self.sets[name].each(function (name) {
-						working[name] = self.items[name];
+						if (name in self.sets)
+							Util.OOP.mixin(working, self.get(name));
+						else
+							working[name] = self.items[name];
 					});
 				} else if (name in self.items) {
 					working[name] = self.items[name];
@@ -47,7 +50,14 @@ Util.Chooser = function Chooser()
 			'-': function(name) {
 				if (name in self.sets) {
 					self.sets[name].each(function (name) {
-						delete working[name];
+						var k;
+						if (name in self.sets) {
+							for (k in self.get(name)) {
+								delete working[k];
+							}
+						} else {
+							delete working[name];
+						}
 					});
 				} else if (name in self.items) {
 					delete working[name];

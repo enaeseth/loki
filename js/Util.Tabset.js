@@ -148,8 +148,6 @@ Util.Tabset = function(params)
 		// Fire listeners
 		for ( var i = 0; i < _select_listeners.length; i++ )
 			_select_listeners[i](old_name, _name_of_selected_tab);
-
-		//mcTabs.display_tab(_tabs[name].tab_id, _tabs[name].tabpanel_id);
 	};
 
 	/**
