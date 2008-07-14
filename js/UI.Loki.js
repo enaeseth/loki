@@ -926,7 +926,9 @@ UI.Loki = function Loki()
 		if (_settings.options.test('clipboard')) {
 			function perform_cleanup()
 			{
+				_unmassage_body();
 				UI.Clean.clean(_body, _settings, true);
+				_massage_body();
 			}
 			
 			function handle_paste_event(ev)
@@ -1277,15 +1279,11 @@ UI.Loki = function Loki()
 	 */
 	this.toggle_block = function(tag)
 	{
-		if ( _query_command_value('FormatBlock') != tag )
-		{
-			_exec_command('FormatBlock', false, '<' + tag + '>');
-		}
-		else
-		{
-			_exec_command('FormatBlock', false, '<p>');
-		}
-
+		var tag_string = (_query_command_value('FormatBlock') != tag)
+			? '<' + tag + '>'
+			: '<p>';
+		
+		_exec_command('FormatBlock', false, tag_string);
 		_window.focus();
 	};
 

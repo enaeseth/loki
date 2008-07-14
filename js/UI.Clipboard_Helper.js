@@ -19,14 +19,14 @@ UI.Clipboard_Helper = function ClipboardHelper()
 
 	this.cut = function clipboard_cut()
 	{
-		self.copy();
+		self.copy('Cut', 'X');
 		var sel = Util.Selection.get_selection(self._loki.window);
 		var rng = Util.Range.create_range(sel);
 		Util.Range.delete_contents(rng);
 		self._loki.focus();
 	};
 
-	this.copy = function clipboard_copy()
+	this.copy = function clipboard_copy(command)
 	{
 		// Get the HTML to copy
 		var sel = Util.Selection.get_selection(self._loki.window);
@@ -64,7 +64,7 @@ UI.Clipboard_Helper = function ClipboardHelper()
 			try
 			{
 			*/
-				_gecko_copy(html);
+				_gecko_copy(html, command || 'Copy', accel || 'C');
 			/*
 			}
 			catch(f)
@@ -155,18 +155,23 @@ UI.Clipboard_Helper = function ClipboardHelper()
 		UI.Messenger.display_once_per_duration('gecko clipboard warning',
 			message, 45);
 	}
-
-	function _gecko_copy(html)
+	
+	function _verify_gecko_clipboard(command, accel)
 	{
-		try
-		{
-			_show_gecko_privileges_warning();
-			self._loki.owner_window.GeckoClipboard.set(html);
+		var key;
+		if (!self._loki.owner_window.GeckoClipboard) {
+			key = ((Util.Browser.Mac) ? '⌘' : 'Ctrl-') + accel;
+			alert('Unable to access your system\'s clipboard. Please choose ' +
+				command + ' from the Edit menu, or press ' + key + '.');
+			throw new Util.Unsupported_Error('programmatic clipboard access');
 		}
-		catch(e)
-		{
-			throw("UI.Clipboard_Helper: couldn't copy in _gecko_copy, because <<" + e + ">>.");
-		}
+	}
+
+	function _gecko_copy(html, command, accel)
+	{
+		_verify_gecko_clipboard(command, accel);
+		_show_gecko_privileges_warning();
+		self._loki.owner_window.GeckoClipboard.set(html);
 	};
 
 	function _ie_copy(html)
@@ -194,45 +199,39 @@ UI.Clipboard_Helper = function ClipboardHelper()
 
 	function _gecko_paste()
 	{
-		try
-		{
-			_show_gecko_privileges_warning();
-			var data = self._loki.owner_window.GeckoClipboard.get();
-			
-			var html = (data.type == 'text/html')
-				? data.value
-				: data.value.replace(/\r?\n/g, "<br />\n");
+		_verify_gecko_clipboard('Paste', 'V');
+		_show_gecko_privileges_warning();
+		var data = self._loki.owner_window.GeckoClipboard.get();
+		
+		var html = (data.type == 'text/html')
+			? data.value
+			: data.value.replace(/\r?\n/g, "<br />\n");
 
-			// Massage and clean HTML
-			var container = self._loki.document.createElement('DIV');
-			container.innerHTML = html;
-			// See UI.Clipboard_helper.copy() for the override rationale.
-			UI.Clean.clean(container, self._loki.settings, false, {
-				overrides: {DIV: Util.Block.BLOCK}
-			});
-			self._loki.massage_node_descendants(container);
-			html = container.innerHTML;
+		// Massage and clean HTML
+		var container = self._loki.document.createElement('DIV');
+		container.innerHTML = html;
+		// See UI.Clipboard_helper.copy() for the override rationale.
+		UI.Clean.clean(container, self._loki.settings, false, {
+			overrides: {DIV: Util.Block.BLOCK}
+		});
+		self._loki.massage_node_descendants(container);
+		html = container.innerHTML;
 
-			// Get selection and range
-			var sel = Util.Selection.get_selection(self._loki.window);
-			var rng = Util.Range.create_range(sel);
+		// Get selection and range
+		var sel = Util.Selection.get_selection(self._loki.window);
+		var rng = Util.Range.create_range(sel);
 
-			// Paste into temporary container
-			container = rng.startContainer.ownerDocument.createElement('DIV');
-			container.innerHTML = html;
+		// Paste into temporary container
+		container = rng.startContainer.ownerDocument.createElement('DIV');
+		container.innerHTML = html;
 
-			// Copy into document fragment
-			var frag = rng.startContainer.ownerDocument.createDocumentFragment();
-			for ( var i = 0; i < container.childNodes.length; i++ )
-				frag.appendChild(container.childNodes[i].cloneNode(true));
+		// Copy into document fragment
+		var frag = rng.startContainer.ownerDocument.createDocumentFragment();
+		for ( var i = 0; i < container.childNodes.length; i++ )
+			frag.appendChild(container.childNodes[i].cloneNode(true));
 
-			// Paste the document fragment
-			Util.Selection.paste_node(sel, frag);
-		}
-		catch(e)
-		{
-			throw("UI.Clipboard_Helper: couldn't paste in _gecko_paste, because <<" + e + ">>.");
-		}
+		// Paste the document fragment
+		Util.Selection.paste_node(sel, frag);
 	};
 
 	function _ie_paste()
