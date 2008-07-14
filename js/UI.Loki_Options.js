@@ -90,10 +90,6 @@ UI.Loki_Options.prototype._init_all = function()
 	this._all.all_minus_pre = this._all.all & ~this._all.pre;
 	this._all.notables = this._all.all_minus_pre & ~this._all.table;
 	this._all.notables_plus_pre = this._all.notables | this._all.pre;
-
-	this._all.wellstone = this._all["default"] | this._all.lists | this._all.align | this._all.headline | this._all.indenttext | this._all.findtext;
-	this._all.ocs = this._all["default"] | this._all.lists | this._all.align | this._all.headline | this._all.indenttext | this._all.findtext | this._all.table;
-	this._all.commencement = this._all["default"] | this._all.lists | this._all.align | this._all.headline | this._all.indenttext | this._all.findtext | this._all.table;
 };
 
 UI.Loki_Options.prototype._init_sel = function(pluses, minuses)

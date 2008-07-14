@@ -336,7 +336,7 @@ class Loki2
 	 */
 	function get_field_value()
 	{ 
-		return $this->_field_value; 
+		return $this->_field_value;
 	}
 
 	/**
