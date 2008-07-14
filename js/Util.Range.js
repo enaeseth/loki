@@ -173,7 +173,7 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 					
 					// Found it! It's an element!
 					return {
-						node: parent,
+						container: parent,
 						offset: Util.Node.get_offset(child)
 					}
 				} else if (child.nodeType != Util.Node.TEXT_NODE) {
@@ -191,7 +191,7 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 				
 				// Found it!
 				return {
-					node: child,
+					container: child,
 					offset: offset - travelled
 				};
 			}
