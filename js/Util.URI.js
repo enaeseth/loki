@@ -184,7 +184,7 @@ Util.URI.normalize = function normalize_uri(uri, base)
 		base = Util.URI.parse(base);
 	} else {
 		if (!base)
-			base = Util.URI.parse(window.location);
+			base = Util.URI.parse((window.top || window).location);
 		else if (Util.is_object(base))
 			base = Util.Object.clone(base);
 		else if (typeof(base) != 'object' || typeof(base.path) == 'undefined')
