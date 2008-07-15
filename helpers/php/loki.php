@@ -268,7 +268,7 @@ class Loki2
 					$path = $this->_asset_path.'loki.js';
 				}
 
-				echo '<script type="text/javascript" language="javascript" src="'.$path.'">',
+				echo '<script type="text/javascript" charset="utf-8" language="javascript" src="'.$path.'">',
 					"</script>\n";
 			} else if ($mode == 'debug') {
 				$files = $this->_get_js_files();
@@ -286,7 +286,7 @@ class Loki2
 						'helpers/php/loki_editor_scripts.php';
 				}
 				
-				echo '<script type="text/javascript" src="'.$path.'">',
+				echo '<script type="text/javascript" src="'.$path.'" charset="utf-8">',
 					"</script>\n";
 			} else if ($mode == 'inline') {
 				$files = $this->_get_js_files();
@@ -294,7 +294,7 @@ class Loki2
 				if (!$files)
 					return false;
 				
-				echo '<script type="text/javascript">', "\n";
+				echo '<script type="text/javascript" charset="utf-8">', "\n";
 				foreach ($files as $filename) {
 					echo "\n// file $file \n\n";
 					readfile($base.$filename);
