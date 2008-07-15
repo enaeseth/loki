@@ -119,11 +119,14 @@ Util.URI.build_query = function build_query(variables)
  */
 Util.URI.build = function build_uri_from_parsed(parsed)
 {
-	var uri = parsed.scheme || '';
+	var uri = '';
+	if (parsed.scheme)
+		uri = parsed.scheme + ':'
+	
 	if (parsed.authority) {
-		uri += '://' + parsed.authority;
+		uri += '//' + parsed.authority;
 	} else if (parsed.host) {
-		uri += '://';
+		uri += '//';
 		if (parsed.user) {
 			uri += parsed.user;
 			if (parsed.password)
@@ -134,6 +137,9 @@ Util.URI.build = function build_uri_from_parsed(parsed)
 		uri += parsed.host;
 		if (parsed.port)
 			uri += ':' + parsed.port;
+	} else if (parsed.scheme) {
+		throw new Error('To build a URI with the scheme specified, the host ' +
+			'or authority must also be specified.');
 	}
 	
 	if (parsed.path)
