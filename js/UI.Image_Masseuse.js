@@ -13,7 +13,7 @@ UI.Image_Masseuse = function()
 	this.init = function(loki)
 	{
 		this.superclass.init.call(this, loki);
-		this._unsecured = new RegExp('^http:', '');
+		this._unsecured = /^http:/;
 		return this;
 	};
 
@@ -43,6 +43,8 @@ UI.Image_Masseuse = function()
 		var src = img.getAttribute('src');
 		if (src == null)
 			return;
+			
+		img.setAttribute('loki:src', img.src);
 		
 		if (self._unsecured.test(src)) {
 			if (Util.URI.extract_domain(src) == self._loki.editor_domain())
@@ -53,9 +55,7 @@ UI.Image_Masseuse = function()
 			else
 				return img;
 			
-			var placeholder = img.ownerDocument.createElement('IMG');
-			placeholder.title = img.title;
-			placeholder.alt = img.alt;
+			var placeholder = img.cloneNode();
 			placeholder.setAttribute('loki:src', img.src);
 			placeholder.setAttribute('loki:fake', 'true');
 			placeholder.src = new_src;
@@ -78,23 +78,26 @@ UI.Image_Masseuse = function()
 	this.unmassage_node = function(img)
 	{
 		var real = self.get_real_elem(img);
-		if (real && real.src != img.src)
+		if (real && real !== img)
 			img.parentNode.replaceChild(real, img);
 	};
 	
 	this.get_real_elem = function(img)
 	{
-		if (img == null || img.getAttribute('loki:fake') != 'true') {
-			return null;
-		}
+		var src, real;
 		
-		var src = img.getAttribute('loki:src');
-		if (src == null)
+		if (!img)
+			return null;
+		
+		src = img.getAttribute('loki:src');
+		if (!src)
 			return img;
 		
-		var real = img.ownerDocument.createElement('IMG');
-		real.title = img.title;
-		real.alt = img.alt;
+		real = img.ownerDocument.createElement('IMG');
+		if (img.title)
+			real.title = img.title;
+		if (img.alt)
+			real.alt = img.alt;
 		real.src = src;
 		
 		return real;
