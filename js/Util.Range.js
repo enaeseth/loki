@@ -247,6 +247,7 @@ Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
 	var start = process_boundary(bounds.start);
 	var end = process_boundary(bounds.end);
 	var node;
+	var ancestor;
 	
 	if (!matcher && up) {
 		throw new Error('Cannot find nodes that are ancestors of the range ' +
@@ -280,12 +281,13 @@ Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
 	}
 	
 	if (up) {
-		start = Util.Range.get_common_ancestor(rng);
-		if (!start)
+		ancestor = Util.Range.get_common_ancestor(rng);
+		if (!ancestor)
 			return matched_nodes;
-		start = start.parentNode;
+		if (ancestor == start || ancestor == end)
+			ancestor = ancestor.parentNode;
 		end = start.ownerDocument;
-		for (node = start; node && node != end; node = node.parentNode) {
+		for (node = ancestor; node && node != end; node = node.parentNode) {
 			if (matcher(node))
 				matched_nodes.push(node);
 		}
