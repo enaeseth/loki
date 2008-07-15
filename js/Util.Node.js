@@ -317,23 +317,28 @@ Util.Node.get_window = function find_window_of_node(node)
 	accept(window);
 	
 	while (candidate = stack.pop()) { // assignment intentional
-		if (candidate.document == doc) {
-			// found it!
-			doc._loki__document_window = candidate;
-			return candidate;
-		}
-		
-		if (candidate.parent != candidate && accept(candidate)) {
-			stack.push(candidate);
-		}
-		
-		
-		['FRAME', 'IFRAME'].map(get_elements).each(function (frames) {
-			for (var i = 0; i < frames.length; i++) {
-				if (accept(frames[i].contentWindow))
-					stack.push(frames[i].contentWindow);
+		try {
+			if (candidate.document == doc) {
+				// found it!
+				doc._loki__document_window = candidate;
+				return candidate;
 			}
-		});
+
+			if (candidate.parent != candidate && accept(candidate)) {
+				stack.push(candidate);
+			}
+
+
+			['FRAME', 'IFRAME'].map(get_elements).each(function (frames) {
+				for (var i = 0; i < frames.length; i++) {
+					if (accept(frames[i].contentWindow))
+						stack.push(frames[i].contentWindow);
+				}
+			});
+		} catch (e) {
+			// Sometimes Mozilla gives security errors when trying to access
+			// the documents.
+		}
 	}
 	
 	// guess it couldn't be found
