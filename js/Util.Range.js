@@ -281,6 +281,9 @@ Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
 	
 	if (up) {
 		start = Util.Range.get_common_ancestor(rng);
+		if (!start)
+			return matched_nodes;
+		start = start.parentNode;
 		end = start.ownerDocument;
 		for (node = start; node && node != end; node = node.parentNode) {
 			if (matcher(node))
