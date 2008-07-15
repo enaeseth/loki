@@ -126,23 +126,30 @@ UI.Menu = function()
 				menu_chunk.style.visibility = 'hidden';
 
 				// Position menu
-				menu_chunk.style.left = x + 'px';
-				menu_chunk.style.top = y + 'px';
+				menu_chunk.style.left = (x - 1) + 'px';
+				menu_chunk.style.top = (y - 1) + 'px';
 
 				// Watch the "click" event for all windows to close the menu
 				function close_menu() {
-					// We're adding the listener to several windows,
-					// and aren't controlling bubbling, so the event may be triggered
-					// several times.
-					if ( menu_chunk.parentNode != null )
+					var w;
+					
+					if (menu_chunk.parentNode) {
 						menu_chunk.parentNode.removeChild(menu_chunk);
+						
+						var w = _loki.window;
+						while (w) {
+							w.document.removeEventListener('click', close_menu, false);
+							w.document.removeEventListener('contextmenu', close_menu, false);
+							w = (w != w.parent) ? w.parent : null;
+						}
+					}
 				}
 				
 				function add_close_listeners() {
 					var w = _loki.window;
 					while (w) {
-						Util.Event.observe(w.document, 'click', close_menu);
-						Util.Event.observe(w.document, 'contextmenu', close_menu);
+						w.document.addEventListener('click', close_menu, false);
+						w.document.addEventListener('contextmenu', close_menu, false);
 						w = (w != w.parent) ? w.parent : null;
 					}
 				}
