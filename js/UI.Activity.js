@@ -57,8 +57,9 @@ UI.Activity = function(base, document, kind, text) {
 		
 		textual: function()
 		{
-			return helper.create_element('SPAN', {className: 'progress_text'},
-				[text || 'Loading…']);
+			var el = helper.create_element('SPAN', {className: 'progress_text'});
+			el.innerHTML = text || 'Loading&hellip;';
+			return el;
 		}
 	}
 	

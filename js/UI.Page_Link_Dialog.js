@@ -121,7 +121,7 @@ UI.Page_Link_Dialog = function()
 		sites_pane.id = 'sites_pane';
 		container.appendChild(sites_pane);
 		
-		this._sites_progress = this.create_activity_indicator('textual', 'Loading sites…');
+		this._sites_progress = this.create_activity_indicator('textual', 'Loading sites&hellip;');
 		this._sites_progress.insert(sites_pane);
 		return;
 	};
