@@ -1251,12 +1251,12 @@ UI.Loki = function Loki()
 
 UI.Loki.Options = new Util.Chooser();
 UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
-	this.add('strong', {
+	this.add('bold', {
 		buttons: [UI.Bold_Button],
 		masseuses: [UI.Bold_Masseuse],
 		keybindings: [UI.Bold_Keybinding]
 	});
-	this.add('em', {
+	this.add('italic', {
 		buttons: [UI.Italic_Button],
 		masseuses: [UI.Italic_Masseuse],
 		keybindings: [UI.Italic_Keybinding]
@@ -1265,7 +1265,7 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 		buttons: [UI.Underline_Button],
 		keybindings: [UI.Underline_Keybinding]
 	});
-	this.add('headline', {
+	this.add('headings', {
 		buttons: [UI.Headline_Button],
 		menugroups: [UI.Headline_Menugroup],
 		keybindings: []
@@ -1295,7 +1295,7 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 	this.add('blockquote', {
 		buttons: [UI.Blockquote_Button]
 	});
-	this.add('list', {
+	this.add('lists', {
 		buttons: [UI.OL_Button, UI.UL_Button, UI.Indent_Button, UI.Outdent_Button],
 		masseuses: [UI.UL_OL_Masseuse]
 	});
@@ -1303,23 +1303,23 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 		buttons: [UI.Find_Button],
 		keybindings: [UI.Find_Keybinding]
 	});
-	this.add('table', {
+	this.add('tables', {
 		buttons: [UI.Table_Button],
 		masseuses: [UI.Table_Masseuse],
 		menugroups: [UI.Table_Menugroup]
 	});
-	this.add('image', {
+	this.add('images', {
 		buttons: [UI.Image_Button],
 		masseuses: [UI.Image_Masseuse],
 		double_click_listeners: [UI.Image_Double_Click]
 	});
-	this.add('link', {
+	this.add('links', {
 		buttons: [UI.Page_Link_Button],
 		menugroups: [UI.Link_Menugroup],
 		keybindings: [UI.Page_Link_Keybinding],
 		double_click_listeners: [UI.Link_Double_Click]
 	});
-	this.add('anchor', {
+	this.add('anchors', {
 		buttons: [UI.Anchor_Button],
 		masseuses: [UI.Anchor_Masseuse],
 		menugroups: [UI.Anchor_Menugroup],
@@ -1335,6 +1335,22 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 		buttons: [UI.Raw_Source_Button]
 	});
 	//this.add('statusbar', true);
+	
+	// Some of these aliases are for installer sanity, while others are for
+	// Loki 1 compatibility.
+	this.alias('bold', 'strong');
+	this.alias('italic', 'em');
+	this.alias('tables', 'table');
+	this.alias('images', 'image');
+	this.alias('links', 'link');
+	this.alias('lists', 'list');
+	this.alias('anchors', 'anchor');
+	this.alias('headings', 'heading');
+	this.alias('headings', 'headlines');
+	this.alias('headings', 'headline');
+	this.alias('br', 'linebreaks');
+	this.alias('br', 'linebreak');
+	this.alias('find', 'findtext');
 	
 	this.put_set('default', ['strong', 'em', 'headline', 'br', 'hr',
 		'clipboard', 'highlight', 'align', 'blockquote', 'list',
