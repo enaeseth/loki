@@ -64,7 +64,13 @@ UI.Image_Helper = function()
 
 	this.is_selected = function image_is_selected()
 	{
-		return !!this.get_selected_item();
+		try {
+			return !!this.get_selected_image();
+		} catch (e) {
+			if (e.name == 'UI.Multiple_Items_Error')
+				return true;
+			throw e;
+		}
 	};
 	
 	this.open_dialog = function open_image_dialog()
