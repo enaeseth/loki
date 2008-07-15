@@ -35,7 +35,7 @@ UI.Image_Helper = function()
 			return !anchor_masseuse.get_real_elem(node);
 		}
 		
-		images = Util.Range.find_nodes(rng, is_valid_image);
+		images = Util.Range.find_nodes(rng, is_valid_image, true);
 		
 		if (!images) {
 			return null;
@@ -62,9 +62,9 @@ UI.Image_Helper = function()
 		};
 	};
 
-	this.is_selected = function()
+	this.is_selected = function image_is_selected()
 	{
-		return !!this.get_selected_image();
+		return !!this.get_selected_item();
 	};
 	
 	this.open_dialog = function open_image_dialog()
@@ -95,74 +95,53 @@ UI.Image_Helper = function()
 		});
 		this._image_dialog.open();
 	};
-
-	this.insert_image = function(image_info)
+	
+	this.insert_image = function insert_image(params)
 	{
-		// Create the image
-		var image = self._loki.document.createElement('IMG');
-		var clean_src = UI.Clean.clean_URI(image_info.uri);
-		image.setAttribute('src', clean_src);
-		if (clean_src != image_info.uri)
-			image.setAttribute('loki:src', image_info.uri);
-		image.setAttribute('alt', image_info.alt);
-
-		if ( image_info.align != '' )
-			image.setAttribute('align', image_info.align);
-		else
-			image.removeAttribute('align');
-
-		/*
-			if ( image_info.border == 'yes' )
-				Util.Element.add_class(image, 'bordered');
-			else
-				Util.Element.remove_class(image, 'bordered');
-		*/
-
-		// disallow resizing (only works in IE)
-		/*
-		//image.onclick = function(event) 
-		image.onresize = function(event) 
-		{
-			event = event == null ? window.event : event;
-			event.returnValue = false;
-			return false;
-		};
-		*/
-
-		// Massage the image
+		var image, clean_src, selected_image, sel, range;
+		
+		image = self._loki.document.createElement('IMG');
+		clean_src = UI.Clean.clean_URI(params.uri);
+		
+		image.src = clean_src;
+		image.alt = params.alt;
+		
+		if (params.align)
+			image.align = params.align;
+		
 		image = self._image_masseuse.get_fake_elem(image);
-
-		// Insert the image
-		self._loki.window.focus();	
-		var sel = Util.Selection.get_selection(self._loki.window);
-		var rng = Util.Range.create_range(sel);
-		// We check for an image ancestor and replace it if found
-		// because in Gecko, if an image in the document isn't found on the server
-		// the ALT text will be displayed, and will be editable; in such
-		// a case, the cursor can be inside an image--with the result 
-		// that if one pastes the new image, it is nested in the original 
-		// image rather than replacing it.
-		var selected_image = Util.Range.get_nearest_ancestor_element_by_tag_name(rng, 'IMG');
-		if ( selected_image != null )
+		
+		self._loki.window.focus();
+		selected_image = self.get_selected_image();
+		if (selected_image) {
 			selected_image.parentNode.replaceChild(image, selected_image);
-		else
-			Util.Selection.paste_node(sel, image);
-
-		self._loki.window.focus();	
+		} else {
+			sel = Util.Selection.get_selection(self._loki.window);
+			rng = Util.Range.create_range(sel);
+			
+			Util.Range.delete_contents(rng);
+			Util.Range.insert_node(rng, image);
+		}
 	};
 
-	this.remove_image = function()
+	this.remove_image = function remove_image()
 	{
-		var sel = Util.Selection.get_selection(self._loki.window);
-		var rng = Util.Range.create_range(sel);
-		var image = Util.Range.get_nearest_ancestor_element_by_tag_name(rng, 'IMG');
+		var image, sel;
+		
+		image = self.get_selected_image();
+		
+		if (!image)
+			return false;
+		
+		sel = Util.Selection.get_selection(self._loki.window);
 
 		// Move cursor
 		Util.Selection.select_node(sel, image);
 		Util.Selection.collapse(sel, false); // to end
 		self._loki.window.focus();
 
-		if ( image.parentNode != null )
+		if (image.parentNode)
 			image.parentNode.removeChild(image);
+		return true;
 	};
 };

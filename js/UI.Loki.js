@@ -608,14 +608,7 @@ UI.Loki = function Loki()
 	 */
 	var _get_height = function()
 	{
-		if ( _is_textarea_active() )
-		{
-			return _textarea.clientHeight;
-		}
-		else
-		{
-			return _iframe_wrapper.clientHeight;
-		}
+		return (_is_textarea_active() ? _textarea : _iframe_wrapper).clientHeight;
 	};
 
 	/**

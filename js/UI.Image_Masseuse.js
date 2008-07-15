@@ -40,24 +40,24 @@ UI.Image_Masseuse = function()
 	
 	this.get_fake_elem = function(img)
 	{
-		var src = img.getAttribute('src');
+		var placeholder, src = img.getAttribute('src');
 		if (src == null)
 			return;
-			
-		img.setAttribute('loki:src', img.src);
 		
 		if (self._unsecured.test(src)) {
-			if (Util.URI.extract_domain(src) == self._loki.editor_domain())
+			placeholder = img.cloneNode();
+			
+			if (Util.URI.extract_domain(src) == self._loki.editor_domain()) {
 				new_src = Util.URI.strip_https_and_http(src);
-			else if (self._loki.settings.sanitize_unsecured)
+			} else if (self._loki.settings.sanitize_unsecured) {
 				new_src = self._loki.settings.base_uri +
 					'images/insecure_image.gif';
-			else
+				placeholder.setAttribute('loki:src', img.src);
+				placeholder.setAttribute('loki:fake', 'true');
+			} else {
 				return img;
+			}
 			
-			var placeholder = img.cloneNode();
-			placeholder.setAttribute('loki:src', img.src);
-			placeholder.setAttribute('loki:fake', 'true');
 			placeholder.src = new_src;
 			
 			return placeholder;
@@ -78,7 +78,7 @@ UI.Image_Masseuse = function()
 	this.unmassage_node = function(img)
 	{
 		var real = self.get_real_elem(img);
-		if (real && real !== img)
+		if (real && real.src != img.src)
 			img.parentNode.replaceChild(real, img);
 	};
 	
@@ -91,7 +91,7 @@ UI.Image_Masseuse = function()
 		
 		src = img.getAttribute('loki:src');
 		if (!src)
-			return img;
+			return null;
 		
 		real = img.ownerDocument.createElement('IMG');
 		if (img.title)

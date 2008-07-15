@@ -388,8 +388,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		{
 			description: 'Remove protocol from links on the current server',
 			test: function(node) { return has_tagname(node, ['A']); },
-			action: function(node)
-			{
+			action: function(node) {
 				var href = node.getAttribute('href');
 				if (href != null) {
 					node.setAttribute('href',
@@ -398,10 +397,13 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			}
 		},
 		{
-			description: 'Remove bubbles',
-			run_on_live: false,
-			test: function(node) { return has_class(node, ['loki__bubble']); },
-			action: remove_node
+			description: "Normalize all image URI's",
+			test: Util.Node.curry_is_tag('IMG'),
+			action: function normalize_image_uri(img) {
+				var norm = Util.URI.normalize(img.src);
+				norm.scheme = null;
+				img.src = Util.URI.build(norm);
+			}
 		},
 		{
 			description: 'Remove unnecessary BR\'s that are elements\' last ' +

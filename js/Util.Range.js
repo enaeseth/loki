@@ -230,9 +230,12 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
  * Finds matching elements within the range.
  * @param {Range} rng the range to search in
  * @param {Function|String} [matcher] either a matching function or a tag name.
+ * @param {Boolean} [up=false] also search up the tree from the range's common
+ *        ancestor. It is an error to set this option if there is no matcher.
+ * @throws {Error} if up is true but there is no matcher
  * @return {HTMLElement[]} all found matching elements
  */
-Util.Range.find_nodes = function find_nodes_in_range(rng, matcher) {
+Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
 	function process_boundary(bound) {
 		return (bound.container.nodeType == Util.Node.TEXT_NODE)
 			? bound.container
@@ -244,6 +247,11 @@ Util.Range.find_nodes = function find_nodes_in_range(rng, matcher) {
 	var start = process_boundary(bounds.start);
 	var end = process_boundary(bounds.end);
 	var node;
+	
+	if (!matcher && up) {
+		throw new Error('Cannot find nodes that are ancestors of the range ' +
+			'if no matcher is selected.');
+	}
 	
 	function next_node(n) {
 		if (n.hasChildNodes()) {
@@ -269,6 +277,15 @@ Util.Range.find_nodes = function find_nodes_in_range(rng, matcher) {
 	for (node = start; node; node = next_node(node)) {
 		if (matcher(node))
 			matched_nodes.push(node);
+	}
+	
+	if (up) {
+		start = Util.Range.get_common_ancestor(rng);
+		end = start.ownerDocument;
+		for (node = start; node && node != end; node = node.parentNode) {
+			if (matcher(node))
+				matched_nodes.push(node);
+		}
 	}
 	
 	return matched_nodes;

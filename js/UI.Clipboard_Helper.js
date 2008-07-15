@@ -60,21 +60,7 @@ UI.Clipboard_Helper = function ClipboardHelper()
 		}
 		catch(e) // Gecko
 		{
-			/*
-			try
-			{
-			*/
-				_gecko_copy(html, command || 'Copy', accel || 'C');
-			/*
-			}
-			catch(f)
-			{
-				if ( _is_privilege_error(f) )
-					_alert_helpful_message();
-				else
-					throw('UI.Clipboard_Helper.copy: Neither the IE way nor the Gecko way of copying worked. The IE way resulted in the following error: <<' + e.message + '>>. The Gecko way resulted in the following error: <<' + f.message + '>>.');
-			}
-			*/
+			_gecko_copy(html, command || 'Copy', accel || 'C');
 		}
 		self._loki.focus();
 	};
@@ -87,21 +73,7 @@ UI.Clipboard_Helper = function ClipboardHelper()
 		}
 		catch(e)
 		{
-			/*
-			try // Gecko
-			{
-			*/
-				_gecko_paste();
-			/*
-			}
-			catch(f)
-			{
-				if ( _is_privilege_error(f) )
-					_alert_helpful_message();
-				else
-					throw('UI.Clipboard_Helper.paste: Neither the IE way nor the Gecko way of pasteing worked. The IE way resulted in the following error: <<' + e.message + '>>. The Gecko way resulted in the following error: <<' + f.message + '>>.');
-			}
-			*/
+			_gecko_paste();
 		}
 		self._loki.focus();
 	};
@@ -123,25 +95,6 @@ UI.Clipboard_Helper = function ClipboardHelper()
 	this.is_security_error = function(e)
 	{
 		return ( e.message != null && e.message.indexOf != null && e.message.indexOf('Clipboard_Helper') > -1 );
-	};
-
-	this.alert_helpful_message = function()
-	{
-		//self._loki.window.alert("Sorry, your browser's security settings prohibit Loki from accessing the clipboard. \n\nIf you just clicked 'Deny' in a dialog asking about security--congratulations, you have good instincts. But if you want to copy, cut, or paste via Loki's toolbar or context menu, you'll need to try again and click 'Allow' in that dialog, and might want to check 'Remember this decision', too.\n\nIf you saw no such dialog, please contact the Web Services group.");
-
-		var alert_win = new Util.Window;
-		//alert_win.open('http://fillmore-apps.carleton.edu/global_stock/php/loki/auxil/lokiaux_message.html', '_blank', 'status=1,scrollbars=1,resizable,width=600,height=300');
-		// We have to use a real page rather than innerHTML because,
-		// at least in FF1.5.0.4, a JS error in FF's XPI-install 
-		// chrome causes nothing to happen when you click on the link
-		// if the page is dynamically generated.
-		/*
-		alert_win.body.innerHTML = 
-			'<p>You need to install the Lokiaux extension in order to use the clipboard.</p>' +
-			'<ol><li><a href="' + self._loki.settings.base_uri + 'lokiaux.xpi" target="_blank">Download it</a></li>' +
-			'    <li>When prompted, press Install</li>' +
-			'    <li>Restart your browser.</li>';
-		*/
 	};
 	
 	function _show_gecko_privileges_warning()
