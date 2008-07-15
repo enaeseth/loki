@@ -188,7 +188,7 @@ Util.URI.normalize = function normalize_uri(uri, base)
 	
 	if (typeof(uri) != 'string') {
 		if (uri.scheme === undefined)
-			throw TypeError();
+			throw new TypeError("Invalid URI object.");
 		uri = Util.Object.clone(uri);
 	} else {
 		uri = Util.URI.parse(uri);
