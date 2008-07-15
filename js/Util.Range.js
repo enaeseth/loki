@@ -482,7 +482,8 @@ Util.Range.insert_node = function insert_node_in_range(rng, node)
 		if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
 			// Inserting the node into a text node; split it at the insertion
 			// point.
-			point = bounds.start.container.splitText(bounds.start.offset);
+			bounds.start.container.splitText(bounds.start.offset);
+			point = bounds.start.container.nextSibling;
 			
 			// Now the node can be inserted between the two text nodes.
 			bounds.start.container.parentNode.insertBefore(node, point);
