@@ -17,11 +17,14 @@ Util.Chooser = function Chooser()
 	
 	/**
 	 * Retrieves the items requested by the given selector.
-	 * @param {string} selector string
-	 * @type array
-	 * @return array of items
+	 * @param {String} selector selector string
+	 * @param {Boolean} [lenient=false] if true, will not throw an error on
+	 * unknown items
+	 * @return {Object[]} array of chosen items
+	 * @throws {Error} unless lenient is set to true, throws an error when a
+	 * selector is provided that does not correspond with an item or a set
 	 */
-	this.get = function get_from_chooser(selector)
+	this.get = function get_from_chooser(selector, lenient)
 	{
 		var working = {};
 		var self = this;
@@ -42,7 +45,7 @@ Util.Chooser = function Chooser()
 					});
 				} else if (name in self.items) {
 					working[name] = self.items[name];
-				} else {
+				} else if (!lenient) {
 					throw new Error('Unknown item or set "' + name + '".');
 				}
 			},
@@ -61,7 +64,7 @@ Util.Chooser = function Chooser()
 					});
 				} else if (name in self.items) {
 					delete working[name];
-				} else {
+				} else if (!lenient) {
 					throw new Error('Unknown item or set "' + name + '".');
 				}
 			}

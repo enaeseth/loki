@@ -184,7 +184,7 @@ UI.Loki = function Loki()
 		}
 		
 		_settings = (settings) ? Util.Object.clone(settings) : {};
-		self.options = _options = UI.Loki.Options.get(_settings.options || 'default');
+		self.options = _options = UI.Loki.Options.get(_settings.options || 'default', true);
 		_settings.options = _options;
 		
 		['site', 'type'].each(function cleanup_default_regexp(which) {
