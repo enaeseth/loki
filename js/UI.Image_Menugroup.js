@@ -32,8 +32,6 @@ UI.Image_Menugroup = function()
 				label : 'Edit image',
 				listener : function() { self._helper.open_dialog() }
 			}) );
-
-			menuitems.push( (new UI.Separator_Menuitem).init() );
 		}
 
 		return menuitems;

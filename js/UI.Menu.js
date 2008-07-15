@@ -22,16 +22,13 @@ UI.Menu = function()
 	{
 		_menuitems.push(menuitem);
 	};
-	
 
 	self.add_menuitems = function(menuitems)
 	{
-		if ( menuitems != null )
-		{
-			for ( var i = 0; i < menuitems.length; i++ )
-			{
+		var i, length;
+		if (menuitems) {
+			for (i = 0, length = menuitems.length; i < length; ++i)
 				self.add_menuitem(menuitems[i]);
-			}
 		}
 	};
 

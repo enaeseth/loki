@@ -1091,12 +1091,19 @@ UI.Loki = function Loki()
 	var _show_contextmenu = function(event)
 	{
 		var menu = (new UI.Menu).init(self);
+		var i, menuitems, added = false;
 
 		// Get appropriate menuitems
-		for ( var i = 0; i < _menugroups.length; i++ )
-		{
-			var menuitems = _menugroups[i].get_contextual_menuitems();
-			menu.add_menuitems(menuitems);
+		for (i = 0; i < _menugroups.length; i++) {
+			menuitems = _menugroups[i].get_contextual_menuitems();
+			if (menuitems && menuitems.length > 0) {
+				if (!added)
+					added = true;
+				else
+					menu.add_menuitem((new UI.Separator_Menuitem).init());
+				
+				menu.add_menuitems(menuitems);
+			}
 		}
 
 		// Determine the coordinates at which the menu should be displayed.

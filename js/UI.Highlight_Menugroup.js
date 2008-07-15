@@ -31,8 +31,6 @@ UI.Highlight_Menugroup = function()
 				label : 'Highlight',
 				listener : function() { self._helper.toggle_blockquote_paragraph(); }
 			}) );
-
-			menuitems.push( (new UI.Separator_Menuitem).init() );
 		}
 
 		return menuitems;

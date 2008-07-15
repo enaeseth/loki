@@ -33,8 +33,6 @@ UI.Link_Menugroup = function()
 				//listener : function() { self._link_helper.open_dialog_by_context() } 
 				listener : function() { self._link_helper.open_page_link_dialog() } 
 			}) );
-
-			menuitems.push( (new UI.Separator_Menuitem).init() );
 		}
 		else if ( this._link_helper.check_for_linkable_selection() )
 		{
@@ -44,8 +42,6 @@ UI.Link_Menugroup = function()
 				//listener : function() { self._link_helper.open_dialog_by_context() } 
 				listener : function() { self._link_helper.open_page_link_dialog() } 
 			}) );
-
-			menuitems.push( (new UI.Separator_Menuitem).init() );
 		}
 		return menuitems;
 	};
