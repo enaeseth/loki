@@ -12,8 +12,15 @@ Util.Chooser = function Chooser()
 	};
 	
 	this.items = {};
+	this.aliases = {};
 	
 	var bundled_added = false;
+	
+	function dealias(aliases, name) {
+		while (name in aliases)
+			name = aliases[name];
+		return name;
+	}
 	
 	/**
 	 * Retrieves the items requested by the given selector.
@@ -86,8 +93,8 @@ Util.Chooser = function Chooser()
 				}
 			}
 			
-			operation(breakdown[2]);
-		});
+			operation(dealias(this.aliases, breakdown[2]));
+		}, this);
 		
 		return working;
 	}
@@ -116,6 +123,16 @@ Util.Chooser = function Chooser()
 		this.sets.all.push(name);
 		
 		return item;
+	}
+	
+	/**
+	 * Creates an alias.
+	 * @param {String} actual
+	 * @param {String} alias
+	 * @return {void}
+	 */
+	this.alias = function create_alias(actual, alias) {
+		this.aliases[alias] = actual;
 	}
 	
 	/**
