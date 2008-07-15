@@ -1292,7 +1292,7 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 		menugroups: [UI.Align_Menugroup],
 		keybindings: [UI.Left_Align_Keybinding, UI.Center_Align_Keybinding, UI.Right_Align_Keybinding]
 	});
-	this.add('blockquote', {
+	this.add('blockquotes', {
 		buttons: [UI.Blockquote_Button]
 	});
 	this.add('lists', {
@@ -1344,6 +1344,7 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 	this.alias('images', 'image');
 	this.alias('links', 'link');
 	this.alias('lists', 'list');
+	this.alias('blockquotes', 'blockquote');
 	this.alias('anchors', 'anchor');
 	this.alias('headings', 'heading');
 	this.alias('headings', 'headlines');
@@ -1353,11 +1354,11 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 	this.alias('find', 'findtext');
 	
 	this.put_set('default', ['strong', 'em', 'headline', 'br', 'hr',
-		'clipboard', 'highlight', 'align', 'blockquote', 'list',
-		'find', 'image', 'link', 'cleanup']);
-	this.put_set('power', ['strong', 'em', 'headline', 'br', 'hr',
-		'clipboard', 'highlight', 'align', 'blockquote', 'list',
-		'find', 'table', 'image', 'link', 'anchor', 'cleanup', 'source']);
+		'highlight', 'align', 'blockquotes', 'lists', 'find', 'images',
+		'links', 'cleanup']);
+	this.put_set('power', ['strong', 'em', 'headline', 'br', 'hr', 'pre',
+		'clipboard', 'highlight', 'align', 'blockquotes', 'lists',
+		'find', 'tables', 'images', 'links', 'anchors', 'cleanup', 'source']);
 	this.put_set('developer', ['power', 'debug']);
 };
 
