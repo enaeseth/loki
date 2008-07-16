@@ -47,7 +47,7 @@
 	cursor: pointer;
 }
 
-.loki .toolbar a span
+.loki .toolbar a span.loki_filtered_button
 {
 	display: inline-block;
 }
