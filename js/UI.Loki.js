@@ -704,10 +704,10 @@ UI.Loki = function Loki()
 	 */
 	var _clear_document = function()
 	{
-		var html = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"\n'+
-			'\t"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n'+
+		var html = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\n'+
+			'\t"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n'
 			'<html>\n\t<head xmlns="http://www.w3.org/1999/xhtml">\n'+
-			'\t<title>Editing document</title>\n</head>\n'+
+			'\t<title>Loki editing document</title>\n</head>\n'+
 			'<body></body>\n</html>';
 			
 		_document.open();
