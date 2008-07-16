@@ -3,6 +3,13 @@
  */
 Util.Element = {
 	/**
+	 * Set of empty elements
+	 * @type Object
+	 */
+	empty: (['BR', 'AREA', 'LINK', 'IMG', 'PARAM', 'HR', 'INPUT', 'COL',
+		'BASE', 'META'].toSet()),
+	
+	/**
 	 * Gets an element's computed styles.
 	 * @param {Window}	window	the element's window
 	 * @param {Element}	elem	the element whose computed style is desired
