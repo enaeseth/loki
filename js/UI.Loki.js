@@ -439,6 +439,7 @@ UI.Loki = function Loki()
 					button.title = b.title;
 					img = _owner_document.createElement('SPAN');
 					img_src = Util.URI.build(Util.URI.normalize(img_src));
+					img.className = 'loki_filtered_button';
 					img.style.filter = "progid:" +
 						"DXImageTransform.Microsoft.AlphaImageLoader(src='" +
 					    img_src + "', sizingMethod='image')";
