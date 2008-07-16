@@ -47,6 +47,42 @@ Util.Node.remove_child_nodes = function(node, boolean_test)
 			node.removeChild(node.firstChild);
 };
 
+/**
+ * Returns all children of the given node who match the given test.
+ * @param {Node} node the node whose children will be traversed
+ * @param {Function|String|Number} match either a boolean-test matching function,
+ *        or a tag name, or a node type to be matched
+ * @return {Node[]} all matching child nodes
+ */
+Util.Node.find_children = function find_matching_node_children(node, match) {
+	var i, length, node_type;
+	var children = [], child;
+	
+	if (!Util.is_valid_object(node) || !node.nodeType) {
+		throw new TypeError('Must provide Util.Node.find_children with a ' +
+			'node to traverse.');
+	}
+	
+	if (Util.is_string(match)) {
+		match = Util.Node.curry_is_tag(match);
+	} else if (Util.is_number(match)) {
+		node_type = match;
+		match = function is_correct_node_type(node) {
+			return (node && node.nodeType == node_type);
+		}
+	} else if (!Util.is_function(match)) {
+		throw new TypeError('Must provide Util.Node.find_children with ' +
+			'something to match nodes against.');
+	}
+	
+	for (i = 0, length = node.childNodes.length; i < length; i++) {
+		child = node.childNodes[i];
+		if (match(child))
+			children.push(child);
+	}
+	
+	return children;
+};
 
 /**
  * <p>Recurses through the ancestor nodes of the specified node,
@@ -238,13 +274,22 @@ Util.Node.has_child_node = function(node, boolean_test)
  */
 Util.Node.is_tag = function(node, tag)
 {
-	return (node.nodeType == Util.Node.ELEMENT_NODE && node.nodeName == tag);
+	return (node.nodeType == Util.Node.ELEMENT_NODE
+		&& node.nodeName == tag.toUpperCase());
 };
+
+/**
+ * Creates a function that calls is_tag using the given tag.
+ */
+Util.Node.curry_is_tag = function(tag)
+{
+	return function(node) { return Util.Node.is_tag(node, tag); };
+}
 
 /**
  * Finds the offset of the given node within its parent.
  * @param {Node}  node  the node whose offset is desired
- * @return {number}     the node's offset
+ * @return {Number}     the node's offset
  * @throws {Error} if the node is orphaned (i.e. it has no parent)
  */
 Util.Node.get_offset = function get_node_offset_within_parent(node)
@@ -262,14 +307,6 @@ Util.Node.get_offset = function get_node_offset_within_parent(node)
 	}
 	
 	throw new Error();
-}
-
-/**
- * Creates a function that calls is_tag using the given tag.
- */
-Util.Node.curry_is_tag = function(tag)
-{
-	return function(node) { return Util.Node.is_tag(node, tag); };
 }
 
 /**
