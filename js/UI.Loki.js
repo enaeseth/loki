@@ -165,6 +165,29 @@ UI.Loki = function Loki()
 		
 		return results;
 	}
+	
+	/**
+	 * Sets focus to the editing window.
+	 * @return {void}
+	 */
+	this.focus = function focus_on_loki()
+	{
+		var doc = _owner_document;
+		
+		if (_is_textarea_active()) {
+			if ((!doc.hasFocus || doc.hasFocus()) && _textarea == doc.activeElement)
+				return;
+			_textarea.focus();
+		} else if (!_window) {
+			throw new Error('Invalid Loki state: cannot focus; Loki window ' +
+				'does not yet exist.');
+		} else if (Util.Browser.IE) {
+			_body.setActive();
+			_window.focus();
+		} else {
+			_window.focus();
+		}
+	}
 
 
 	/**
@@ -321,7 +344,6 @@ UI.Loki = function Loki()
 			self.exec_command = _exec_command;
 			self.query_command_state = _query_command_state;
 			self.query_command_value = _query_command_value;
-			self.focus = function() { _window.focus() };
 			
 			// Set body's html to textarea's value
 			self.set_html( _textarea.value );
@@ -458,7 +480,7 @@ UI.Loki = function Loki()
 		Util.Element.add_class(_iframe_wrapper, 'iframe_wrapper');
 
 		_iframe = _owner_document.createElement('IFRAME');
-		_iframe.src = _settings.base_uri + 'auxil/loki_blank.html';
+		_iframe.src = 'javascript:""';
 		_iframe.frameBorder = '0'; // otherwise, IE puts an extra border around the iframe that css cannot erase
 
 		td.appendChild(_iframe);
@@ -682,12 +704,14 @@ UI.Loki = function Loki()
 	 */
 	var _clear_document = function()
 	{
+		var html = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"\n'+
+			'\t"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n'+
+			'<html>\n\t<head xmlns="http://www.w3.org/1999/xhtml">\n'+
+			'\t<title>Editing document</title>\n</head>\n'+
+			'<body></body>\n</html>';
+			
 		_document.open();
-		_document.write(
-			'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' +
-			'<html><head><title></title></head><body>' +
-			'</body></html>'
-		);
+		_document.write(html);
 		_document.close();
 	};
 
@@ -702,46 +726,25 @@ UI.Loki = function Loki()
 	 */
 	var _make_document_editable = function()
 	{
-		// IE way
-		try
-		{
+		if (Util.Browser.IE) {
 			_body.contentEditable = true;
-			// If the document isn't editable, this will throw an
-			// error. If the document is editable, this is perfectly
-			// harmless.
-			_query_command_state('Bold');
-		}
-		// Mozilla way
-		catch(e)
-		{
-			try
-			{
-				// Turn on design mode.  N.B.: designMode has to be
-				// set after the iframe_elem's src is set (or its
-				// document is closed). ... Otherwise the designMode
-				// attribute will be reset to "off", and things like
-				// execCommand won't work (though, due to Mozilla bug
-				// #198155, the iframe's new document will be
-				// editable)
-				_document.designMode = 'on';
+			try {
+				// If the document isn't really editable, this will throw an
+				// error. If the document is editable, this is perfectly
+				// harmless.
+				_query_command_state('Bold');
+			} catch (e) {
+				throw new Util.Unsupported_Error('rich text editing');
+			}
+		} else {
+			_document.designMode = 'On';
+			try {
 				_document.execCommand('undo', false, null);
-				//_query_command_state('Bold');
-			}
-			catch(f)
-			{
-				throw(new Error('UI.Loki._init_editor_iframe: Neither the IE nor the Mozilla way of starting the editor worked.'+
-								'When the IE way was tried, the following error was thrown: <<' + e.message + '>>. ' +
-								'When the Mozilla way was tried, the following error was thrown: <<' + f.message + '>>.'));
+				_document.execCommand('useCSS', false, true);
+			} catch (e) {
+				throw new Util.Unsupported_Error('rich text editing');
 			}
 		}
-
-		// Tell Mozilla to use CSS.  Wrap in try block because IE
-		// doesn't have a useCSS command, nor do some older versions
-		// of Mozilla (even ones that support designMode),
-		// e.g. Gecko/20030312 Mozilla 1.3 OS X
-		try {
-			_document.execCommand('useCSS', false, true);
-		} catch (e) {}
 	};
 
 	/**
@@ -865,7 +868,54 @@ UI.Loki = function Loki()
 		{
 			return _show_contextmenu(event || _window.event);
 		});
-
+		
+		if (Util.Browser.IE) {
+			function select_end(sel, range, el) {
+				var c, text, length;
+				for (c = el.lastChild; c; c = c.previousSibling) {
+					if (c.nodeType == Util.Node.ELEMENT_NODE) {
+						if (c.nodeName in Util.Element.empty) {
+							Util.Range.set_start_after(range, c);
+							Util.Range.set_end_after(range, c);
+							Util.Selection.select_range(sel, range);
+							return true;
+						} else if (select_end(sel, range, c)) {
+							return true;
+						}
+					} else if (c.nodeType == Util.Node.TEXT_NODE) {
+						length = c.nodeValue.length;
+						Util.Range.set_start(range, c, length);
+						Util.Range.set_end(range, c, length);
+						Util.Selection.select_range(sel, range);
+						return true;
+					}
+				}
+				
+				text = el.ownerDocument.createTextNode('');
+				el.insertBefore(text, el.lastChild);
+				
+				Util.Range.set_start(range, text, 0);
+				Util.Range.set_end(range, text, 0);
+				Util.Selection.select_range(sel, range);
+				return true;
+			}
+			
+			Util.Event.observe(_document, 'mouseup', function(event) {
+				var sel, range;
+				
+				if (event.srcElement.tagName == 'HTML') {
+					self.focus();
+					
+					sel = Util.Selection.get_selection(_window);
+					range = Util.Document.create_range(_document);
+					select_end(sel, range, _body);
+					
+					event.cancelBubble = true;
+					event.returnValue = false;
+				}
+			});
+		}
+		
 		if ( _options.statusbar )
 		{
 			Util.Event.add_event_listener(_document, 'keyup', function() { _update_statusbar(); });
