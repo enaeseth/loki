@@ -223,6 +223,10 @@ UI.Loki = function Loki()
 			_settings.base_uri = autodetect_base_uri();
 		}
 		
+		if (!_settings.allowable_inline_styles) {
+			_settings.allowable_inline_styles = default_allowed_styles();
+		}
+		
 		UI.Clipboard_Helper._setup(_settings.base_uri);
 		
 		_textarea = textarea;
@@ -283,6 +287,14 @@ UI.Loki = function Loki()
 		
 		throw new Error("Unable to automatically determine the Loki base URI." +
 			" Please set it explicitly.");
+	}
+	
+	function default_allowed_styles()
+	{
+		var builtin = ['text-align', 'vertical-align', 'float', 'direction',
+			'display', 'clear', 'list-style'];
+		
+		return builtin;
 	}
 
 	/**

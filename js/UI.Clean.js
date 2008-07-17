@@ -217,6 +217,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	
 	var allowable_tags =
 		(settings.allowable_tags || UI.Clean.default_allowable_tags).toSet();
+	var acceptable_css = settings.allowable_inline_styles.toSet();
 		
 	function is_allowable_tag(node)
 	{
@@ -266,9 +267,29 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			action : remove_node
 		},
 		{
-			description : 'Remove all bad attributes. (v:shape from Ppt)',
-			test : function (node) { return has_attributes(node, ['style', 'v:shape']); },
+			description : 'Remove bad attributes. (v:shape from Ppt)',
+			test : function (node) { return has_attributes(node, ['v:shape']); },
 			action : remove_attributes
+		},
+		{
+			description: 'Strip unwanted inline styles',
+			test: function(node) { return has_attributes(node, ['style']); },
+			action: function strip_unwanted_inline_styles(el) {
+				var rule = /([\w-]+)\s*:\s*([^;]+)(?:;|$)/g;
+				var raw = el.style.cssText;
+				var accepted = [];
+				var match;
+				var name;
+				
+				while (match = rule.exec(raw)) {
+					name = match[1].toLowerCase();
+					if (name in acceptable_css) {
+						accepted.push(match[0]);
+					}
+				}
+				
+				el.style.cssText = accepted.join(' ');
+			}
 		},
 		{
 			description: 'Remove empty Word paragraphs',
