@@ -255,6 +255,9 @@ Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
 	}
 	
 	function next_node(n) {
+		if (n == end)
+			return null;
+		
 		if (n.hasChildNodes()) {
 			n = n.firstChild;
 		} else if (n.nextSibling) {
