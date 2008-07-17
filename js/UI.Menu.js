@@ -63,9 +63,7 @@ UI.Menu = function()
 	 */
 	self.display = function(x, y)
 	{
-		// IE way
-		try
-		{
+		if (window.createPopup) {
 			// Make the popup and append the menu to it
 			var popup = window.createPopup();
 			var menu_chunk = _get_chunk(popup.document);
@@ -110,56 +108,46 @@ UI.Menu = function()
 
 			// Show the popup
 			popup.show(x, y, width, height, _loki.owner_document.body);
-		}
-		catch(e)
-		{
-			// Gecko way
-			try
-			{
-				// Create menu, hidden
-				var menu_chunk = _get_chunk(_loki.owner_document);
-				_loki.root.appendChild(menu_chunk);
-				menu_chunk.style.position = 'absolute';
-				menu_chunk.style.visibility = 'hidden';
+		} else {
+			// Create menu, hidden
+			var menu_chunk = _get_chunk(_loki.owner_document);
+			_loki.root.appendChild(menu_chunk);
+			menu_chunk.style.position = 'absolute';
+			menu_chunk.style.visibility = 'hidden';
 
-				// Position menu
-				menu_chunk.style.left = (x - 1) + 'px';
-				menu_chunk.style.top = (y - 1) + 'px';
+			// Position menu
+			menu_chunk.style.left = (x - 1) + 'px';
+			menu_chunk.style.top = (y - 1) + 'px';
 
-				// Watch the "click" event for all windows to close the menu
-				function close_menu() {
-					var w;
-					
-					if (menu_chunk.parentNode) {
-						menu_chunk.parentNode.removeChild(menu_chunk);
-						
-						var w = _loki.window;
-						while (w) {
-							w.document.removeEventListener('click', close_menu, false);
-							w.document.removeEventListener('contextmenu', close_menu, false);
-							w = (w != w.parent) ? w.parent : null;
-						}
-					}
-				}
+			// Watch the "click" event for all windows to close the menu
+			function close_menu() {
+				var w;
 				
-				function add_close_listeners() {
+				if (menu_chunk.parentNode) {
+					menu_chunk.parentNode.removeChild(menu_chunk);
+					
 					var w = _loki.window;
 					while (w) {
-						w.document.addEventListener('click', close_menu, false);
-						w.document.addEventListener('contextmenu', close_menu, false);
+						w.document.removeEventListener('click', close_menu, false);
+						w.document.removeEventListener('contextmenu', close_menu, false);
 						w = (w != w.parent) ? w.parent : null;
 					}
 				}
-				
-				add_close_listeners.defer();
-		
-				// Show menu
-				menu_chunk.style.visibility	= '';
 			}
-			catch(f)
-			{
-				throw new Util.Unsupported_Error("showing a contextual menu");
+			
+			function add_close_listeners() {
+				var w = _loki.window;
+				while (w) {
+					w.document.addEventListener('click', close_menu, false);
+					w.document.addEventListener('contextmenu', close_menu, false);
+					w = (w != w.parent) ? w.parent : null;
+				}
 			}
+			
+			add_close_listeners.defer();
+	
+			// Show menu
+			menu_chunk.style.visibility	= '';
 		}
 	}
 }

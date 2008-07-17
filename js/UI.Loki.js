@@ -1160,13 +1160,20 @@ UI.Loki = function Loki()
 
 		// Get appropriate menuitems
 		for (i = 0; i < _menugroups.length; i++) {
-			menuitems = _menugroups[i].get_contextual_menuitems();
+			try {
+				menuitems = _menugroups[i].get_contextual_menuitems();
+			} catch (e) {
+				if (typeof(console) == 'object' && console.firebug) {
+					console.warn('Failed to add menugroup', i, '.', e);
+				}
+			}
+			
 			if (menuitems && menuitems.length > 0) {
 				if (!added)
 					added = true;
 				else
 					menu.add_menuitem((new UI.Separator_Menuitem).init());
-				
+
 				menu.add_menuitems(menuitems);
 			}
 		}
