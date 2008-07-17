@@ -13,5 +13,14 @@ UI.Source_Button = function()
 	this.image = 'source.png';
 	this.title = 'Toggle HTML source view';
 	this.show_on_source_toolbar = true;
-	this.click_listener = function() { self._loki.toggle_iframe_textarea(); };
+	this.click_listener = function() {
+		try {
+			self._loki.toggle_iframe_textarea(); 
+		} catch (e) {
+			alert("An error occurred that prevented your document's HTML " +
+				"from being generated.\n\nTechnical details:\n" +
+				ex);
+		}
+		
+	};
 };

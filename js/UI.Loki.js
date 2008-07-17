@@ -949,12 +949,14 @@ UI.Loki = function Loki()
 				// If the browser is capable of generating actual paste
 				// events, then remove the DOMNodeInserted handler.
 				
-				Util.Event.remove_event_handler(_document, 'keyup',
+				Util.Event.remove_event_listener(_document, 'keydown',
+					key_pressed);
+				Util.Event.remove_event_listener(_document, 'keyup',
 					key_raised);
 				paste_keyup = false;
 			}
 			
-			perform_cleanup();
+			perform_cleanup.defer();
 		}
 		
 		// Q: Eric, why is there all this code to accomplish the simple task
@@ -988,14 +990,14 @@ UI.Loki = function Loki()
 			}
 		}
 		
-		Util.Event.observe(_document, 'paste', handle_paste_event);
-		if (Util.Browser.IE) {
+		Util.Event.observe(_document.body, 'paste', handle_paste_event);
+		if (Util.Browser.IE || (Util.Browser.Gecko && /rv:1\.9/.test(navigator.userAgent))) {
 			// We know that we have paste events.
 			paste_keyup = false;
 		} else {
 			paste_keyup = true;
-			Util.Event.observe(_document, 'keydown', key_pressed);
-			Util.Event.observe(_document, 'keyup', key_raised);
+			Util.Event.add_event_listener(_document, 'keydown', key_pressed);
+			Util.Event.add_event_listener(_document, 'keyup', key_raised);
 		}
 		
 		function submit_handler(ev)
@@ -1003,8 +1005,8 @@ UI.Loki = function Loki()
 			try {
 				self.copy_iframe_to_hidden();
 			} catch (ex) {
-				alert("An error occurred that is preventing your document " +
-					"from being safely submitted.\n\nTechnical details:\n" +
+				alert("An error occurred that prevented your document from " +
+					"being safely submitted.\n\nTechnical details:\n" +
 					ex);
 				Util.Event.prevent_default(ev);
 				return false;
@@ -1012,7 +1014,7 @@ UI.Loki = function Loki()
 			
 			return true;
 		}
-
+		
 		// this copies the changes made in the iframe back to the hidden form element
 		Util.Event.add_event_listener(_hidden.form, 'submit',
 			Util.Event.listener(submit_handler));
