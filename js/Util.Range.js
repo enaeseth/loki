@@ -237,9 +237,22 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
  */
 Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
 	function process_boundary(bound) {
-		return (bound.container.nodeType == Util.Node.TEXT_NODE)
-			? bound.container
-			: bound.container.childNodes[bound.offset];
+		var length;
+		
+		if (bound.container.nodeType == Util.Node.TEXT_NODE)
+			return bound.container;
+		
+		if (bound.container.childNodes[bound.offset])
+			return bound.container.childNodes[bound.offset];
+		
+		length = bound.container.childNodes.length;
+		if (length == 0 || bound.offset == 0)
+			return bound.container;
+		else if (bound.offset >= length)
+			return bound.container.childNodes[length - 1];
+		else
+			throw new Error('Unable to process boundary for find_nodes_in_range: ' +
+				Util.Node.get_debug_string(bound.container) + ':' + bound.offset);
 	}
 	
 	var bounds = Util.Range.get_boundaries(rng);
@@ -255,9 +268,6 @@ Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
 	}
 	
 	function next_node(n) {
-		if (n == end)
-			return null;
-		
 		if (n.hasChildNodes()) {
 			n = n.firstChild;
 		} else if (n.nextSibling) {
@@ -268,7 +278,7 @@ Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
 			n = null;
 		}
 		
-		return (n != end) ? n : null;
+		return n;
 	}
 	
 	if (typeof(matcher) == 'string')
@@ -281,6 +291,8 @@ Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
 	for (node = start; node; node = next_node(node)) {
 		if (matcher(node))
 			matched_nodes.push(node);
+		if (node == end)
+			break;
 	}
 	
 	if (up) {
