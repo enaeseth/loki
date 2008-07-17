@@ -13,14 +13,7 @@ UI.Copy_Button = function()
 	this.title = 'Copy (Ctrl+C)';
 	this.click_listener = function()
 	{
-		try
-		{
-			this._clipboard_helper.copy();
-		}
-		catch(e)
-		{
-			this._clipboard_helper.alert_helpful_message();
-		}
+		this._clipboard_helper.copy();
 	};
 
 	this.init = function(loki)

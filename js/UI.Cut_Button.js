@@ -13,15 +13,7 @@ UI.Cut_Button = function()
 	this.title = 'Cut (Ctrl+X)';
 	this.click_listener = function()
 	{
-		try
-		{
-			this._clipboard_helper.cut();
-		}
-		catch(e)
-		{
-			this._clipboard_helper.alert_helpful_message();
-			throw(e); // XXX tmp
-		}
+		this._clipboard_helper.cut();
 	};
 
 	this.init = function(loki)
