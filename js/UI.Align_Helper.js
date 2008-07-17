@@ -3,8 +3,7 @@
  *
  * @constructor
  *
- * @class A class for helping insert an anchor. Contains code
- * common to both the button and the menu item.
+ * @class Changes the alignment of block-level elements.
  */
 UI.Align_Helper = function()
 {
@@ -17,54 +16,100 @@ UI.Align_Helper = function()
 		this._paragraph_helper = (new UI.Paragraph_Helper()).init(this._loki);
 		return this;
 	};
-
-	var _get_alignable_elem = function()
+	
+	function get_alignable_elements()
 	{
-		// Make sure we're not directly within BODY
+		var elements;
+		var selection;
+		var range;
+		var bounds;
+		
+		function find_blocks(scan_ancestors) {
+			return Util.Range.find_nodes(bounds, Util.Node.is_block,
+				scan_ancestors);
+		}
+		
+		// Ensure that there's a paragraph; that we're not directly within the
+		// document's body.
 		self._paragraph_helper.possibly_paragraphify();
-
-		var sel = Util.Selection.get_selection(self._loki.window);
-		var rng = Util.Range.create_range(sel);
-		var ble = Util.Range.get_nearest_bl_ancestor_element(rng);
-		return ble;
+		
+		selection = Util.Selection.get_selection(self._loki.window);
+		range = Util.Range.create_range(selection);
+		bounds = Util.Range.get_boundary_blocks(range, true);
+		console.debug(bounds);
+		
+		// First, see if there are any block-level elements within the selected
+		// range.
+		elements = find_blocks(false);
+		if (elements.length)
+			return elements;
+		
+		// Find any that are ancestors of the range.
+		return find_blocks(true);
 	};
 
-	this.is_alignable = function()
+	this.is_alignable = function selection_is_alignable()
 	{
-		return _get_alignable_elem() != null;
-	};
-
-	this.align_left = function()
-	{
-		if ( this.is_alignable() )
-		{
-			// We assume that the elem is left aligned by default, 
-			// if there's no align attr. This is not necessarily true,
-			// but we've decided it's better to assume it anyway rather
-			// than have lots of unnecessary align="left" attrs popping 
-			// up. But maybe we should check "runtime" styles (can we
-			// in Gecko ... ?). Good enough for now.
-			var elem = _get_alignable_elem();
-			if ( elem.getAttribute('align') != null )
-				elem.removeAttribute('align');
+		try {
+			return !!get_alignable_elements().length;
+		} catch (e) {
+			return false;
 		}
 	};
-
-	this.align_center = function()
+	
+	this.align = function align_selection(position)
 	{
-		if ( this.is_alignable() )
-		{
-			var elem = _get_alignable_elem();
-			elem.setAttribute('align', 'center');
+		var elements = get_alignable_elements();
+		
+		position = position.toLowerCase();
+		if (!['left', 'center', 'right', 'justify'].contains(position)) {
+			throw new Error('Invalid position {' + position + '}.');
 		}
+		
+		if (!elements.length)
+			return;
+		elements.each(function align_element(el) {
+			var w = (self._loki.window.document == el.ownerDocument)
+				? self._loki.window
+				: Util.Node.get_window(el);
+			
+			var align = Util.Element.get_computed_style(w, el).textAlign;
+			if (align.toLowerCase() == position)
+				return;
+			
+			if (position == 'left') {
+				// Try simply removing the inline style, since "left" is
+				// probably the default. Check it momentarily, and if the
+				// alignment isn't really left, set it explicitly.
+				el.style.textAlign = '';
+				if (el.style.cssText.length == 0)
+					el.removeAttribute('style');
+				(function verify_element_alignment() {
+					var a = Util.Element.get_computed_style(w, el).textAlign;
+					a = a.toLowerCase();
+					// For Mozilla, the default alignment is actually "start",
+					// which is equivalent to left for our purposes.
+					if (a != position && !(position == 'left' && a == 'start'))
+						el.style.textAlign = position;
+				}).defer();
+			} else {
+				el.style.textAlign = position;
+			}
+		});
 	};
 
-	this.align_right = function()
+	this.align_left = function align_selection_to_left()
 	{
-		if ( this.is_alignable() )
-		{
-			var elem = _get_alignable_elem();
-			elem.setAttribute('align', 'right');
-		}
+		this.align('left');
+	};
+
+	this.align_center = function align_selection_to_center()
+	{
+		this.align('center');
+	};
+
+	this.align_right = function align_selection_to_right()
+	{
+		this.align('right');
 	};
 };
