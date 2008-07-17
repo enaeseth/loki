@@ -32,12 +32,12 @@ UI.Image_Helper = function()
 			if (!Util.Node.is_tag(node, 'IMG'))
 				return false;
 			
-			return !anchor_masseuse.get_real_elem(node);
+			return !anchor_masseuse.is_placeholder(node);
 		}
 		
 		images = Util.Range.find_nodes(rng, is_valid_image, true);
 		
-		if (!images) {
+		if (!images || !images.length) {
 			return null;
 		} else if (images.length > 1) {
 			throw new UI.Multiple_Items_Error('Multiple images are currently ' +
