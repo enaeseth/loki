@@ -36,7 +36,6 @@ UI.Align_Helper = function()
 		selection = Util.Selection.get_selection(self._loki.window);
 		range = Util.Range.create_range(selection);
 		bounds = Util.Range.get_boundary_blocks(range, true);
-		console.debug(bounds);
 		
 		// First, see if there are any block-level elements within the selected
 		// range.
