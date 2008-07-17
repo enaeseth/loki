@@ -436,18 +436,31 @@ Util.Node.get_nearest_non_whitespace_sibling_node = function(node, next_or_previ
 };
 
 /**
- * Determines whether the given node is an element that is block-level by
- * default in HTML.
+ * Determines whether the given node is a block-level element. Tries to use the
+ * element's computed style, and if that fails, falls back on what the default
+ * is for the element's tag.
  *
  * @see Util.Element.is_block_level
  * @see Util.Block.is_block
- * @param	node	the node in question
- * @return	{boolean}	true if the node is by default a block-level element
+ * @param	{Node}	node	the node in question
+ * @return	{Boolean}	true if the node is a block-level element
  */
 Util.Node.is_block_level_element = function(node)
 {
-	return Util.Block.is_block(node);
+	var w;
+	
+	if (node.nodeType != Util.Node.ELEMENT_NODE)
+		return false;
+	
+	try {
+		w = Util.Node.get_window(node);
+		return Util.Element.is_block_level(w, node);
+	} catch (e) {
+		return Util.Block.is_block(node);
+	}
 };
+
+Util.Node.is_block = Util.Node.is_block_level_element;
 
 /**
  * Determines whether the given node, in addition to being a block-level

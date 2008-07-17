@@ -227,8 +227,63 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 };
 
 /**
+ * Gets the nearest block-level elements in the ancestry of each boundary of
+ * the given range.
+ * @param {Range} range the range of which the bounding blocks are desired
+ * @param {Boolean} [as_bounds=false] if true, returns an object in the style
+ * of {@link Util.Range.get_boundaries} specifying the blocks
+ * @return {Object} the bounding blocks
+ */
+Util.Range.get_boundary_blocks = function get_range_boundary_blocks(range,
+	as_bounds)
+{
+	var bounds = Util.Range.get_boundaries(range);
+	var side;
+	
+	function get_block(boundary) {
+		var container = boundary.container;
+		var length = container.childNodes.length;
+		var start;
+		var node;
+		
+		if (container.nodeType == Util.Node.TEXT_NODE)
+			start = container.parentNode;
+		else if (container.childNodes[boundary.offset])
+			start = container.childNodes[boundary.offset];
+		else if (length == 0)
+			start = container;
+		else
+			start = container.childNodes[boundary.offset - 1];
+			
+		for (var node = start; node; node = node.parentNode) {
+			if (Util.Node.is_block(node))
+				return node;
+		}
+		
+		throw new Error('Could not find an enclosing block for the range ' +
+			'boundary.');
+	}
+	
+	function process_block(block) {
+		if (!as_bounds)
+			return block;
+		
+		return {
+			container: block.parentNode,
+			offset: Util.Node.get_offset(block)
+		};
+	}
+	
+	for (side in bounds) {
+		bounds[side] = process_block(get_block(bounds[side]));
+	}
+	return bounds;
+};
+
+/**
  * Finds matching elements within the range.
- * @param {Range} rng the range to search in
+ * @param {Range|Object} rng the range to search in, or a range boundary object
+ *        like the one returned from {@link Util.Range.get_boundaries}.
  * @param {Function|String} [matcher] either a matching function or a tag name.
  * @param {Boolean} [up=false] also search up the tree from the range's common
  *        ancestor. It is an error to set this option if there is no matcher.
@@ -255,7 +310,9 @@ Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
 				Util.Node.get_debug_string(bound.container) + ':' + bound.offset);
 	}
 	
-	var bounds = Util.Range.get_boundaries(rng);
+	var bounds = (rng.start && rng.start.container && rng.end.container)
+		? rng
+		: Util.Range.get_boundaries(rng);
 	var matched_nodes = [];
 	var start = process_boundary(bounds.start);
 	var end = process_boundary(bounds.end);
