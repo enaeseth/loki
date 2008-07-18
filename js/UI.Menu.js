@@ -61,11 +61,11 @@ UI.Menu = function()
 	 * modified from FCK; some parts are modified from TinyMCE;
 	 * some parts come from Brian's Loki menu code.
 	 */
-	self.display = function(x, y)
+	self.display = function(click_event)
 	{
-		if (window.createPopup) {
+		if (_loki.owner_window.createPopup) {
 			// Make the popup and append the menu to it
-			var popup = window.createPopup();
+			var popup = _loki.owner_window.createPopup();
 			var menu_chunk = _get_chunk(popup.document);
 			var popup_body = popup.document.body;
 			Util.Element.add_class(popup_body, 'loki');
@@ -107,8 +107,16 @@ UI.Menu = function()
 			Util.Event.add_event_listener(popup.document, 'click', function() { popup.hide(); });
 
 			// Show the popup
-			popup.show(x, y, width, height, _loki.owner_document.body);
+			popup.show(click_event.screenX, click_event.screenY, width, height);
 		} else {
+			// Determine the coordinates at which the menu should be displayed.
+			var frame_pos = Util.Element.get_position(_loki.iframe);
+			var event_pos = {x: click_event.clientX, y: click_event.clientY};
+			var root_offset = Util.Element.get_relative_offsets(_loki.owner_window, _loki.root);
+
+			var x = frame_pos.x + event_pos.x - root_offset.x;
+			var y = frame_pos.y + event_pos.y - root_offset.y;
+			
 			// Create menu, hidden
 			var menu_chunk = _get_chunk(_loki.owner_document);
 			_loki.root.appendChild(menu_chunk);

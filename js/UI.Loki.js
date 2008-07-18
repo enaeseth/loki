@@ -351,6 +351,7 @@ UI.Loki = function Loki()
 			self.owner_window = _owner_window;
 			self.owner_document = _owner_document;
 			self.root = _root;
+			self.iframe = _iframe;
 			self.hidden = _hidden;
 			self.settings = _settings;
 			self.exec_command = _exec_command;
@@ -1184,17 +1185,8 @@ UI.Loki = function Loki()
 				menu.add_menuitems(menuitems);
 			}
 		}
-
-		// Determine the coordinates at which the menu should be displayed.
-		var frame_pos = Util.Element.get_position(_iframe);
-		var event_pos = {x: event.clientX, y: event.clientY};
-		var root_offset = Util.Element.get_relative_offsets(_owner_window,
-			_root);
 		
-		var x = frame_pos.x + event_pos.x - root_offset.x;
-		var y = frame_pos.y + event_pos.y - root_offset.y;
-		
-		menu.display(x, y);
+		menu.display(event);
 
 		Util.Event.prevent_default(event);
 		return false; // IE
