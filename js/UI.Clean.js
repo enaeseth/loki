@@ -272,6 +272,18 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			action : remove_attributes
 		},
 		{
+			description: 'Translate align attributes.',
+			test: function(node) { return has_attributes(node, ['align']); },
+			action: function translate_alignment(el) {
+				// Exception: tables and images still use the align attribute.
+				if (has_tagname(el, ['TD', 'TH', 'TR', 'TABLE', 'IMG']))
+					return;
+				
+				el.style.textAlign = el.align.toLowerCase();
+				el.removeAttribute('align');
+			}
+		},
+		{
 			description: 'Strip unwanted inline styles',
 			test: function(node) { return has_attributes(node, ['style']); },
 			action: function strip_unwanted_inline_styles(el) {
