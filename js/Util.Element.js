@@ -444,10 +444,37 @@ Util.Element = {
 			var position = Util.Element.get_computed_style(window, e).position;
 			if (position == 'relative') {
 				pos.x += e.offsetLeft;
-				pos.y += e.offsetTop;
+				if (!Util.Element._buggy_ie_offset_top())
+					pos.y += e.offsetTop;
 			}
 		}
 		
 		return pos;
+	},
+	
+	/**
+	 * True if the browser is IE ≤ 7, which incorrectly calculates elements'
+	 * offsetTop attribute.
+	 * @see http://www.quirksmode.org/dom/w3c_cssom.html#offsetParent
+	 * @type Boolean
+	 */
+	_buggy_ie_offset_top: function buggy_ie_offset_top() {
+		var match, major;
+		
+		if (typeof(buggy_ie_offset_top.result) == 'undefined') {
+			if (!Util.Browser.IE) {
+				buggy_ie_offset_top.result = false;
+			} else {
+				match = /^(\d)/.exec(Util.Browser.get_version());
+				if (match && match.length && match.length >= 1) {
+					major = parseInt(match[1]);
+					buggy_ie_offset_top.result =  (major <= 7);
+				} else {
+					buggy_ie_offset_top.result = false;
+				}
+			}
+		}
+		
+		return buggy_ie_offset_top.result;
 	}
 };
