@@ -1009,6 +1009,13 @@ UI.Loki = function Loki()
 					"being safely submitted.\n\nTechnical details:\n" +
 					ex);
 				Util.Event.prevent_default(ev);
+				
+				if (typeof(console) == 'object' && console.firebug) {
+					console.error('Failed to generate HTML:',
+						ex);
+					throw ex;
+				}
+				
 				return false;
 			}
 			
