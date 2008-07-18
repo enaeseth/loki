@@ -1349,7 +1349,8 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 		buttons: [UI.BR_Button]
 	});
 	this.add('hr', {
-		buttons: [UI.HR_Button]
+		buttons: [UI.HR_Button],
+		masseuses: [UI.HR_Masseuse]
 	});
 	this.add('clipboard', {
 		buttons: [UI.Cut_Button, UI.Copy_Button, UI.Paste_Button],
