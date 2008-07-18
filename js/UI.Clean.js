@@ -307,7 +307,10 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 					}
 				}
 				
-				el.style.cssText = accepted.join(' ');
+				if (accepted.length > 0)
+					el.style.cssText = accepted.join(' ');
+				else
+					el.removeAttribute('style');
 			}
 		},
 		{
