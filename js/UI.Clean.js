@@ -215,8 +215,15 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		return false;
 	};
 	
-	var allowable_tags =
-		(settings.allowable_tags || UI.Clean.default_allowable_tags).toSet();
+	var allowable_tags;
+	if (settings.allowable_tags) {
+		allowable_tags = settings.allowable_tags.map(function(tag) {
+			return tag.toUpperCase();
+		}).toSet();
+	} else {
+		allowable_tags = UI.Clean.default_allowable_tags.toSet();
+	}
+	
 	var acceptable_css = settings.allowable_inline_styles.toSet();
 		
 	function is_allowable_tag(node)
