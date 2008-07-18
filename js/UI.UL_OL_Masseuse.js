@@ -35,11 +35,12 @@ UI.UL_OL_Masseuse = function()
 		}
 	};
 
+	// <ul><li>out<ul><li>in</li></ul></li><li>out again</li></ul>
+	//   -->
+	// <ul><li>out</li><ul><li>in</li></ul><li>out again</li></ul>
 	this.massage_elem = function(ul)
 	{
-		// <ul><li>out<ul><li>in</li></ul></li><li>out again</li></ul>
-		//   -->
-		// <ul><li>out</li><ul><li>in</li></ul><li>out again</li></ul>
+		
 		if ( ul.parentNode.nodeName == 'LI' )
 		{
 			var old_li = ul.parentNode;
@@ -50,24 +51,22 @@ UI.UL_OL_Masseuse = function()
 		}
 	};
 
-	this.unmassage_elem = function(ul)
+	// <ul><li>out</li><ul><li>in</li></ul><li>out again</li></ul>
+	//   -->
+	// <ul><li>out<ul><li>in</li></ul></li><li>out again</li></ul>
+	this.unmassage_elem = function(list)
 	{
-		// <ul><li>out</li><ul><li>in</li></ul><li>out again</li></ul>
-		//   -->
-		// <ul><li>out<ul><li>in</li></ul></li><li>out again</li></ul>
-		if ( ul.parentNode.nodeName == 'UL' || ul.parentNode.nodeName == 'OL' )
-		{
-			var prev_li = ul.previousSibling;
-			if ( prev_li != null )
-			{
-				prev_li.appendChild(ul);
+		var prev_item;
+		var is_li = Util.Node.curry_is_tag('LI');
+		
+		if (_tagnames.contains(list.parentNode.nodeName)) {
+			prev_item = Util.Node.previous_matching_sibling(list, is_li);
+			
+			if (!prev_item) {
+				prev_item = list.ownerDocument.createElement('LI');
+				list.parentNode.insertBefore(prev_item, list);
 			}
-			else
-			{
-				var new_li = ul.ownerDocument.createElement('LI');
-				ul.parentNode.insertBefore(new_li, ul);
-				new_li.appendChild(ul);
-			}
+			prev_item.appendChild(list);
 		}
 	};
 };
