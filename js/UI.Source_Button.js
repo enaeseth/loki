@@ -19,7 +19,7 @@ UI.Source_Button = function()
 		} catch (e) {
 			alert("An error occurred that prevented your document's HTML " +
 				"from being generated.\n\nTechnical details:\n" +
-				ex);
+				e);
 		}
 		
 	};

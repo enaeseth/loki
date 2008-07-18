@@ -8,6 +8,17 @@ Util.Element = {
 	 */
 	empty: (['BR', 'AREA', 'LINK', 'IMG', 'PARAM', 'HR', 'INPUT', 'COL',
 		'BASE', 'META'].toSet()),
+		
+	/**
+	 * Determines if the given node or tag name represents an empty HTML tag.
+	 * @param {Element|String}
+	 * @return {Boolean}
+	 */
+	empty_tag: function is_empty_tag(el)
+	{
+		var tag = (el.nodeName || String(el)).toUpperCase();
+		return (tag in Util.Element.empty);
+	},
 	
 	/**
 	 * Gets an element's computed styles.
@@ -90,6 +101,9 @@ Util.Element = {
 					break;
 				case 'for':
 					attrs.htmlFor = v;
+					break;
+				case 'style':
+					attrs.style = v.style.cssText;
 					break;
 				default:
 					attrs[a.nodeName] = v;
