@@ -54,28 +54,29 @@ UI.Clipboard_Helper = function ClipboardHelper()
 		html = container.innerHTML;
 
 		// Move HTML to clipboard
-		try // IE
-		{
-			_ie_copy(html);
+		try {
+			if (UI.Clipboard_Helper._gecko) {
+				_gecko_copy(html, command || 'Copy', accel || 'C');
+			} else {
+				_ie_copy(html);
+			}
+		} finally {
+			self._loki.focus();
 		}
-		catch(e) // Gecko
-		{
-			_gecko_copy(html, command || 'Copy', accel || 'C');
-		}
-		self._loki.focus();
+		
 	};
 
 	this.paste = function clipboard_paste()
 	{
-		try // IE
-		{
-			_ie_paste();
+		try {
+			if (UI.Clipboard_Helper._gecko) {
+				_gecko_paste();
+			} else {
+				_ie_paste();
+			}
+		} finally {
+			self._loki.focus();
 		}
-		catch(e)
-		{
-			_gecko_paste();
-		}
-		self._loki.focus();
 	};
 
 	this.delete_it = function() // delete is a reserved word
@@ -130,25 +131,18 @@ UI.Clipboard_Helper = function ClipboardHelper()
 
 	function _ie_copy(html)
 	{
-		try
-		{
-			var sel = Util.Selection.get_selection(self._loki.window);
-			var rng = Util.Range.create_range(sel);
+		var sel = Util.Selection.get_selection(self._loki.window);
+		var rng = Util.Range.create_range(sel);
 
-			// transfer from iframe to editable div
-			// select all of editable div
-			// copy from editable div
-			UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.body.innerHTML = html;
-			UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.execCommand("SelectAll", false, null);
-			UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.execCommand("Copy", false, null);
+		// transfer from iframe to editable div
+		// select all of editable div
+		// copy from editable div
+		UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.body.innerHTML = html;
+		UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.execCommand("SelectAll", false, null);
+		UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.execCommand("Copy", false, null);
 
-			// Reposition cursor
-			rng.select();
-		}
-		catch(e)
-		{
-			throw("UI.Clipboard_Helper: couldn't copy in _ie_copy, because <<" + e.message + ">>.");
-		}
+		// Reposition cursor
+		rng.select();
 	};
 
 	function _gecko_paste()
@@ -190,40 +184,59 @@ UI.Clipboard_Helper = function ClipboardHelper()
 
 	function _ie_paste()
 	{
-		try
-		{
-			var sel = Util.Selection.get_selection(self._loki.window);
-			var rng = Util.Range.create_range(sel);
+		var sel = Util.Selection.get_selection(self._loki.window);
+		var rng = Util.Range.create_range(sel);
+		var parent = rng.parentElement();
+		
+		// Ensure that the selection is within the editing document.
+		// if (parent && parent.ownerDocument != self._loki.document)
+		// 	return;
 
-			// Make clipboard iframe editable
-			// clear editable div
-			// select all of editable div
-			// paste into editable div
-			UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.body.contentEditable = true;
-			UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.body.innerHTML = "";
-			UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.execCommand("SelectAll", false, null);
-			UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.execCommand("Paste", false, null);
+		// Make clipboard iframe editable
+		// clear editable div
+		// select all of editable div
+		// paste into editable div
+		UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.body.contentEditable = true;
+		UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.body.innerHTML = "";
+		UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.execCommand("SelectAll", false, null);
+		UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.execCommand("Paste", false, null);
 
-			// Get HTML
-			var html = UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.body.innerHTML;
+		// Get HTML
+		var html = UI.Clipboard_Helper_Editable_Iframe.contentWindow.document.body.innerHTML;
 
-			// Massage and clean HTML
-			var container = self._loki.document.createElement('DIV');
-			container.innerHTML = html;
-			UI.Clean.clean(container, self._loki.settings);
-			self._loki.massage_node_descendants(container);
-			html = container.innerHTML;
-
-			// Actually paste HTML
-			rng.pasteHTML(html);
-			rng.select();
+		// Massage and clean HTML
+		var nodeName = 'DIV';
+		if (rng.text != null && rng.text == "") {
+			if (typeof(parent) == 'object' && parent.tagName)
+				nodeName = parent.tagName;
 		}
-		catch(e)
-		{
-			throw("UI.Clipboard_Helper: couldn't paste in _ie_paste, because <<" + e.message + ">>.");
+		
+		function clean(nodeName) {
+			var temp = self._loki.document.createElement(nodeName);
+			temp.innerHTML = html;
+			
+			UI.Clean.clean(temp, self._loki.settings);
+			self._loki.massage_node_descendants(temp);
+			return temp.innerHTML;
 		}
+		
+		var cleanedHTML;
+		try {
+			cleanedHTML = clean(nodeName);
+		} catch (e) {
+			if (nodeName != 'DIV')
+				cleanedHTML = clean('DIV');
+			else
+				throw e;
+		}
+
+		// Actually paste HTML
+		rng.pasteHTML(cleanedHTML);
+		rng.select();
 	};
 };
+
+UI.Clipboard_Helper._gecko = (typeof(Components) == 'object');
 
 // We need to create this iframe as a place to put code that
 // Gecko needs to run with special privileges, for which
@@ -254,6 +267,11 @@ UI.Clipboard_Helper._setup = function setup_clipboard_helper() {
 	
 	function watch_onload(func)
 	{
+		if (Loki.is_document_ready()) {
+			func();
+			return;
+		}
+		
 		if (document.addEventListener) {
 			document.addEventListener('DOMContentLoaded', func, false);
 			window.addEventListener('load', func, false);
@@ -300,7 +318,7 @@ UI.Clipboard_Helper._setup = function setup_clipboard_helper() {
 			return [base_uri, path].join('/');
 	}
 	
-	if (typeof(Components) == 'object') {
+	if (UI.Clipboard_Helper._gecko) {
 		// Gecko
 		if (typeof(_gecko_clipboard_helper_src) == 'string') {
 			// PHP helper is providing this for us.

@@ -204,6 +204,12 @@ UI.Loki = function Loki()
 		if (!(Util.Browser.IE || Util.Browser.Gecko)) {
 			throw new Error('The Loki HTML editor does not currently support ' +
 				'your browser.');
+		} else if (!textarea) {
+			throw new Error('Cannot initialize Loki without a textarea.');
+		} else if (!textarea.form) {
+			throw new Error('Cannot initialize Loki because the textarea ' +
+				Util.Node.get_debug_string(textarea) + ' does not belong to ' +
+				'a form.');
 		}
 		
 		_settings = (settings) ? Util.Object.clone(settings) : {};
@@ -1539,6 +1545,15 @@ var Loki = {
 			Loki._pend(null, settings || {}, callback || null);
 		}
 		
+	},
+	
+	/**
+	 * Returns true if the DOM is ready.
+	 * @returns {boolean}
+	 */
+	is_document_ready: function is_document_ready()
+	{
+		return this._loaded;
 	},
 	
 	/**
