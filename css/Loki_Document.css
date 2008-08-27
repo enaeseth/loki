@@ -1,5 +1,11 @@
 body {
 	margin: 1ex;
+	
+	/* Some reasonable defaults for standard layouts for people who don't really
+	 * define their own document style sheets. */
+	background: white;
+	color: black;
+	font-family: Helvetica, Arial, sans-serif;
 }
 
 .loki__is_really_a_br {
@@ -72,6 +78,8 @@ blockquote {
 
 .loki__hr_container span {
 	display: none;
+	
+	cursor: pointer !important;
 }
 
 .loki__hr_container a.loki__delete {
@@ -84,6 +92,8 @@ blockquote {
 	right: 0px;
 	
 	background: url('../images/close.gif') top;
+	
+	cursor: pointer !important;
 }
 
 .loki__hr_container a.loki__delete:hover {

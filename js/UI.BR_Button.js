@@ -10,8 +10,8 @@ UI.BR_Button = function()
 	var self = this;
 	Util.OOP.inherits(self, UI.Button);
 
-	this.image = 'break.gif';
-	this.title = 'Single line break (Shift+Enter)';
+	this.image = 'break.png';
+	this.title = 'Single-line break (Shift+Enter)';
 	this.click_listener = function() { self._br_helper.insert_br(); };
 
 	this.init = function(loki)

@@ -13,7 +13,7 @@ UI.Image_Masseuse = function()
 	this.init = function(loki)
 	{
 		this.superclass.init.call(this, loki);
-		this._unsecured = new RegExp('^http:', '');
+		this._unsecured = /^http:/;
 		return this;
 	};
 
@@ -40,24 +40,24 @@ UI.Image_Masseuse = function()
 	
 	this.get_fake_elem = function(img)
 	{
-		var src = img.getAttribute('src');
+		var placeholder, src = img.getAttribute('src');
 		if (src == null)
 			return;
 		
 		if (self._unsecured.test(src)) {
-			if (Util.URI.extract_domain(src) == self._loki.editor_domain())
+			placeholder = img.cloneNode();
+			
+			if (Util.URI.extract_domain(src) == self._loki.editor_domain()) {
 				new_src = Util.URI.strip_https_and_http(src);
-			else if (self._loki.settings.sanitize_unsecured)
+			} else if (self._loki.settings.sanitize_unsecured) {
 				new_src = self._loki.settings.base_uri +
 					'images/insecure_image.gif';
-			else
+				placeholder.setAttribute('loki:src', img.src);
+				placeholder.setAttribute('loki:fake', 'true');
+			} else {
 				return img;
+			}
 			
-			var placeholder = img.ownerDocument.createElement('IMG');
-			placeholder.title = img.title;
-			placeholder.alt = img.alt;
-			placeholder.setAttribute('loki:src', img.src);
-			placeholder.setAttribute('loki:fake', 'true');
 			placeholder.src = new_src;
 			
 			return placeholder;
@@ -84,17 +84,20 @@ UI.Image_Masseuse = function()
 	
 	this.get_real_elem = function(img)
 	{
-		if (img == null || img.getAttribute('loki:fake') != 'true') {
+		var src, real;
+		
+		if (!img)
 			return null;
-		}
 		
-		var src = img.getAttribute('loki:src');
-		if (src == null)
-			return img;
+		src = img.getAttribute('loki:src');
+		if (!src)
+			return null;
 		
-		var real = img.ownerDocument.createElement('IMG');
-		real.title = img.title;
-		real.alt = img.alt;
+		real = img.ownerDocument.createElement('IMG');
+		if (img.title)
+			real.title = img.title;
+		if (img.alt)
+			real.alt = img.alt;
 		real.src = src;
 		
 		return real;

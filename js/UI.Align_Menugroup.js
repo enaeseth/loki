@@ -42,8 +42,6 @@ UI.Align_Menugroup = function()
 				//listener : function() { self._loki.exec_command('JustifyRight'); }
 				listener : function() { self._align_helper.align_right(); }
 			}) );
-
-			menuitems.push( (new UI.Separator_Menuitem).init() );
 		}
 
 		return menuitems;

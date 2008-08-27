@@ -69,13 +69,12 @@ UI.HR_Masseuse = function()
 	{
 		var doc = container.ownerDocument;
 		var link = doc.createElement('A');
-		link.href = '#';
 		link.title = 'Click to remove this horizontal line.'
 		Util.Element.add_class(link, 'loki__delete');
 		
-		var span = doc.createElement('SPAN');
+		/*var span = doc.createElement('SPAN');
 		span.appendChild(doc.createTextNode('Remove'));
-		link.appendChild(span);
+		link.appendChild(span);*/
 		
 		Util.Event.add_event_listener(container, 'mouseover', function() {
 			link.style.display = 'block';

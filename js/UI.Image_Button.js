@@ -10,7 +10,7 @@ UI.Image_Button = function()
 	var self = this;
 	Util.OOP.inherits(this, UI.Button);
 
-	this.image = 'image.gif';
+	this.image = 'image.png';
 	this.title = 'Insert image';
 	this.click_listener = function() { self._helper.open_dialog(); };
 

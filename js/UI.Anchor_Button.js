@@ -10,7 +10,7 @@ UI.Anchor_Button = function()
 	var self = this;
 	Util.OOP.inherits(self, UI.Button);
 
-	this.image = 'anchorInNav.gif';
+	this.image = 'anchor.png';
 	this.title = 'Insert named anchor';
 	this.click_listener = function() { self._anchor_helper.open_dialog(); };
 

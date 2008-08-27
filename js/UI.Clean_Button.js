@@ -9,7 +9,7 @@ UI.Clean_Button = function()
 {
 	Util.OOP.inherits(this, UI.Button);
 
-	this.image = 'force_cleanup.gif';
+	this.image = 'cleanup.png';
 	this.title = 'Clean up HTML';
 	this.click_listener = function()
 	{

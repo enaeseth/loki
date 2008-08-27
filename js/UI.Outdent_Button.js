@@ -10,7 +10,7 @@ UI.Outdent_Button = function()
 	var self = this;
 	Util.OOP.inherits(self, UI.Button);
 
-	this.image = 'outdent.gif';
+	this.image = 'outdent.png';
 	this.title = 'Unindent list item(s)';
 	this.helper = null;
 	

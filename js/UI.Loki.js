@@ -2,11 +2,9 @@
  * Declares instance variables. <code>init</code> must be called to initialize them.
  * @constructor
  *
- * @param	textarea	the textarea to replace with Loki
- *
  * @class A WYSIWYG HTML editor.
  */
-UI.Loki = function(textarea, settings)
+UI.Loki = function Loki()
 {
 	var _owner_window;
 	var _owner_document; // that of _textarea etc.
@@ -26,11 +24,12 @@ UI.Loki = function(textarea, settings)
 	var _hidden;             // |--- hidden (input)
 
 	var _settings;
+	var _options;
 	var _use_p_hack;
-	var _state_change_listeners = Array();
-	var _masseuses = Array();
-	var _menugroups = Array();
-	var _keybindings = Array();
+	var _state_change_listeners = [];
+	var _masseuses = [];
+	var _menugroups = [];
+	var _keybindings = [];
 	var _editor_domain;
 
 	var self = this;
@@ -52,7 +51,7 @@ UI.Loki = function(textarea, settings)
 		_unmassage_body();
 		UI.Clean.clean(_body, _settings);
 		html = _body.innerHTML;
-		html = UI.Clean.cleanHtml(html, _settings);
+		html = UI.Clean.clean_HTML(html, _settings);
 		_massage_body();
 		return html;
 
@@ -151,22 +150,85 @@ UI.Loki = function(textarea, settings)
 		_root.replaceChild(_toolbar, old_toolbar);
 		_window.focus();
 	};
+	
+	function enumerate_options(property) {
+		var key, results = [];
+		
+		if (_options) {
+			for (key in _options) {
+				if (!property)
+					results.append(_options[key]);
+				else if (_options[key][property])
+					results.append(_options[key][property]);
+			}
+		}
+		
+		return results;
+	}
+	
+	/**
+	 * Sets focus to the editing window.
+	 * @return {void}
+	 */
+	this.focus = function focus_on_loki()
+	{
+		var doc = _owner_document;
+		
+		if (_is_textarea_active()) {
+			if ((!doc.hasFocus || doc.hasFocus()) && _textarea == doc.activeElement)
+				return;
+			_textarea.focus();
+		} else if (!_window) {
+			throw new Error('Invalid Loki state: cannot focus; Loki window ' +
+				'does not yet exist.');
+		} else if (Util.Browser.IE) {
+			_body.setActive();
+			_window.focus();
+		} else {
+			_window.focus();
+		}
+	}
 
 
 	/**
 	 * Initializes instance variables.
 	 *
-	 * @param	textarea	the textarea to replace with Loki
+	 * @param {HTMLTextAreaElement} textarea the textarea to replace with Loki
+	 * @param {Object} settings Loki settings
+	 * @returns {UI.Loki} this Loki instance
+	 * @see http://code.google.com/p/loki-editor/wiki/Settings
 	 */
-	this.init = function(textarea, settings)
+	this.init = function init_loki(textarea, settings)
 	{
 		// Incompatible browser check.
 		if (!(Util.Browser.IE || Util.Browser.Gecko)) {
-			throw new Error('Unsupported browser.');
+			throw new Error('The Loki HTML editor does not currently support ' +
+				'your browser.');
 		}
 		
-		_settings = settings;
-
+		_settings = (settings) ? Util.Object.clone(settings) : {};
+		self.options = _options = UI.Loki.Options.get(_settings.options || 'default', true);
+		_settings.options = _options;
+		
+		['site', 'type'].each(function cleanup_default_regexp(which) {
+			var setting = 'default_' + which + '_regexp';
+			if (!_settings[setting])
+				return;
+			if (!(_settings[setting].exec && _settings[setting].test)) {
+				_settings[setting] = new RegExp(_settings[setting]);
+			}
+		});
+		
+		if (!_settings.base_uri) {
+			_settings.base_uri = autodetect_base_uri();
+		}
+		
+		if (!_settings.allowable_inline_styles) {
+			_settings.allowable_inline_styles = default_allowed_styles();
+		}
+		
+		UI.Clipboard_Helper._setup(_settings.base_uri);
+		
 		_textarea = textarea;
 		_owner_window = window;
 		_owner_document = _textarea.ownerDocument;
@@ -177,7 +239,7 @@ UI.Loki = function(textarea, settings)
 		_create_root();
 		_create_toolbars();
 		_create_iframe();
-		if ( _settings.options.test('statusbar') )
+		if ( _options.statusbar )
 			_create_statusbar();
 		_create_grippy();
 		_create_hidden();
@@ -185,7 +247,7 @@ UI.Loki = function(textarea, settings)
 		// And append them to root
 		_root.appendChild( _toolbar );
 		_root.appendChild( _iframe_wrapper );
-		if ( _settings.options.test('statusbar') )
+		if ( _options.statusbar )
 			_root.appendChild( _statusbar );
 		_root.appendChild( _grippy_wrapper );
 		_root.appendChild( _hidden );
@@ -204,7 +266,36 @@ UI.Loki = function(textarea, settings)
 
 		// Continue the initialization, but asynchronously
 		_init_async();
+		
+		return self;
 	};
+	
+	/*
+	 * Attempts to automatically detect the Loki base URI.
+	 */
+	function autodetect_base_uri()
+	{
+		var scripts = document.getElementsByTagName('SCRIPT');
+		var pattern = /\bloki\.js(\?[^#]*)?(#\S+)?$/;
+		
+		for (var i = 0; i < scripts.length; i++) {
+			if (pattern.test(scripts[i].src)) {
+				// Found Loki!
+				return scripts[i].src.replace(pattern, '');
+			}
+		}
+		
+		throw new Error("Unable to automatically determine the Loki base URI." +
+			" Please set it explicitly.");
+	}
+	
+	function default_allowed_styles()
+	{
+		var builtin = ['text-align', 'vertical-align', 'float', 'direction',
+			'display', 'clear', 'list-style'];
+		
+		return builtin;
+	}
 
 	/**
 	 * Finishes initializing instance variables, but does so
@@ -260,12 +351,12 @@ UI.Loki = function(textarea, settings)
 			self.owner_window = _owner_window;
 			self.owner_document = _owner_document;
 			self.root = _root;
+			self.iframe = _iframe;
 			self.hidden = _hidden;
 			self.settings = _settings;
 			self.exec_command = _exec_command;
 			self.query_command_state = _query_command_state;
 			self.query_command_value = _query_command_value;
-			self.focus = function() { _window.focus() };
 			
 			// Set body's html to textarea's value
 			self.set_html( _textarea.value );
@@ -274,6 +365,7 @@ UI.Loki = function(textarea, settings)
 			_make_document_editable();
 
 			// Add certain event listeners to the document and elsewhere
+			_add_double_click_listeners();
 			_add_document_listeners();
 			_add_state_change_listeners();
 			_add_grippy_listeners();
@@ -285,9 +377,14 @@ UI.Loki = function(textarea, settings)
 		{
 			// If anything goes wrong during initialization, first
 			// revert to the textarea before re-throwing the error
-			self.iframe_to_textarea();
-			throw(new Error('UI.Loki._init_async: I reverted to source view because the following ' +
-							'error prevented Loki from initializing: <<' + e.message + '>>.'));
+			try {
+				self.iframe_to_textarea();
+			} catch (desperation) {
+				// If even that doesn't work, go all the way back.
+				_root.parentNode.replaceChild(_textarea, _root);
+			}
+			
+			throw e;
 		}
 	};
 	
@@ -332,14 +429,14 @@ UI.Loki = function(textarea, settings)
 		Util.Element.add_class(_textarea_toolbar, 'toolbar');
 
 		// Function to add a button to a the toolbars
-		var add_button = function(button_class)
+		function add_button(button_class)
 		{
 			var b = new button_class();
 			b.init(self);
 
 			function create_button()
 			{
-				var button = _owner_document.createElement('A');
+				var button = _owner_document.createElement('A'), img, img_src;
 				button.href = 'javascript:void(0);';
 
 				Util.Event.add_event_listener(button, 'mouseover', function() { Util.Element.add_class(button, 'hover'); });
@@ -348,30 +445,27 @@ UI.Loki = function(textarea, settings)
 				Util.Event.add_event_listener(button, 'mouseup', function() { Util.Element.remove_class(button, 'active'); });
 				Util.Event.add_event_listener(button, 'click', function() { b.click_listener(); });
 
-				// make the button appear depressed whenever the current selection is in a relevant (bold, heading, etc) region
-				if ( b.state_querier != null )
-				{
-					_state_change_listeners.push( 
-						function()
-						{
-							if ( b.state_querier() &&	(Util.Element.get_all_classes(button)).indexOf('active') == -1 ) 
-								Util.Element.add_class(button, 'active' /*'selected'*/);
-							else
-								if ( !b.state_querier() && (Util.Element.get_all_classes(button)).indexOf('active') > -1 )
-									Util.Element.remove_class(button, 'active' /*'selected'*/);
-						}
-					);
+				img_src = _settings.base_uri + 'images/toolbar/' + b.image;
+
+				// Apply PNG fix.
+				if (Util.Browser.IE && /MSIE 6/.test(navigator.userAgent)) {
+					button.title = b.title;
+					img = _owner_document.createElement('SPAN');
+					img_src = Util.URI.build(Util.URI.normalize(img_src));
+					img.className = 'loki_filtered_button';
+					img.style.filter = "progid:" +
+						"DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+					    img_src + "', sizingMethod='image')";
+					img.setAttribute('unselectable', 'on');
+				} else {
+					img = _owner_document.createElement('IMG');
+					img.src = img_src;
+					img.title = b.title;
+					img.border = 0;
+					img.setAttribute('unselectable', 'on')
 				}
-
-				var img = _owner_document.createElement('IMG');
-				img.src = _settings.base_uri + 'images/nav/' + b.image;
-				img.title = b.title;
-				img.width = 21;
-				img.height = 20;
-				img.border = 0;
-				img.setAttribute('unselectable', 'on');
+				
 				button.appendChild(img);
-
 				return button;
 			};
 
@@ -381,36 +475,7 @@ UI.Loki = function(textarea, settings)
 		};
 
 		// Add each button to the toolbars
-		
-		var button_map = {
-			strong: [UI.Bold_Button],
-			em: [UI.Italic_Button],
-			underline: [UI.Underline_Button],
-			headline: [UI.Headline_Button],
-			pre: [UI.Pre_Button],
-			linebreak: [UI.BR_Button],
-			hrule: [UI.HR_Button],
-			clipboard: [UI.Copy_Button, UI.Cut_Button, UI.Paste_Button],
-			// align: [UI.Left_Align_Button, UI.Center_Align_Button, UI.Right_Align_Button],
-			highlight: [UI.Highlight_Button],
-			blockquote: [UI.Blockquote_Button],
-			olist: [UI.OL_Button],
-			ulist: [UI.UL_Button],
-			indenttext: [UI.Indent_Button, UI.Outdent_Button],
-			findtext: [UI.Find_Button],
-			table: [UI.Table_Button],
-			image: [UI.Image_Button],
-			link: [UI.Page_Link_Button],
-			anchor: [UI.Anchor_Button],
-			cleanup: [UI.Clean_Button],
-			source: [UI.Source_Button, UI.Raw_Source_Button]
-		};
-		
-		for (var s in button_map) {
-			if (_settings.options.test(s)) {
-				Util.Array.for_each(button_map[s], add_button);
-			}
-		}
+		enumerate_options('buttons').each(add_button);
 	};
 
 	/**
@@ -429,7 +494,7 @@ UI.Loki = function(textarea, settings)
 		Util.Element.add_class(_iframe_wrapper, 'iframe_wrapper');
 
 		_iframe = _owner_document.createElement('IFRAME');
-		_iframe.src = _settings.base_uri + 'auxil/loki_blank.html';
+		_iframe.src = 'javascript:""';
 		_iframe.frameBorder = '0'; // otherwise, IE puts an extra border around the iframe that css cannot erase
 
 		td.appendChild(_iframe);
@@ -493,7 +558,7 @@ UI.Loki = function(textarea, settings)
 			Util.Event.add_event_listener(_document, 'mousemove', resize);
 			Util.Event.add_event_listener(_document, 'mouseup', stop_resize);
 
-			if ( !document.all ) // XXX bad
+			if ( !Util.Browser.IE ) // XXX bad
 				_owner_document.documentElement.appendChild(resize_mask);
 
 			return Util.Event.prevent_default(event);
@@ -507,7 +572,7 @@ UI.Loki = function(textarea, settings)
 		{
 			event = event == null ? window.event : event;
 
-			if ( !document.all ) // XXX bad
+			if ( !Util.Browser.IE ) // XXX bad
 				_owner_document.documentElement.removeChild(resize_mask);
 
 			var coords = determine_coords(event);
@@ -579,14 +644,7 @@ UI.Loki = function(textarea, settings)
 	 */
 	var _get_height = function()
 	{
-		if ( _is_textarea_active() )
-		{
-			return _textarea.clientHeight;
-		}
-		else
-		{
-			return _iframe_wrapper.clientHeight;
-		}
+		return (_is_textarea_active() ? _textarea : _iframe_wrapper).clientHeight;
 	};
 
 	/**
@@ -643,13 +701,13 @@ UI.Loki = function(textarea, settings)
 	 */
 	var _append_document_style_sheets = function()
 	{
-		Util.Document.append_style_sheet(_document, _settings.base_uri + 'css/cssSelector.css');
-		if ( !document.all ) // XXX bad
-			Util.Document.append_style_sheet(_document, _settings.base_uri + 'css/cssSelector_gecko.css');
-		Util.Document.append_style_sheet(_document, '/global_stock/css/modules.css'); //this should perhaps be more generalized
-		Util.Document.append_style_sheet(_document, '/global_stock/css/default_styles.css'); //this should perhaps be more generalized
-// 		Util.Document.append_style_sheet(_document, '/global_stock/css/minisites_styles.css'); //this should perhaps be more generalized
-		Util.Document.append_style_sheet(_document, _settings.base_uri + 'css/Loki_Document.css');
+		var add = Util.Document.append_style_sheet.curry(_document);
+		
+		add((_settings.base_uri || '') + 'css/Loki_Document.css');
+		
+		(_settings.document_style_sheets || []).each(function (sheet) {
+			add(sheet);
+		});
 	};
 	
 	/**
@@ -660,12 +718,14 @@ UI.Loki = function(textarea, settings)
 	 */
 	var _clear_document = function()
 	{
+		var html = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\n'+
+			'\t"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n'+
+			'<html>\n\t<head xmlns="http://www.w3.org/1999/xhtml">\n'+
+			'\t<title>Loki editing document</title>\n</head>\n'+
+			'<body></body>\n</html>';
+			
 		_document.open();
-		_document.write(
-			'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' +
-			'<html><head><title></title></head><body>' +
-			'</body></html>'
-		);
+		_document.write(html);
 		_document.close();
 	};
 
@@ -680,46 +740,25 @@ UI.Loki = function(textarea, settings)
 	 */
 	var _make_document_editable = function()
 	{
-		// IE way
-		try
-		{
+		if (Util.Browser.IE) {
 			_body.contentEditable = true;
-			// If the document isn't editable, this will throw an
-			// error. If the document is editable, this is perfectly
-			// harmless.
-			_query_command_state('Bold');
-		}
-		// Mozilla way
-		catch(e)
-		{
-			try
-			{
-				// Turn on design mode.  N.B.: designMode has to be
-				// set after the iframe_elem's src is set (or its
-				// document is closed). ... Otherwise the designMode
-				// attribute will be reset to "off", and things like
-				// execCommand won't work (though, due to Mozilla bug
-				// #198155, the iframe's new document will be
-				// editable)
-				_document.designMode = 'on';
+			try {
+				// If the document isn't really editable, this will throw an
+				// error. If the document is editable, this is perfectly
+				// harmless.
+				_query_command_state('Bold');
+			} catch (e) {
+				throw new Util.Unsupported_Error('rich text editing');
+			}
+		} else {
+			_document.designMode = 'On';
+			try {
 				_document.execCommand('undo', false, null);
-				//_query_command_state('Bold');
-			}
-			catch(f)
-			{
-				throw(new Error('UI.Loki._init_editor_iframe: Neither the IE nor the Mozilla way of starting the editor worked.'+
-								'When the IE way was tried, the following error was thrown: <<' + e.message + '>>. ' +
-								'When the Mozilla way was tried, the following error was thrown: <<' + f.message + '>>.'));
+				_document.execCommand('useCSS', false, true);
+			} catch (e) {
+				throw new Util.Unsupported_Error('rich text editing');
 			}
 		}
-
-		// Tell Mozilla to use CSS.  Wrap in try block because IE
-		// doesn't have a useCSS command, nor do some older versions
-		// of Mozilla (even ones that support designMode),
-		// e.g. Gecko/20030312 Mozilla 1.3 OS X
-		try {
-			_document.execCommand('useCSS', false, true);
-		} catch (e) {}
 	};
 
 	/**
@@ -734,20 +773,12 @@ UI.Loki = function(textarea, settings)
 	{
 		function add_masseuse(masseuse_class)
 		{
-			var masseuse = new masseuse_class;
+			var masseuse = new masseuse_class();
 			masseuse.init(self);
 			_masseuses.push(masseuse);
-		};
-
-		// innerHTML masseuses must go first, ...
-		if ( _settings.options.test('table') ) add_masseuse(UI.Table_Masseuse);
-		// ... before any add_event_listener masseuses
-		if ( _settings.options.test('anchor') ) add_masseuse(UI.Anchor_Masseuse);
-		if ( _settings.options.test('olist') || _settings.options.test('ulist') ) add_masseuse(UI.UL_OL_Masseuse);
-		if ( _settings.options.test('image') ) add_masseuse(UI.Image_Masseuse);
-		if ( _settings.options.test('hrule') ) add_masseuse(UI.HR_Masseuse);
-		add_masseuse(UI.Italic_Masseuse);
-		add_masseuse(UI.Bold_Masseuse);
+		}
+		
+		enumerate_options('masseuses').each(add_masseuse);
 	};
 
 	/**
@@ -791,6 +822,18 @@ UI.Loki = function(textarea, settings)
 			_masseuses[i].unmassage_node_descendants(node);
 		}
 	};
+	
+	function _add_double_click_listeners()
+	{
+		function add(listener_class) {
+			var listener = (new listener_class()).init(self);
+			Util.Event.observe(_body, 'dblclick', function(ev) {
+				listener.double_click(ev);
+			});
+		}
+		
+		enumerate_options('double_click_listeners').each(add);
+	}
 
 	/**
 	 * Add certain event listeners to the document, e.g. to listen to
@@ -804,8 +847,9 @@ UI.Loki = function(textarea, settings)
 		var tinyMCE = new TinyMCE();
 		tinyMCE.init(_window, control);
 		
-		var paste_dni; // a DOMNodeInserted event handler has been registered
-		var ni_count = 0;
+		var paste_keyup = false; // a keyup event listener has been registered
+		var mod_key = (Util.Browser.Mac ? 'meta' : 'ctrl') + 'Key';
+		var mod_key_pressed = null;
 
 		var paragraph_helper = (new UI.Paragraph_Helper).init(self);
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
@@ -817,7 +861,7 @@ UI.Loki = function(textarea, settings)
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
 		{
 			event = event == null ? _window.event : event;
-			if ( !_document.all ) // XXX bad
+			if ( !Util.Browser.IE ) // XXX bad
 			{
 				Util.Fix_Keys.fix_delete_and_backspace(event, _window);
 				tinyMCE.handleEvent(event);
@@ -828,137 +872,133 @@ UI.Loki = function(textarea, settings)
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
 		{
 			event = event == null ? _window.event : event;
-			if ( _document.all ) // XXX bad
+			if ( Util.Browser.IE ) // XXX bad
 			{
 				return Util.Fix_Keys.fix_enter_ie(event, _window, self);
 			}
 		});
 
-		Util.Event.add_event_listener(_document, 'keydown', function(event)
-		{
-			return;
-			/*
-			event = event == null ? _window.event : event;
-			//Util.Fix_Keys.fix_enter_keydown(event, _window);
-			Util.Fix_Keys.tinymce_fix_keyupdown(event, _window);
-
-			// This does fix the display-spacing bug,--but breaks 
-			// the motion keys 
-			//_body.style.display = 'none';
-			//_body.style.display = 'block';
-			*/
-		});
-
-		/* 2006-07-11 commented for testing: not at all sure it should be commented.
-		(Nothing seems to have changed after commenting, so I will leave commented.
-		Util.Event.add_event_listener(_document, 'keyup', function(event) 
-		{
-			event = event == null ? _window.event : event;
-			//Util.Fix_Keys.fix_enter_keyup(event, _window);
-			Util.Fix_Keys.tinymce_fix_keyupdown(event, _window);
-		});
-		*/
-
 		Util.Event.add_event_listener(_document, 'contextmenu', function(event) 
 		{
 			return _show_contextmenu(event || _window.event);
 		});
-
-		// XXX: perhaps you should put these two in classes similar to UI.Keybinding
-		if ( _settings.options.test('link') )
-		{
-			var link_helper = (new UI.Link_Helper).init(self);
-			Util.Event.add_event_listener(_body, 'dblclick', function(event)
-			{
-				if ( link_helper.is_selected() )
-					link_helper.open_page_link_dialog();
+		
+		if (Util.Browser.IE) {
+			function select_end(sel, range, el) {
+				var c, text, length;
+				for (c = el.lastChild; c; c = c.previousSibling) {
+					if (c.nodeType == Util.Node.ELEMENT_NODE) {
+						if (c.nodeName in Util.Element.empty) {
+							Util.Range.set_start_after(range, c);
+							Util.Range.set_end_after(range, c);
+							Util.Selection.select_range(sel, range);
+							return true;
+						} else if (select_end(sel, range, c)) {
+							return true;
+						}
+					} else if (c.nodeType == Util.Node.TEXT_NODE) {
+						length = c.nodeValue.length;
+						Util.Range.set_start(range, c, length);
+						Util.Range.set_end(range, c, length);
+						Util.Selection.select_range(sel, range);
+						return true;
+					}
+				}
+				
+				text = el.ownerDocument.createTextNode('');
+				el.insertBefore(text, el.lastChild);
+				
+				Util.Range.set_start(range, text, 0);
+				Util.Range.set_end(range, text, 0);
+				Util.Selection.select_range(sel, range);
+				return true;
+			}
+			
+			Util.Event.observe(_document, 'mouseup', function(event) {
+				var sel, range;
+				
+				if (event.srcElement.tagName == 'HTML') {
+					self.focus();
+					
+					sel = Util.Selection.get_selection(_window);
+					range = Util.Document.create_range(_document);
+					select_end(sel, range, _body);
+					
+					event.cancelBubble = true;
+					event.returnValue = false;
+				}
 			});
 		}
-
-		if ( _settings.options.test('anchor') )
-		{
-			var anchor_helper = (new UI.Anchor_Helper).init(self);
-			Util.Event.add_event_listener(_body, 'dblclick', function(event)
-			{
-				if ( anchor_helper.is_selected() )
-					anchor_helper.open_dialog();
-			});
-		}
-
-		if ( _settings.options.test('image') )
-		{
-			var image_helper = (new UI.Image_Helper).init(self);
-			Util.Event.add_event_listener(_body, 'dblclick', function(event)
-			{
-				if ( image_helper.is_selected() )
-					image_helper.open_dialog();
-			});
-		}
-
-
-		if ( _settings.options.test('statusbar') )
+		
+		if ( _options.statusbar )
 		{
 			Util.Event.add_event_listener(_document, 'keyup', function() { _update_statusbar(); });
 			Util.Event.add_event_listener(_document, 'click', function() { _update_statusbar(); });
 			Util.Event.add_event_listener(_toolbar, 'click', function() { _update_statusbar(); });
 		}
 		
-		if (_settings.options.test('clipboard')) {
-			function perform_cleanup(last_ni_count)
-			{
-				var c_count = ni_count; // current count
+		function perform_cleanup()
+		{
+			_unmassage_body();
+			UI.Clean.clean(_body, _settings, true);
+			_massage_body();
+		}
+		
+		function handle_paste_event(ev)
+		{
+			if (paste_keyup && ev.type == 'paste') {
+				// If the browser is capable of generating actual paste
+				// events, then remove the DOMNodeInserted handler.
 				
-				if (Util.is_number(last_ni_count) && c_count > last_ni_count) {
-					// More has happened since we last looked; wait some more.
-					wait_to_cleanup(c_count);
-					return;
-				}
-				
-				ni_count = 0;
-				UI.Clean.clean(_body, _settings, true);
+				Util.Event.remove_event_listener(_document, 'keydown',
+					key_pressed);
+				Util.Event.remove_event_listener(_document, 'keyup',
+					key_raised);
+				paste_keyup = false;
 			}
 			
-			function handle_paste_event(ev)
-			{
-				if (paste_dni && ev.type == 'paste') {
-					// If the browser is capable of generating actual paste
-					// events, then remove the DOMNodeInserted handler.
-					
-					Util.Event.remove_event_handler(_document, 'DOMNodeInserted',
-						node_inserted);
-					paste_dni = false;
-				}
-				
-				perform_cleanup(null);
+			perform_cleanup.defer();
+		}
+		
+		// Q: Eric, why is there all this code to accomplish the simple task
+		//    of figuring out if the user pressed (Command|Ctrl)+V?
+		// A: Firefox/Mac does not always give us a keydown event for when
+		//    Cmd+V is pressed. We can't simply look for a Cmd+V keyup, as
+		//    it's perfectly acceptable to release the command key before
+		//    the V key, so the V's keyup event may have metaKey set to
+		//    false. Therefore, we look for a Command keydown and store the
+		//    time at which it happened. If we get a keyup for V within 2
+		//    seconds of this, run a cleanup.
+		
+		function key_pressed(ev)
+		{
+			if (!paste_keyup)
+				return;
+			if (ev[mod_key]) {
+				// We might be starting a paste.
+				mod_key_pressed = (new Date()).getTime();
 			}
-			
-			function wait_to_cleanup(current_ni_count)
-			{
-				(function call_cleanup_performer() {
-					perform_cleanup(current_ni_count);
-				}).delay(0.15);
+		}
+		
+		function key_raised(ev)
+		{
+			if (!paste_keyup)
+				return;
+			if (mod_key_pressed && ev.keyCode == 86 /* V */) {
+				if (mod_key_pressed + 2000 >= (new Date()).getTime())
+					perform_cleanup();
+				mod_key_pressed = null;
 			}
-			
-			function node_inserted(ev)
-			{
-				if (ni_count <= 0) {
-					ni_count = 1;
-					wait_to_cleanup(1);
-				} else {
-					ni_count++;
-				}
-			}
-			
-			Util.Event.observe(_document, 'paste', handle_paste_event);
-			if (Util.Browser.IE) {
-				// We know that we have paste events.
-				paste_dni = false;
-			} else {
-				paste_dni = true;
-				Util.Event.observe(_document, 'DOMNodeInserted',
-					node_inserted);
-			}
-			
+		}
+		
+		Util.Event.observe(_document.body, 'paste', handle_paste_event);
+		if (Util.Browser.IE || (Util.Browser.Gecko && /rv:1\.9/.test(navigator.userAgent))) {
+			// We know that we have paste events.
+			paste_keyup = false;
+		} else {
+			paste_keyup = true;
+			Util.Event.add_event_listener(_document, 'keydown', key_pressed);
+			Util.Event.add_event_listener(_document, 'keyup', key_raised);
 		}
 		
 		function submit_handler(ev)
@@ -966,15 +1006,23 @@ UI.Loki = function(textarea, settings)
 			try {
 				self.copy_iframe_to_hidden();
 			} catch (ex) {
-				alert("Loki encountered an error and was unable to translate " +
-					"your document into normal HTML.\n\n" + ex);
+				alert("An error occurred that prevented your document from " +
+					"being safely submitted.\n\nTechnical details:\n" +
+					ex);
 				Util.Event.prevent_default(ev);
+				
+				if (typeof(console) == 'object' && console.firebug) {
+					console.error('Failed to generate HTML:',
+						ex);
+					throw ex;
+				}
+				
 				return false;
 			}
 			
 			return true;
 		}
-
+		
 		// this copies the changes made in the iframe back to the hidden form element
 		Util.Event.add_event_listener(_hidden.form, 'submit',
 			Util.Event.listener(submit_handler));
@@ -1067,25 +1115,13 @@ UI.Loki = function(textarea, settings)
 			return true; // bubble
 		};
 
-		if ( _settings.options.test('strong') ) add_keybinding(UI.Bold_Keybinding); // Ctrl-B
-		if ( _settings.options.test('em') ) add_keybinding(UI.Italic_Keybinding); // Ctrl-I
-		if ( _settings.options.test('underline') ) add_keybinding(UI.Underline_Keybinding); // Ctrl-U
-		if ( _settings.options.test('clipboard') ) add_keybinding(UI.Cut_Keybinding); // Ctrl-X
-		if ( _settings.options.test('clipboard') ) add_keybinding(UI.Copy_Keybinding); // Ctrl-C
-		if ( _settings.options.test('clipboard') ) add_keybinding(UI.Paste_Keybinding); // Ctrl-V
-		if ( _settings.options.test('align') ) add_keybinding(UI.Left_Align_Keybinding); // Ctrl-L
-		if ( _settings.options.test('align') ) add_keybinding(UI.Center_Align_Keybinding); // Ctrl-E
-		if ( _settings.options.test('align') ) add_keybinding(UI.Right_Align_Keybinding); // Ctrl-R
-		if ( _settings.options.test('findtext') ) add_keybinding(UI.Find_Keybinding); // Ctrl-F (H?)
-		if ( _settings.options.test('link') ) add_keybinding(UI.Page_Link_Keybinding); // Ctrl-K
-		//if ( _settings.options.test('source') ) add_keybinding(UI.Source_Keybinding);
-		if ( _settings.options.test('spell') ) add_keybinding(UI.Spell_Keybinding); // F7
+		enumerate_options('keybindings').each(add_keybinding);
 		add_keybinding(UI.Delete_Element_Keybinding); // Delete image, anchor, HR, or table when selected
 		add_keybinding(UI.Tab_Keybinding); // Tab
 
 		// We need to listen for different key events for IE and Gecko,
 		// because their default actions are on different events.
-		if ( document.all ) // IE // XXX: hack
+		if ( Util.Browser.IE ) // IE // XXX: hack
 		{
 			Util.Event.add_event_listener(_document, 'keydown', function(event) 
 			{ 
@@ -1117,17 +1153,9 @@ UI.Loki = function(textarea, settings)
 		{
 			var menugroup = (new menugroup_class).init(self);
 			_menugroups.push(menugroup);
-		};
-
-		if ( _settings.options.test('headline') ) add_menugroup(UI.Headline_Menugroup);
-		if ( _settings.options.test('image') ) add_menugroup(UI.Image_Menugroup);
-		if ( _settings.options.test('anchor') ) add_menugroup(UI.Anchor_Menugroup);
-		if ( _settings.options.test('link') ) add_menugroup(UI.Link_Menugroup);
-		if ( _settings.options.test('table') ) add_menugroup(UI.Table_Menugroup);
-		if ( _settings.options.test('align') ) add_menugroup(UI.Align_Menugroup);
-		// This doesn't work properly right now:
-		//if ( _settings.options.test('highlight') ) add_menugroup(UI.Highlight_Menugroup);
-		if ( _settings.options.test('clipboard') ) add_menugroup(UI.Clipboard_Menugroup);
+		}
+		
+		enumerate_options('menugroups').each(add_menugroup);
 	};
 
 	/**
@@ -1136,24 +1164,29 @@ UI.Loki = function(textarea, settings)
 	var _show_contextmenu = function(event)
 	{
 		var menu = (new UI.Menu).init(self);
+		var i, menuitems, added = false;
 
 		// Get appropriate menuitems
-		for ( var i = 0; i < _menugroups.length; i++ )
-		{
-			var menuitems = _menugroups[i].get_contextual_menuitems();
-			menu.add_menuitems(menuitems);
-		}
+		for (i = 0; i < _menugroups.length; i++) {
+			try {
+				menuitems = _menugroups[i].get_contextual_menuitems();
+			} catch (e) {
+				if (typeof(console) == 'object' && console.firebug) {
+					console.warn('Failed to add menugroup', i, '.', e);
+				}
+			}
+			
+			if (menuitems && menuitems.length > 0) {
+				if (!added)
+					added = true;
+				else
+					menu.add_menuitem((new UI.Separator_Menuitem).init());
 
-		// Determine the coordinates at which the menu should be displayed.
-		var frame_pos = Util.Element.get_position(_iframe);
-		var event_pos = Util.Event.get_coordinates(event);
-		var root_offset = Util.Element.get_relative_offsets(_owner_window,
-			_root);
+				menu.add_menuitems(menuitems);
+			}
+		}
 		
-		var x = frame_pos.x + event_pos.x - root_offset.x;
-		var y = frame_pos.y + event_pos.y - root_offset.y;
-		
-		menu.display(x, y);
+		menu.display(event);
 
 		Util.Event.prevent_default(event);
 		return false; // IE
@@ -1251,15 +1284,11 @@ UI.Loki = function(textarea, settings)
 	 */
 	this.toggle_block = function(tag)
 	{
-		if ( _query_command_value('FormatBlock') != tag )
-		{
-			_exec_command('FormatBlock', false, '<' + tag + '>');
-		}
-		else
-		{
-			_exec_command('FormatBlock', false, '<p>');
-		}
-
+		var tag_string = (_query_command_value('FormatBlock') != tag)
+			? '<' + tag + '>'
+			: '<p>';
+		
+		_exec_command('FormatBlock', false, tag_string);
 		_window.focus();
 	};
 
@@ -1290,3 +1319,269 @@ UI.Loki = function(textarea, settings)
 		}
 	};
 };
+
+UI.Loki.Options = new Util.Chooser();
+UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
+	this.add('bold', {
+		buttons: [UI.Bold_Button],
+		masseuses: [UI.Bold_Masseuse],
+		keybindings: [UI.Bold_Keybinding]
+	});
+	this.add('italic', {
+		buttons: [UI.Italic_Button],
+		masseuses: [UI.Italic_Masseuse],
+		keybindings: [UI.Italic_Keybinding]
+	});
+	this.add('underline', {
+		buttons: [UI.Underline_Button],
+		keybindings: [UI.Underline_Keybinding]
+	});
+	this.add('headings', {
+		buttons: [UI.Headline_Button],
+		menugroups: [UI.Headline_Menugroup],
+		keybindings: []
+	});
+	this.add('pre', {
+		buttons: [UI.Pre_Button]
+	});
+	this.add('br', {
+		buttons: [UI.BR_Button]
+	});
+	this.add('hr', {
+		buttons: [UI.HR_Button],
+		masseuses: [UI.HR_Masseuse]
+	});
+	this.add('clipboard', {
+		buttons: [UI.Cut_Button, UI.Copy_Button, UI.Paste_Button],
+		menugroups: [UI.Clipboard_Menugroup],
+		keybindings: [UI.Cut_Keybinding, UI.Copy_Keybinding, UI.Paste_Keybinding]
+	});
+	this.add('highlight', {
+		buttons: [UI.Highlight_Button]
+	});
+	this.add('align', {
+		// buttons: [UI.Left_Align_Button, UI.Center_Align_Button, UI.Right_Align_Button],
+		menugroups: [UI.Align_Menugroup],
+		keybindings: [UI.Left_Align_Keybinding, UI.Center_Align_Keybinding, UI.Right_Align_Keybinding]
+	});
+	this.add('blockquotes', {
+		buttons: [UI.Blockquote_Button]
+	});
+	this.add('lists', {
+		buttons: [UI.OL_Button, UI.UL_Button, UI.Indent_Button, UI.Outdent_Button],
+		masseuses: [UI.UL_OL_Masseuse]
+	});
+	this.add('find', {
+		buttons: [UI.Find_Button],
+		keybindings: [UI.Find_Keybinding]
+	});
+	this.add('tables', {
+		buttons: [UI.Table_Button],
+		masseuses: [UI.Table_Masseuse],
+		menugroups: [UI.Table_Menugroup]
+	});
+	this.add('images', {
+		buttons: [UI.Image_Button],
+		masseuses: [UI.Image_Masseuse],
+		double_click_listeners: [UI.Image_Double_Click]
+	});
+	this.add('links', {
+		buttons: [UI.Page_Link_Button],
+		menugroups: [UI.Link_Menugroup],
+		keybindings: [UI.Page_Link_Keybinding],
+		double_click_listeners: [UI.Link_Double_Click]
+	});
+	this.add('anchors', {
+		buttons: [UI.Anchor_Button],
+		masseuses: [UI.Anchor_Masseuse],
+		menugroups: [UI.Anchor_Menugroup],
+		double_click_listeners: [UI.Anchor_Double_Click]
+	});
+	this.add('cleanup', {
+		buttons: [UI.Clean_Button]
+	});
+	this.add('source', {
+		buttons: [UI.Source_Button]
+	});
+	this.add('debug', {
+		buttons: [UI.Raw_Source_Button]
+	});
+	//this.add('statusbar', true);
+	
+	// Some of these aliases are for installer sanity, while others are for
+	// Loki 1 compatibility.
+	this.alias('bold', 'strong');
+	this.alias('italic', 'em');
+	this.alias('tables', 'table');
+	this.alias('images', 'image');
+	this.alias('links', 'link');
+	this.alias('lists', 'list');
+	this.alias('blockquotes', 'blockquote');
+	this.alias('anchors', 'anchor');
+	this.alias('headings', 'heading');
+	this.alias('headings', 'headlines');
+	this.alias('headings', 'headline');
+	this.alias('br', 'linebreaks');
+	this.alias('br', 'linebreak');
+	this.alias('find', 'findtext');
+	
+	this.put_set('default', ['strong', 'em', 'headline', 'br', 'hr',
+		'highlight', 'align', 'blockquotes', 'lists', 'find', 'images',
+		'links', 'cleanup']);
+	this.put_set('power', ['strong', 'em', 'headline', 'br', 'hr', 'pre',
+		'clipboard', 'highlight', 'align', 'blockquotes', 'lists',
+		'find', 'tables', 'images', 'links', 'anchors', 'cleanup', 'source']);
+	this.put_set('developer', ['power', 'debug']);
+};
+
+var Loki = {
+	/**
+	 * Converts the given textarea to an instance of the Loki WYSIWYG editor.
+	 * @param {HTMLTextAreaElement} area a TEXTAREA element or the ID of one
+	 * @param {object} [settings] Loki settings
+	 * @param {function} [callback] a function that will be called when the
+	 *        conversion is finished
+	 * @see UI.Loki#init
+	 * @see http://code.google.com/p/loki-editor/wiki/Settings
+	 * @returns {void}
+	 */
+	convert_textarea: function loki_convert_textarea(area, settings,
+		callback)
+	{
+		Loki.convert_textareas([area], settings || {}, callback || null);
+	},
+	
+	/**
+	 * Converts the given textareas to instances of the Loki WYSIWYG editor.
+	 * @param {HTMLTextAreaElement[]} areas an array of TEXTAREA elements to
+	 * convert, or the ID's of the elements
+	 * @param {object} [settings] Loki settings
+	 * @param {function} [callback] a function that will be called as the
+	 *        conversions are finished
+	 * @see UI.Loki#init
+	 * @see http://code.google.com/p/loki-editor/wiki/Settings
+	 * @returns {void}
+	 */
+	convert_textareas: function loki_convert_textareas(areas, settings,
+		callback)
+	{	
+		var area;
+		var instance;
+		
+		for (var i = 0; i < areas.length; i++) {
+			if (typeof(areas[i]) == 'string') {
+				area = document.getElementById(areas[i]);
+				if (!area) {
+					if (Loki._loaded) {
+						throw new Error('No element with the ID of "' +
+							areas[i] + '" exists in the document.');
+					}
+					Loki._pend(areas[i], settings || {}, callback || null);
+					continue;
+				}
+			} else {
+				area = areas[i];
+			}
+			
+			if (!Util.Node.is_tag(area, "TEXTAREA")) {
+				throw new TypeError("Unable to convert a non-textarea to a " +
+					"Loki instance.");
+			}
+			
+			instance = (new UI.Loki).init(area, settings || {});
+			
+			if (callback) {
+				callback(instance, area);
+			}
+		}
+	},
+	
+	/**
+	 * Converts all of the textareas in the document which have the specified
+	 * class(es).
+	 * @param {string} classes	one or more class names
+	 * @param {object} [settings] Loki settings
+	 * @param {function} [callback] a function that will be called as the
+	 *        conversions are finished
+	 * @returns {void}
+	 */
+	convert_textareas_by_class: function loki_convert_classed_textareas(classes,
+		settings, callback)
+	{
+		function get_textareas()
+		{
+			return Util.Element.find_by_class(document, classes);
+		}
+		
+		if (this._loaded) {
+			Loki.convert_textareas(get_textareas(), settings, callback);
+		} else {
+			Loki._pend(get_textareas, settings || {}, callback || null);
+		}
+	},
+	
+	/**
+	 * Converts all of the textareas on the document into Loki instances.
+	 * @param {object} [settings] Loki settings
+	 * @param {function} [callback] a function that will be called as the
+	 *        conversions are finished
+	 * @see UI.Loki#init
+	 * @see http://code.google.com/p/loki-editor/wiki/Settings
+	 * @returns {void}
+	 */
+	convert_all_textareas: function loki_convert_all_textareas(settings,
+		callback)
+	{
+		if (this._loaded) {
+			Loki.convert_textareas(document.getElementsByTagName("TEXTAREA"),
+				settings || {}, callback);
+		} else {
+			Loki._pend(null, settings || {}, callback || null);
+		}
+		
+	},
+	
+	/**
+	 * The Loki version.
+	 * @type string
+	 */
+	version: "$Rev$",
+	
+	/** @private */
+	_pending: [],
+	/** @private */
+	_loaded: false,
+	
+	/** @private */
+	_pend: function loki_pend_textarea(area, settings, callback) {
+		this._pending.push([area, settings, callback]);
+	},
+	
+	/** @private */
+	_finish_conversions: function loki_finish_conversions() {
+		var a;
+		
+		if (this._loaded)
+			return false;
+		this._loaded = true;
+		
+		while (a = this._pending.pop()) {
+			if (a[0] == null) {
+				Loki.convert_all_textareas(a[1], a[2]);
+				return true;
+			} else if (typeof(a[0]) == 'function') {
+				Loki.convert_textareas(a[0](), a[1], a[2]);
+			} else {
+				Loki.convert_textarea(a[0], a[1], a[2]);
+			}
+		}
+		
+		return true;
+	}
+};
+
+(function loki_wait_for_load() {
+	var done = Loki._finish_conversions.bind(Loki);
+	Util.Event.observe(document, 'DOMContentLoaded', done);
+	Util.Event.observe(window, 'load', done);
+})();

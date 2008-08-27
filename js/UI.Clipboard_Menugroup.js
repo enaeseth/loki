@@ -29,15 +29,7 @@ UI.Clipboard_Menugroup = function()
 			label : 'Cut',
 			listener : function()
 			{
-				try
-				{
-					self._clipboard_helper.cut();
-				}
-				catch(e)
-				{
-					self._clipboard_helper.alert_helpful_message();
-					throw e;
-				}
+				self._clipboard_helper.cut();
 			},
 			disabled : this._clipboard_helper.is_selection_empty()
 		}) );
@@ -45,15 +37,7 @@ UI.Clipboard_Menugroup = function()
 			label : 'Copy',
 			listener : function()
 			{
-				try
-				{
-					self._clipboard_helper.copy();
-				}
-				catch(e)
-				{
-					self._clipboard_helper.alert_helpful_message();
-					throw e;
-				}
+				self._clipboard_helper.copy();
 			},
 			disabled : this._clipboard_helper.is_selection_empty()
 		}) );
@@ -61,15 +45,7 @@ UI.Clipboard_Menugroup = function()
 			label : 'Paste',
 			listener : function()
 			{
-				try
-				{
-					self._clipboard_helper.paste();
-				}
-				catch(e)
-				{
-					self._clipboard_helper.alert_helpful_message();
-					throw e;
-				}
+				self._clipboard_helper.paste();
 			}
 			//disabled : this._clipboard_helper.is_selection_empty()
 		}) );

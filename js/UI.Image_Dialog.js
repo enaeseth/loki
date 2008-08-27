@@ -15,7 +15,7 @@ UI.Image_Dialog = function()
 	this.init = function(params)
 	{
 		// use rss integration only if data_source is given:
-		this._use_rss = params.data_source ? true : false;
+		this._use_rss = !!params.data_source;
 		this.superclass.init.call(this, params);
 		return this;
 	};

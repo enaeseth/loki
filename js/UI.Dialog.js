@@ -42,7 +42,7 @@ UI.Dialog = function()
 	 *					determine which if any image is initially selected.</li>
 	 *                  </ul>
 	 */
-	this.init = function(params)
+	this.init = function init_dialog(params)
 	{
 		this._data_source = params.data_source;
 		this._base_uri = params.base_uri;
@@ -53,37 +53,56 @@ UI.Dialog = function()
 		return this;
 	};
 
-	this.open = function()
+	this.open = function open_dialog()
 	{
-		if ( this._dialog_window != null && 
-			 this._dialog_window.window != null &&
-			 this._dialog_window.window.closed != true )
-		{
-			this._dialog_window.window.focus();
-		}
-		else
-		{
-			this._dialog_window = new Util.Window;
-
-			var success = this._dialog_window.open(this._base_uri + 'auxil/loki_blank.html', '_blank', 'status=1,scrollbars=1,toolbars=1,resizable,width=' + this._dialog_window_width + ',height=' + this._dialog_window_height + ',dependent=yes,dialog=yes', Util.Window.FORCE_SYNC);
-			//var success = this._dialog_window.open(this._base_uri + 'auxil/loki_blank.html', '_blank', '', Util.Window.FORCE_SYNC);
-			if ( !success ) // e.g., the popup was blocked
-				return false;
-
-			this._doc = this._dialog_window.document; // added 28/12/2005 NF--do we want this?
-			this._udoc = new Util.Document(function() { return this._dialog_window.document; }.bind(this));
-
-			// XXX tmp possibly:
-			this._root = this._doc.createElement('DIV');
-			this._dialog_window.body.appendChild(this._root);
+		function populate_dialog() {
+			if (this._dialog_window._dialog_populated)
+				return;
 			
-			this._dialog_window.body.style.display = 'none'; // don`t render till we`ve built the document -- fixes IE display bug
-			this._set_title();
-			this._append_style_sheets();
-			this._add_dialog_listeners();
-			this._append_main_chunk();
-			this._apply_initially_selected_item();
-			this._dialog_window.body.style.display = 'block';
+			this._dialog_window._dialog_populated = true;
+			
+			this._doc = this._dialog_window.window.document;
+			this._dialog_window.document = this._doc;
+			this._udoc = new Util.Document(this._doc);
+			
+			this._root =
+				this._doc.body.appendChild(this._doc.createElement('DIV'));
+			
+			// Work around an IE display glitch: don't render until the document
+			// has been built.
+			if (Util.Browser.IE)
+				this._doc.body.style.display = 'none';
+			try {
+				this._dialog_window.body = this._doc.body;
+				this._set_title();
+				this._append_style_sheets();
+				this._add_dialog_listeners();
+				this._append_main_chunk();
+				this._apply_initially_selected_item();
+			} finally {
+				this._doc.body.style.display = '';
+			}
+		}
+		
+		var already_open = (this._dialog_window && this._dialog_window.window
+			&& !this._dialog_window.window.closed);
+		
+		if (already_open) {
+			this._dialog_window.window.focus();
+		} else {
+			this._dialog_window = new Util.Window;
+			var window_opened = this._dialog_window.open(
+				this._base_uri + 'auxil/loki_dialog.html',
+				'_blank', 'status=1,scrollbars=1,toolbars=1,resizable,width=' +
+					this._dialog_window_width + ',height=' + 
+					this._dialog_window_height + ',dependent=yes,dialog=yes'
+			);
+			
+			if (!window_opened) // popup blocker
+				return false;
+			
+			Util.Event.observe(this._dialog_window.window, 'load',
+				populate_dialog.bind(this));
 		}
 	};
 	
@@ -111,19 +130,12 @@ UI.Dialog = function()
 	/**
 	 * Sets the page title
 	 */
-	this._set_title = function()
-	{
-		this._dialog_window.document.title = "Dialog";
-	};
+	this._set_title = function() { /* do nothing by default */ };
 
 	/**
 	 * Appends all the style sheets needed for this dialog.
 	 */
-	this._append_style_sheets = function()
-	{
-		this._udoc.append_style_sheet(this._base_uri + 'css/Dialog.css');
-		this._udoc.append_style_sheet(this._base_uri + 'css/Pretty_Forms.css');
-	};
+	this._append_style_sheets = function() { /* do nothing by default */ };
 
 	/**
 	 * Adds all the dialog event listeners for this dialog.

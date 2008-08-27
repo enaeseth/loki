@@ -22,6 +22,8 @@ Util.Range.create_range = function create_range_from_selection(sel)
 	// Safari only provides ranges for non-collapsed selections, but still
 	// populates the (anchor|focus)(Node|Offset) properties of the selection.
 	// Using this, if necessary, we can build our own range object.
+	// XXX: I don't actually think that this is true anymore, but I hesitate to
+	//      delete the code anyway. -Eric
 	
 	if (Util.is_function(sel.getRangeAt) && Util.is_number(sel.rangeCount)) {
 		if (sel.rangeCount > 0) {
@@ -121,28 +123,12 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 	var parent; // some node's parent element
 	
 	function get_boundary(side)
-	{
-		// Find the offset that this node occurs at within its parent
-		// element.
-		function get_offset_of_node(parent, node)
-		{
-			for (var i = 0; i < parent.childNodes.length; i++) {
-				if (parent.childNodes[i] == node) {
-					return i;
-				}
-			}
-			
-			// The loop didn't find anything? wtf?
-			throw new Error('Could not find the node ' +
-				Util.Node.get_debug_string(node) + ' within its parent ' +
-				Util.Node.get_debug_string(parent) + '! (This is very odd.)');
-		}
-		
+	{		
 		if (rng[side + 'Container']) {
 			// W3C range
 			
 			return {
-				node: rng[side + 'Container'],
+				container: rng[side + 'Container'],
 				offset: rng[side + 'Offset']
 			};
 		} else if (rng.duplicate && rng.parentElement) {
@@ -187,8 +173,8 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 					
 					// Found it! It's an element!
 					return {
-						node: parent,
-						offset: get_offset_of_node(parent, child)
+						container: parent,
+						offset: Util.Node.get_offset(child)
 					}
 				} else if (child.nodeType != Util.Node.TEXT_NODE) {
 					// Not interested.
@@ -205,14 +191,14 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 				
 				// Found it!
 				return {
-					node: child,
+					container: child,
 					offset: offset - travelled
 				};
 			}
 			
 			// End of the parent
 			return {
-				node: parent,
+				container: parent,
 				offset: parent.childNodes.length
 			};
 		} else if (rng.item) {
@@ -226,8 +212,8 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 			parent = node.parentNode;
 			
 			return {
-				node: parent,
-				offset: get_offset_of_node(parent, node)
+				container: parent,
+				offset: Util.Node.get_offset(node)
 			};
 		} else {
 			throw new Util.Unsupported_Error('ranges');
@@ -238,7 +224,149 @@ Util.Range.get_boundaries = function get_range_boundaries(rng)
 		start: get_boundary('start'),
 		end: get_boundary('end')
 	};
-}
+};
+
+/**
+ * Gets the nearest block-level elements in the ancestry of each boundary of
+ * the given range.
+ * @param {Range} range the range of which the bounding blocks are desired
+ * @param {Boolean} [as_bounds=false] if true, returns an object in the style
+ * of {@link Util.Range.get_boundaries} specifying the blocks
+ * @return {Object} the bounding blocks
+ */
+Util.Range.get_boundary_blocks = function get_range_boundary_blocks(range,
+	as_bounds)
+{
+	var bounds = Util.Range.get_boundaries(range);
+	var side;
+	
+	function get_block(boundary) {
+		var container = boundary.container;
+		var length = container.childNodes.length;
+		var start;
+		var node;
+		
+		if (container.nodeType == Util.Node.TEXT_NODE)
+			start = container.parentNode;
+		else if (container.childNodes[boundary.offset])
+			start = container.childNodes[boundary.offset];
+		else if (length == 0)
+			start = container;
+		else
+			start = container.childNodes[boundary.offset - 1];
+			
+		for (var node = start; node; node = node.parentNode) {
+			if (Util.Node.is_block(node))
+				return node;
+		}
+		
+		throw new Error('Could not find an enclosing block for the range ' +
+			'boundary.');
+	}
+	
+	function process_block(block) {
+		if (!as_bounds)
+			return block;
+		
+		return {
+			container: block.parentNode,
+			offset: Util.Node.get_offset(block)
+		};
+	}
+	
+	for (side in bounds) {
+		bounds[side] = process_block(get_block(bounds[side]));
+	}
+	return bounds;
+};
+
+/**
+ * Finds matching elements within the range.
+ * @param {Range|Object} rng the range to search in, or a range boundary object
+ *        like the one returned from {@link Util.Range.get_boundaries}.
+ * @param {Function|String} [matcher] either a matching function or a tag name.
+ * @param {Boolean} [up=false] also search up the tree from the range's common
+ *        ancestor. It is an error to set this option if there is no matcher.
+ * @throws {Error} if up is true but there is no matcher
+ * @return {HTMLElement[]} all found matching elements
+ */
+Util.Range.find_nodes = function find_nodes_in_range(rng, matcher, up) {
+	function process_boundary(bound) {
+		var length;
+		
+		if (bound.container.nodeType == Util.Node.TEXT_NODE)
+			return bound.container;
+		
+		if (bound.container.childNodes[bound.offset])
+			return bound.container.childNodes[bound.offset];
+		
+		length = bound.container.childNodes.length;
+		if (length == 0 || bound.offset == 0)
+			return bound.container;
+		else if (bound.offset >= length)
+			return bound.container.childNodes[length - 1];
+		else
+			throw new Error('Unable to process boundary for find_nodes_in_range: ' +
+				Util.Node.get_debug_string(bound.container) + ':' + bound.offset);
+	}
+	
+	var bounds = (rng.start && rng.start.container && rng.end.container)
+		? rng
+		: Util.Range.get_boundaries(rng);
+	var matched_nodes = [];
+	var start = process_boundary(bounds.start);
+	var end = process_boundary(bounds.end);
+	var node;
+	var ancestor;
+	
+	if (!matcher && up) {
+		throw new Error('Cannot find nodes that are ancestors of the range ' +
+			'if no matcher is selected.');
+	}
+	
+	function next_node(n) {
+		if (n.hasChildNodes()) {
+			n = n.firstChild;
+		} else if (n.nextSibling) {
+			n = n.nextSibling;
+		} else if (n.parentNode && n.parentNode.nextSibling) {
+			n = n.parentNode.nextSibling;
+		} else {
+			n = null;
+		}
+		
+		return n;
+	}
+	
+	if (typeof(matcher) == 'string')
+		matcher = Util.Node.curry_is_tag(matcher);
+	else if (!matcher)
+		matcher = Util.Function.optimist;
+	else if (typeof(matcher) != 'function')
+		throw new TypeError('Invalid matcher.');
+	
+	for (node = start; node; node = next_node(node)) {
+		if (matcher(node))
+			matched_nodes.push(node);
+		if (node == end)
+			break;
+	}
+	
+	if (up) {
+		ancestor = Util.Range.get_common_ancestor(rng);
+		if (!ancestor)
+			return matched_nodes;
+		if (ancestor == start || ancestor == end)
+			ancestor = ancestor.parentNode;
+		end = start.ownerDocument;
+		for (node = ancestor; node && node != end; node = node.parentNode) {
+			if (matcher(node))
+				matched_nodes.push(node);
+		}
+	}
+	
+	return matched_nodes;
+};
 
 /**
  * Returns the start container of the given range (if
@@ -413,50 +541,34 @@ Util.Range.delete_contents = function delete_range_contents(rng)
  *
  * @param	rng		the range
  * @param	node	the node to insert
+ * @return {void}
  */
 Util.Range.insert_node = function insert_node_in_range(rng, node)
 {
-	// W3C
-	try
-	{
+	var bounds;
+	var point;
+	
+	if (rng.insertNode) {
+		// W3C range
 		rng.insertNode(node);
-	}
-	catch(e)
-	{
-		// IE TextRange
-		try
-		{
-/*
-			rng.collapse(true); // collapse to start
-			rng.pasteHTML(node.outerHTML);
-*/
-
-			rng.collapse(true); // collapse to start
-			// XXX (EN): Why is this temporary node pasted?
-			rng.pasteHTML('<span id="util_range_insert_node__tmp_node"></span>');
-			var tmp = node.ownerDocument.getElementById('util_range_insert_node__tmp_node');
-			tmp.parentNode.insertBefore(node, tmp);
-			tmp.parentNode.removeChild(tmp);
-		}
-		catch(f)
-		{
-			// IE ControlRange
-			try
-			{
-				// Collapse to start
-// 				while (rng.length > 0)
-// 					rng.remove(0);
-
-				// This will only work, I think, if node is an element
-				rng.addElement(node);
-			}
-			catch(g)
-			{
-				throw(new Error('Util.Range.insert_node(): Neither the W3C nor the IE way of inserting the given node worked. ' +
-								'When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-								'When the IE TextRange way was tried, an error with the following message was thrown: <<' + f.message + '>>. ' +
-								'When the IE ControlRange way was tried, an error with the following message was thrown: <<' + g.message + '>>.'));
-			}
+	} else {
+		// Internet Explorer range
+		
+		bounds = Util.Range.get_boundaries(rng);
+		
+		if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
+			// Inserting the node into a text node; split it at the insertion
+			// point.
+			bounds.start.container.splitText(bounds.start.offset);
+			point = bounds.start.container.nextSibling;
+			
+			// Now the node can be inserted between the two text nodes.
+			bounds.start.container.parentNode.insertBefore(node, point);
+		} else {
+			point = (bounds.start.container.hasChildNodes())
+				? bounds.start.container.childNodes[bounds.start.offset]
+				: null;
+			bounds.start.container.insertBefore(node, point);
 		}
 	}
 };
@@ -477,6 +589,62 @@ Util.Range.clone_range = function clone_range(rng)
 		throw new Util.Unsupported_Error("cloning a range");
 	}
 };
+
+/**
+ * Clones the contents of the given range.
+ *
+ * @param  {Range}  rng       the range whose contents are desired
+ * @return {DocumentFragment} the range's contents
+ */
+Util.Range.clone_contents = function clone_range_contents(rng)
+{
+	var html;
+	var doc;
+	var hack;
+	var frag;
+	
+	if (rng.cloneContents) {
+		// W3C range
+		return rng.cloneContents();
+	} else if (html = rng.htmlText) { // assignment intentional
+		// IE text range
+		// This is just painfully hackish, but the option of writing the code
+		// to properly traverse a range and clone its contents is far worse.
+		
+		doc = rng.parentElement().ownerDocument;
+		
+		hack = doc.createElement('DIV');
+		hack.innerHTML = html;
+		
+		frag = doc.createDocumentFragment();
+		while (hack.firstChild) {
+			frag.appendChild(hack.firstChild);
+		}
+		
+		return frag;
+	} else {
+		throw new Util.Unsupported_Error('cloning the contents of a range');
+	}
+}
+
+/**
+ * Deletes the contents of the given range.
+ *
+ * @param {Range}  rng   the range whose contents should be deleted
+ * @return {void}
+ */
+Util.Range.delete_contents = function delete_range_contents(rng)
+{
+	if (rng.deleteContents) {
+		// W3C range
+		rng.deleteContents();
+	} else if (rng.parentElement) {
+		// IE text range
+		rng.text = ''; // seriously.
+	} else {
+		throw new Util.Unsupported_Error('deleting the contents of a range');
+	}
+}
 
 /**
  * Gets the html of the range.
@@ -539,6 +707,9 @@ Util.Range.get_nearest_ancestor_node =
 {
 	// XXX: Do we really want this? -Eric
 	var ancestor = Util.Range.get_start_container(rng);
+	
+	if (!ancestor)
+		return null;
 	
 	if (boolean_test(ancestor)) {
 		return ancestor;
@@ -799,6 +970,16 @@ Util.Range.compare_boundary_points =
 	}
 };
 
+Util.Range.select_node = function range_select_node(rng, node)
+{
+	if (rng.selectNode) {
+		rng.selectNode(node);
+	} else {
+		Util.Range.set_start_before(rng, node);
+		Util.Range.set_start_after(rng, node);
+	}
+};
+
 /**
  * A good explanation of what this does from <http://www.dotvoid.com/view.php?id=11>:
  * 
@@ -987,153 +1168,144 @@ Util.Range.get_intersecting_blocks = function get_range_intersecting_blocks(rng)
 	return get_intersecting_blocks(ret.branch, ret.b1_or_ancestor, ret.b2_or_ancestor);
 };
 
+Util.Range._ie_set_endpoint =
+	function _ie_text_range_set_endpoint(rng, which, node, offset)
+{
+	// Frustratingly, we cannot directly set the absolute end points of an
+	// Internet Explorer text range; we can only set them in terms of an end
+	// point of another text range. So, we create a text range whose start point 
+	// will beat the desired node and offset and then set the given endpoint of
+	// the range in terms of our new range.
+	
+	var marker = rng.parentElement().ownerDocument.body.createTextRange();
+	var parent = (node.nodeType == Util.Node.TEXT_NODE)
+		? node.parentNode
+		: node;
+	var node_of_interest;
+	var char_offset;
+	
+	marker.moveToElementText(parent);
+	
+	// IE text ranges use the character as their principal unit. So, in order
+	// to translate from the W3C container/offset convention, we must find
+	// the number of characters a node is located from the start of "parent".
+	function find_node_character_offset(node)
+	{
+		var stack = [parent];
+		var offset = 0;
+		var o;
+		
+		while (o = stack.pop()) { // assignment intentional
+			if (node && o == node)
+				return offset;
+			
+			if (o.nodeType == Util.Node.TEXT_NODE) {
+				offset += o.nodeValue.length;
+			} else if (o.nodeType == Util.Node.ELEMENT_NODE) {
+				if (o.hasChildNodes()) {
+					for (var i = o.childNodes.length - 1; i >= 0; i--) {
+						stack.push(o.childNodes[i]);
+					}
+				} else {
+					offset += 1;
+				}
+			}
+		}
+		
+		if (!node)
+			return offset;
+		
+		throw new Error('Could not find the node\'s offset in characters.');
+	}
+	
+	if (node.nodeType == Util.Node.TEXT_NODE) {
+		if (offset > node.nodeValue.length) {
+			throw new Error('Offset out of bounds.');
+		}
+		
+		char_offset = find_node_character_offset(node);
+		char_offset += offset;
+	} else {
+		if (offset > node.childNodes.length) {
+			throw new Error('Offset out of bounds.');
+		}
+		
+		node_of_interest = (offset == node.childNodes.length)
+			? null
+			: node.childNodes[offset];
+		char_offset = find_node_character_offset(node_of_interest);
+	}
+	
+	marker.move('character', char_offset);
+	rng.setEndPoint(which + 'ToEnd', marker);
+}
+
 Util.Range.set_start = function set_range_start(rng, start, offset)
 {
-	try // W3C
-	{
+	if (rng.setStart) {
+		// W3C range
 		rng.setStart(start, offset);
-	}
-	catch(e)
-	{
-		try // IE
-		{
-			// Taken from <http://jorgenhorstink.nl/test/javascript/range/range.js>
-			var node = start;
-
-			if (start.nodeType == 3) {
-			  // text nodes
-			  var moveCharacters = offset;
-			  var moveToNode = null, collapse = true;
-			  while (node.previousSibling) {
-				switch (node.previousSibling.nodeType) {
-				  case 1:
-					// Right candidate node for moving the Range to is found
-					moveToNode = node.previousSibling;
-					collapse   = false;
-					break;
-				  case 3:
-					moveCharacters += node.previousSibling.data.length;
-					break;
-				}
-				// if a right candidate is found, we escape the while
-				if (moveToNode != null) {
-				  break;
-				}
-				node = node.previousSibling;
-			  }
-			  // no right candidate is found, so we select the parent node
-			  // of the start node (which is an Element node always, since
-			  // start node is a Text node).
-			  if (moveToNode == null) {
-				moveToNode = start.parentNode;
-				collapse   = true;
-			  }
-			  rng.moveToElementText(moveToNode);
-			  rng.collapse(collapse);
-			  rng.move('Character', moveCharacters);
-			} else if (start.nodeType == 1) {
-			  // elements
-			  switch (Range.startContainer.childNodes.item(Range.startOffset).nodeType) {
-				case 1:
-				case 3:          
-				  Range.setStart(Range.startContainer.childNodes.item(Range.startOffset), 0);
-				  return this._selectStart(Range);
-				  break;
-				default:
-				  alert('error');
-			  }
-			}  
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Range.set_start(): Neither the W3C nor the IE way of setting the range\'s start worked. ' +
-							'When the Mozilla way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	} else if (rng.setEndPoint) {
+		// IE text range
+		Util.Range._ie_set_endpoint(rng, 'Start', start, offset);
+	} else {
+		throw new Util.Unsupported_Error('setting the start of a range');
 	}
 };
 
 Util.Range.set_end = function set_range_end(rng, end, offset)
 {
-	try // W3C
-	{
+	if (rng.setEnd) {
+		// W3C range
 		rng.setEnd(end, offset);
-	}
-	catch(e)
-	{
-		try // IE
-		{
-			// Taken from <http://jorgenhorstink.nl/test/javascript/range/range.js>
-			var node = end;
-
-			if (end.nodeType == 3) {
-			  // text nodes
-			  var moveCharacters = end.data.length - offset;
-			  var moveToNode = null, collapse = false;
-			  while (node.nextSibling) {
-				switch (node.nextSibling.nodeType) {
-				  case 1:
-					// Right candidate node for moving the Range to is found
-					moveToNode = node.nextSibling;
-					collapse   = true;
-					break;
-				  case 3:
-					moveCharacters += node.nextSibling.data.length;
-					break;
-				}
-				// if a right candidate is found, we escape the while
-				if (moveToNode != null) {
-				  break;
-				}
-				node = node.nextSibling;
-			  }
-			  // no right candidate is found, so we select the parent node
-			  // of the start node (which is an Element node always, since
-			  // start node is a Text node).
-			  if (moveToNode == null) {
-				moveToNode = end.parentNode;
-				collapse   = false;
-			  }
-
-			  // block level elements have a closing space after collapsing
-			  switch (moveToNode.nodeName.toLowerCase()) {
-				case 'p':
-				case 'div':
-				case 'h1':
-				case 'h2':
-				case 'h3':
-				case 'h4':
-				case 'h5':
-				case 'h6':
-				// need some extension
-				  moveCharacters++;
-			  }
-			  //alert(moveCharacters);
-			  WindowsRange.moveToElementText(moveToNode);
-			  WindowsRange.collapse(collapse);
-
-			  WindowsRange.move('Character', -moveCharacters);
-
-			} else if (end.nodeType == 1) {
-			  // elements
-			  switch (Range.endContainer.childNodes.item(Range.endOffset).nodeType) {
-				case 3:
-				  var offset  = 0; //Range.endContainer.childNodes.item(Range.endOffset).data.length;
-				  var refNode = Range.endContainer.childNodes.item(Range.endOffset);
-	              //alert(refNode.nodeValue);
-				  Range.setEnd(refNode, offset);
-				  return this._selectEnd(Range);
-				  break;
-				default:
-				  alert('error');
-			  }
-			}  
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Range.set_end(): Neither the W3C nor the IE way of setting the range\'s start worked. ' +
-							'When the Mozilla way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	} else if (rng.setEndPoint) {
+		// IE text range
+		Util.Range._ie_set_endpoint(rng, 'End', end, offset);
+	} else {
+		throw new Util.Unsupported_Error('setting the end of a range');
 	}
 };
+
+Util.Range.set_start_before = function set_range_start_before(rng, node)
+{
+	if (rng.setStartBefore) {
+		// W3C range
+		rng.setStartBefore(node);
+	} else {
+		// Fake it
+		Util.Range.set_start(node.parentNode, Util.Node.get_offset(node));
+	}
+}
+
+Util.Range.set_start_after = function set_range_start_after(rng, node)
+{
+	if (rng.setStartAfter) {
+		// W3C range
+		rng.setStartAfter(node);
+	} else {
+		// Fake it
+		Util.Range.set_start(node.parentNode, Util.Node.get_offset(node) + 1);
+	}
+}
+
+Util.Range.set_end_before = function set_range_end_before(rng, node)
+{
+	if (rng.setEndBefore) {
+		// W3C range
+		rng.setEndBefore(node);
+	} else {
+		// Fake it
+		Util.Range.set_end(node.parentNode, Util.Node.get_offset(node));
+	}
+}
+
+Util.Range.set_end_after = function set_range_end_after(rng, node)
+{
+	if (rng.setEndAfter) {
+		// W3C range
+		rng.setEndAfter(node);
+	} else {
+		// Fake it
+		Util.Range.set_end(node.parentNode, Util.Node.get_offset(node) + 1);
+	}
+}

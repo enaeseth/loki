@@ -5,49 +5,195 @@
  *
  * @class A class for massaging a table.
  */
-UI.Table_Masseuse = function()
+UI.Table_Masseuse = function TableMasseuse()
 {
-	var self = this;
-	Util.OOP.inherits(self, UI.Masseuse);
-
-	var _empty_th_text = 'Column title';
-
-	this.massage_node_descendants = function(node)
-	{
-		var tables = node.getElementsByTagName('TABLE');
-		for ( var i = 0; i < tables.length; i++ )
-		{
-			self.massage_elem(tables[i]);
-		}
-	};
+	Util.OOP.inherits(this, UI.Masseuse);
 	
-	this.unmassage_node_descendants = function(node)
+	var empty_header_text = 'Column title';
+	
+	/*
+	 * Ensures that the given table follows the thead/tbody/tfoot structure.
+	 */
+	function normalize_table_structure(table, first_row_is_head)
+	{		
+		function get_bodies() {
+			var bodies;
+			var c;
+			
+			// the tBodies property might be broken under IE8
+			if (table.tBodies)
+				return table.tBodies;
+			
+			bodies = [];
+			for (var i = 0; i < table.childNodes.length; i++) {
+				c = table.childNodes[i];
+				
+				if (Util.Node.is_tag(c, 'TBODY'))
+					bodies.push(c);
+			}
+			
+			return bodies;
+		}
+		
+		function get_first_row()
+		{
+			var source = get_bodies()[0] || table;
+			
+			for (var c = source.firstChild; c; c = c.nextSibling) {
+				if (Util.Node.is_tag(c, 'TR'))
+					return c;
+			}
+			
+			return null;
+		}
+		
+		function promote_row(row, where)
+		{
+			var method = ('createT' + where.charAt(0).toUpperCase() 
+				+ where.substr(1));
+			var dest = table[method]();
+			
+			if (!row)
+				return false;
+			
+			dest.insertBefore(row, dest.firstChild);
+			return true;
+		}
+		
+		function is_header_row(row) {
+			var maybe = false;
+			
+			for (var c = row.firstChild; c; c = c.nextSibling) {
+				if (Util.Node.is_tag(c, 'TD'))
+					return false;
+				if (!maybe && Util.Node.is_tag(c, 'TH'))
+					maybe = true;
+			}
+			
+			return maybe;
+		}
+		
+		function count_columns(row) {
+			var count = 0;
+			
+			for (var c = row.firstChild; c; c = c.nextSibling) {
+				if (Util.Node.is_tag(c, 'TD') || Util.Node.is_tag(c, 'TH'))
+					count++;
+			}
+			
+			return count;
+		}
+		
+		function create_header_row(cells) {
+			var row = table.ownerDocument.createElement('TR');
+			
+			for (var i = 0; i < cells; i++) {
+				row.appendChild(row.ownerDocument.createElement('TH'));
+			}
+			
+			return row;
+		}
+		
+		function fill_in_empty_cells(row)
+		{
+			var empty_pat = /^(\s|&nbsp;|<br[^>]*>)+$/i;
+			
+			for (var c = row.firstChild; c; c = c.nextSibling) {
+				if (!Util.Node.is_tag(c, 'TD') && !Util.Node.is_tag(c, 'TH'))
+					continue;
+				
+				if (!c.hasChildNodes() || empty_pat.test(c.innerHTML))
+					c.innerHTML = empty_header_text;
+			}
+		}
+		
+		if (!Util.Node.is_tag(table, 'TABLE')) {
+			throw new TypeError("Cannot normalize the table structure of a " +
+				"non-table.");
+		}
+		
+		if (first_row_is_head) {
+			promote_row(get_first_row(), 'head');
+		}
+		
+		var head = table.createTHead();
+		var head_valid = true;
+		if (head.getElementsByTagName("TR").length == 0) {
+			// See if the first row of the table is actually a header row.
+			var candidate = get_first_row();
+			if (is_header_row(candidate)) {
+				promote_row(candidate, 'head');
+			} else {
+				head_valid = false; // don't worry about the lack of header
+				/*
+				// Create an empty header row.
+				var hr = create_header_row(count_columns(candidate));
+				head.appendChild(hr);
+				*/
+			}
+		}
+		
+		var bodies = get_bodies();
+		if (bodies.length == 0) {
+			var body = table.ownerDocument.createElement('TBODY');
+			head.parentNode.insertBefore(body, head.nextSibling);
+			
+			for (var c = table.firstChild; c; c = c.nextSibling) {
+				if (Util.Node.is_tag(c, 'TR'))
+					body.appendChild(c);
+			}
+		}
+		
+		if (!head_valid) {
+			table.deleteTHead();
+		} else {
+			for (var c = head.firstChild; c; c = c.nextSibling) {
+				if (Util.Node.is_tag(c, 'TR'))
+					fill_in_empty_cells(c);
+			}
+		}
+		
+		return table;
+	}
+	
+	this.massage_node_descendants =
+		function massage_table_node_descendants(node)
 	{
 		var tables = node.getElementsByTagName('TABLE');
-		for ( var i = 0; i < tables.length; i++ )
-		{
-			self.unmassage_elem(tables[i]);
+		if (!tables.length)
+			return;
+		
+		for (var i = tables.length - 1; i >= 0; i--) {
+			massage_table(tables[i]);
 		}
-	};
-
-	this.massage_elem = function(table)
+	}
+	
+	this.unmassage_node_descendants =
+		function unmassage_table_node_descendants(node)
 	{
-		if ( table.getAttribute('border') == null ||
-		     table.getAttribute('border') == 0 )
-		{
-			Util.Element.add_class(table, 'loki__borderless_table');
+		var tables = node.getElementsByTagName('TABLE');
+		if (!tables.length)
+			return;
+		
+		for (var i = tables.length - 1; i >= 0; i--) {
+			unmassage_table(tables[i]);
 		}
-
+	}
+	
+	function massage_table(table)
+	{	
+		if (!table.getAttribute('border'))
+			Util.Element.add_class(table, 'loki__borderless_table');
+		
 		// Add trailing <br /> in Gecko, for better display and editing
-		if ( !document.all ) // XXX bad
-		{
+		if (Util.Browser.Gecko) {
 			// First, try innerHTML
-			var h = table.innerHTML;
-			// XXX: should this really be (h != null && h != '')? -EN
-			if ( h == '' || h == null )
+			var h;
+			if (table.innerHTML != null && table.innerHTML != '')
 			{
-				h.replace( new RegExp('(<td[ ]?[^>]*>)[ ]*(</td>)', 'g'), '$1<br />$2' );
-				h.replace( new RegExp('(<th[ ]?[^>]*>)[ ]*(</th>)', 'g'), '$1<br />$2' );
+				h = table.innerHTML;
+				h.replace( new RegExp('(<td[ ]?[^>]*>)[ ]*(</td>)', 'gi'), '$1<br />$2' );
+				h.replace( new RegExp('(<th[ ]?[^>]*>)[ ]*(</th>)', 'gi'), '$1<br />$2' );
 				table.innerHTML = h;
 			}
 			// But sometimes (namely, when the table is first created in Gecko), 
@@ -70,58 +216,18 @@ UI.Table_Masseuse = function()
 				}
 			}
 		}
-
-		// Add header to the table if there is none
-		var thead = table.createTHead();
-		var tbody = table.getElementsByTagName('TBODY')[0];
-		if ( thead.rows.length == 0 )
-		{
-			thead.insertRow(-1);
-			for ( var i = 0; i < tbody.rows[0].cells.length; i++ )
-			{
-				var th = thead.ownerDocument.createElement('TH');
-				thead.rows[0].appendChild(th);
-			}
-		}
-
-		// Add header text templates to empty THs
-		var ths = table.getElementsByTagName('TH');
-		var empty_regexp = new RegExp('^([ ]|&nbsp;|<br>|<br[^>]*>)+$', '');
-		for ( var i = 0; i < ths.length; i++ )
-		{
-			// the empty regexp test alone won't catch the newly 
-			// created THs from above, b/c their innerHTML isn't yet
-			// available in Gecko (see note above)
-			if ( ths[i].firstChild == null || empty_regexp.test(ths[i].innerHTML) )
-			{
-				ths[i].innerHTML = _empty_th_text;
-				/*
-				ths[i].onmouseover = function() {
-				//Util.Event.add_event_listener(ths[i], 'mouseover', function() {
-					alert('asdf');
-					if ( ths[i].innerHTML == 'Column title' )
-						ths[i].innerHTML = '';
-				};
-				ths[i].onmouseout = function() {
-				//Util.Event.add_event_listener(ths[i], 'mouseout', function() {
-					if ( empty_regexp.test(ths[i].innerHTML) )
-						ths[i].innerHTML = '';
-				};
-				*/
-			}
-		}
-	};
-
-	this.unmassage_elem = function(table)
+		
+		normalize_table_structure(table, false);
+	}
+	
+	function unmassage_table(table)
 	{
 		Util.Element.remove_class(table, 'loki__borderless_table');
-
+		
 		// Remove trailing <br /> in Gecko
-		if ( !document.all ) // XXX bad bad bad
-		{
+		if (Util.Browser.Gecko) {
 			var h = table.innerHTML;
-			h.replace( new RegExp('<br />(</td>)', 'g'), '<br />$1' );
-			h.replace( new RegExp('<br />(</th>)', 'g'), '<br />$1' );
+			h.replace(/<br\s*\/?>(<\/t[dh]>)/gi, '$1');
 			table.innerHTML = h;
 
 			/*
@@ -141,5 +247,8 @@ UI.Table_Masseuse = function()
 			}
 			*/
 		}
-	};
+	}
+	
+	this.massage_elem = massage_table;
+	this.unmassage_elem = unmassage_table;
 };

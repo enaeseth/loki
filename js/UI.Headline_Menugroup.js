@@ -29,8 +29,6 @@ UI.Headline_Menugroup = function()
 				label : 'Remove headline',
 				listener : function() { self._toggle_h3(); }
 			}) );
-
-			menuitems.push( (new UI.Separator_Menuitem).init() );
 		}
 		else if ( this._is_h4() )
 		{
@@ -43,8 +41,6 @@ UI.Headline_Menugroup = function()
 				label : 'Remove headline',
 				listener : function() { self._toggle_h4(); }
 			}) );
-
-			menuitems.push( (new UI.Separator_Menuitem).init() );
 		}
 
 		return menuitems;

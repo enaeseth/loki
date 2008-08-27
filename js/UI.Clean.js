@@ -170,25 +170,21 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	}
 
 	/**
-	 * Checks whether the given node has any attributes
+	 * Checks whether the given node has any classes
 	 * matching the given strings.
 	 */
 	function has_class(node, strs)
 	{
 		var matches = [];
-		if ( node.nodeType == Util.Node.ELEMENT_NODE )
-		{
-			for ( var i = 0; i < strs.length; i++ )
-			{
-				if ( Util.Element.has_class(node, strs[i]) )
+		
+		if (node.nodeType == Util.Node.ELEMENT_NODE) {
+			for (var i = 0; i < strs.length; i++) {
+				if (Util.Element.has_class(node, strs[i]))
 					matches.push(strs[i]);
 			}
 		}
 		
-		if ( matches.length > 0 )
-			return matches;
-		else
-			return false;
+		return (matches.length > 0) ? matches : false;
 	}
 
 	/**
@@ -196,8 +192,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	 */
 	function remove_class(node, strs)
 	{
-		for ( var i = 0; i < strs.length; i++ )
-		{
+		for (var i = 0; i < strs.length; i++) {
 			Util.Element.remove_class(node, strs[i]);
 		}
 	}
@@ -220,8 +215,16 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		return false;
 	};
 	
-	var allowable_tags =
-		(settings.allowable_tags || UI.Clean.default_allowable_tags).toSet();
+	var allowable_tags;
+	if (settings.allowable_tags) {
+		allowable_tags = settings.allowable_tags.map(function(tag) {
+			return tag.toUpperCase();
+		}).toSet();
+	} else {
+		allowable_tags = UI.Clean.default_allowable_tags.toSet();
+	}
+	
+	var acceptable_css = settings.allowable_inline_styles.toSet();
 		
 	function is_allowable_tag(node)
 	{
@@ -229,6 +232,28 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			node.tagName in allowable_tags);
 	}
 	
+	function is_block(node)
+	{
+		var wdw = Util.Node.get_window(node);
+		if (wdw) {
+			try {
+				return Util.Element.is_block_level(wdw, node);
+			} catch (e) {
+				// try using tag name below
+			}
+		}
+		
+		return Util.Node.is_block_level_element(node);
+	}
+	
+	function is_within_container(node) {
+		for (var n = node; n; n = n.parentNode) {
+			if (is_element(n) && n.getAttribute('loki:container'))
+				return true;
+		}
+		
+		return false;
+	}
 
 	var tests =
 	[
@@ -249,9 +274,44 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			action : remove_node
 		},
 		{
-			description : 'Remove all bad attributes. (v:shape from Ppt)',
-			test : function (node) { return has_attributes(node, ['style', 'v:shape']); },
+			description : 'Remove bad attributes. (v:shape from Ppt)',
+			test : function (node) { return has_attributes(node, ['v:shape']); },
 			action : remove_attributes
+		},
+		{
+			description: 'Translate align attributes.',
+			test: function(node) { return has_attributes(node, ['align']); },
+			action: function translate_alignment(el) {
+				// Exception: tables and images still use the align attribute.
+				if (has_tagname(el, ['TD', 'TH', 'TR', 'TABLE', 'IMG']))
+					return;
+				
+				el.style.textAlign = el.align.toLowerCase();
+				el.removeAttribute('align');
+			}
+		},
+		{
+			description: 'Strip unwanted inline styles',
+			test: function(node) { return has_attributes(node, ['style']); },
+			action: function strip_unwanted_inline_styles(el) {
+				var rule = /([\w-]+)\s*:\s*([^;]+)(?:;|$)/g;
+				var raw = el.style.cssText;
+				var accepted = [];
+				var match;
+				var name;
+				
+				while (match = rule.exec(raw)) {
+					name = match[1].toLowerCase();
+					if (name in acceptable_css) {
+						accepted.push(match[0]);
+					}
+				}
+				
+				if (accepted.length > 0)
+					el.style.cssText = accepted.join(' ');
+				else
+					el.removeAttribute('style');
+			}
 		},
 		{
 			description: 'Remove empty Word paragraphs',
@@ -322,8 +382,12 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			action: remove_tag
 		},
 		{
-			description : 'Remove all miscellaneous bad tags.',
-			test : function(node) { return has_tagname(node, ['SPAN']); },
+			description : 'Remove unnecessary span elements',
+			test : function is_bad_span(node) {
+				 return (has_tagname(node, ['SPAN'])
+					&& !has_attributes(node, ['class', 'style'])
+					&& !is_within_container(node));
+			},
 			action : remove_tag
 		},
 		{
@@ -337,7 +401,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		// Axe form elements?
 		{
 			description : "Remove U unless there's an appropriate option set.",
-			test : function(node) { return !settings.options.test('underline') && has_tagname(node, ['U']); },
+			test : function(node) { return !settings.options.underline && has_tagname(node, ['U']); },
 			action : remove_tag
 		},
 		{
@@ -367,20 +431,22 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		{
 			description: 'Remove protocol from links on the current server',
 			test: function(node) { return has_tagname(node, ['A']); },
-			action: function(node)
-			{
+			action: function(node) {
 				var href = node.getAttribute('href');
 				if (href != null) {
 					node.setAttribute('href',
-						UI.Clean.cleanURI(href));
+						UI.Clean.clean_URI(href));
 				}
 			}
 		},
 		{
-			description: 'Remove bubbles',
-			run_on_live: false,
-			test: function(node) { return has_class(node, ['loki__bubble']); },
-			action: remove_node
+			description: "Normalize all image URI's",
+			test: Util.Node.curry_is_tag('IMG'),
+			action: function normalize_image_uri(img) {
+				var norm = Util.URI.normalize(img.src);
+				norm.scheme = null;
+				img.src = Util.URI.build(norm);
+			}
 		},
 		{
 			description: 'Remove unnecessary BR\'s that are elements\' last ' +
@@ -400,8 +466,9 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 					}
 				}
 				
-				return has_tagname(node, ['BR']) &&
+				return has_tagname(node, ['BR']) && is_block(node.parentNode) &&
 					get_last_relevant_child(node.parentNode) == node;
+				
 			},
 			action: remove_node
 		},
@@ -463,7 +530,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				try {
 					tests[i].action(node, result);
 				} catch (e) {
-					if (console) {
+					if (typeof(console) == 'object') {
 						if (console.warn)
 							console.warn(e);
 						else if (console.log)
@@ -482,7 +549,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	}
 	catch(e)
 	{
-		if (console) {
+		if (typeof(console) == 'object') {
 			if (console.warn)
 				console.warn(e);
 			else if (console.log)
@@ -491,7 +558,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	}
 };
 
-UI.Clean.cleanURI = function(uri)
+UI.Clean.clean_URI = function clean_URI(uri)
 {
 	var local = Util.URI.extract_domain(uri) ==
 		Util.URI.extract_domain(window.location);
@@ -501,7 +568,7 @@ UI.Clean.cleanURI = function(uri)
 		: uri;
 }
 
-UI.Clean.cleanHtml = function(html, settings)
+UI.Clean.clean_HTML = function clean_HTML(html, settings)
 {
     // empty elements (as defined by HTML 4.01)
     var empty_elems = '(br|area|link|img|param|hr|input|col|base|meta)';

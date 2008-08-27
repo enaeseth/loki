@@ -10,7 +10,7 @@ UI.Page_Link_Button = function()
 	var self = this;
 	Util.OOP.inherits(this, UI.Button);
 
-	this.image = 'link.gif';
+	this.image = 'link.png';
 	this.title = 'Insert link (Ctrl+K)';
 	this.click_listener = function() { self._helper.open_page_link_dialog(); };
 

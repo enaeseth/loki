@@ -55,7 +55,8 @@ Util.Fix_Keys.fix_delete_and_backspace = function(e, win)
 	
 	function is_container(node)
 	{
-		return (node && node.getAttribute('loki:container'));
+		return (node && node.nodeType == Util.Node.ELEMENT_NODE &&
+			node.getAttribute('loki:container'));
 	}
 
 	function do_merge(one, two, sel)

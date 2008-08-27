@@ -12,7 +12,7 @@
  *  s.end_loading();
  *
  */
-Util.Select = function(params)
+Util.Select = function Select(params)
 {
 	this.document = params.document;
 	this._loading_str = params.loading_str != null ? params.loading_str : 'Loading ...';
@@ -122,3 +122,14 @@ Util.Select = function(params)
 			this._loading_elem.parentNode.replaceChild(this.select_elem, this._loading_elem);
 	};
 };
+
+Util.Select.append_options = function append_options_to_select(el, options)
+{
+	function add_option(desc) {
+		var opt = Util.Document.create_element(el.ownerDocument, 'option',
+			{value: desc.v}, [desc.l]);
+		el.appendChild(opt);
+	}
+	
+	options.each(add_option);
+}

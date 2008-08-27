@@ -47,6 +47,42 @@ Util.Node.remove_child_nodes = function(node, boolean_test)
 			node.removeChild(node.firstChild);
 };
 
+/**
+ * Returns all children of the given node who match the given test.
+ * @param {Node} node the node whose children will be traversed
+ * @param {Function|String|Number} match either a boolean-test matching function,
+ *        or a tag name, or a node type to be matched
+ * @return {Node[]} all matching child nodes
+ */
+Util.Node.find_children = function find_matching_node_children(node, match) {
+	var i, length, node_type;
+	var children = [], child;
+	
+	if (!Util.is_valid_object(node) || !node.nodeType) {
+		throw new TypeError('Must provide Util.Node.find_children with a ' +
+			'node to traverse.');
+	}
+	
+	if (Util.is_string(match)) {
+		match = Util.Node.curry_is_tag(match);
+	} else if (Util.is_number(match)) {
+		node_type = match;
+		match = function is_correct_node_type(node) {
+			return (node && node.nodeType == node_type);
+		}
+	} else if (!Util.is_function(match)) {
+		throw new TypeError('Must provide Util.Node.find_children with ' +
+			'something to match nodes against.');
+	}
+	
+	for (i = 0, length = node.childNodes.length; i < length; i++) {
+		child = node.childNodes[i];
+		if (match(child))
+			children.push(child);
+	}
+	
+	return children;
+};
 
 /**
  * <p>Recurses through the ancestor nodes of the specified node,
@@ -111,6 +147,35 @@ Util.Node.has_ancestor_node =
 };
 
 /**
+ * Finds the node that is equal to or an ancestor of the given node that
+ * matches the provided test.
+ * @param	{Node}	node	the node to examine
+ * @param	{function}	test	the test function that should return true when
+ *								passed a suitable node
+ * @return {Node}	the matching node if one was found, otherwise null
+ */
+Util.Node.find_match_in_ancestry =
+	function find_matching_node_in_ancestry(node, test)
+{
+	function terminal(node) {
+		switch (node.nodeType) {
+			case Util.Node.DOCUMENT_NODE:
+			case Util.Node.DOCUMENT_FRAGMENT_NODE:
+				return true;
+			default:
+				return false;
+		}
+	}
+	
+	for (var n = node; n && !terminal(n); n = n.parentNode) {
+		if (test(n))
+			return n;
+	}
+	
+	return null;
+}
+
+/**
  * Gets the nearest ancestor of the node that is currently being displayed as
  * a block.
  * @param {Node}	node		the node to examine
@@ -154,6 +219,7 @@ Util.Node.get_nearest_bl_ancestor_element = function(node)
 {
 	return Util.Node.get_nearest_ancestor_node(node, Util.Node.is_block_level_element);
 };
+
 /**
  * Gets the given node's nearest ancestor which is an element whose
  * tagname matches the one given.
@@ -208,7 +274,8 @@ Util.Node.has_child_node = function(node, boolean_test)
  */
 Util.Node.is_tag = function(node, tag)
 {
-	return (node.nodeType == Util.Node.ELEMENT_NODE && node.nodeName == tag);
+	return (node.nodeType == Util.Node.ELEMENT_NODE
+		&& node.nodeName == tag.toUpperCase());
 };
 
 /**
@@ -217,6 +284,102 @@ Util.Node.is_tag = function(node, tag)
 Util.Node.curry_is_tag = function(tag)
 {
 	return function(node) { return Util.Node.is_tag(node, tag); };
+}
+
+/**
+ * Finds the offset of the given node within its parent.
+ * @param {Node}  node  the node whose offset is desired
+ * @return {Number}     the node's offset
+ * @throws {Error} if the node is orphaned (i.e. it has no parent)
+ */
+Util.Node.get_offset = function get_node_offset_within_parent(node)
+{
+	var parent = node.parentNode;
+	
+	if (!parent) {
+		throw new Error('Node ' + Util.Node.get_debug_string(node) + ' has ' +
+			' no parent.');
+	}
+	
+	for (var i = 0; i < parent.childNodes.length; i++) {
+		if (parent.childNodes[i] == node)
+			return i;
+	}
+	
+	throw new Error();
+}
+
+/**
+ * Attempts to find the window that corresponds with a given node.
+ * @param {Node}  node   the node whose window is desired
+ * @return {Window}   the window object if it could be found, otherwise null.
+ */
+Util.Node.get_window = function find_window_of_node(node)
+{
+	var doc = (node.nodeType == Util.Node.DOCUMENT_NODE)
+		? node
+		: node.ownerDocument;
+	var seen;
+	var stack;
+	var candidate;
+	
+	if (!doc)
+		return null;
+	
+	if (doc._loki__document_window) {
+		return doc._loki__document_window;
+	}
+	
+	function accept(w)
+	{
+		if (!w)
+			return false;
+		
+		if (!seen.contains(w)) {
+			seen.push(w);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	function get_elements(tag)
+	{
+		return candidate.document.getElementsByTagName(tag);
+	}
+	
+	seen = [];
+	stack = [window];
+	
+	accept(window);
+	
+	while (candidate = stack.pop()) { // assignment intentional
+		try {
+			if (candidate.document == doc) {
+				// found it!
+				doc._loki__document_window = candidate;
+				return candidate;
+			}
+
+			if (candidate.parent != candidate && accept(candidate)) {
+				stack.push(candidate);
+			}
+
+
+			['FRAME', 'IFRAME'].map(get_elements).each(function (frames) {
+				for (var i = 0; i < frames.length; i++) {
+					if (accept(frames[i].contentWindow))
+						stack.push(frames[i].contentWindow);
+				}
+			});
+		} catch (e) {
+			// Sometimes Mozilla gives security errors when trying to access
+			// the documents.
+		}
+	}
+	
+	// guess it couldn't be found
+	return null;
 }
 
 Util.Node.non_whitespace_regexp = /[^\f\n\r\t\v]/gi;
@@ -273,18 +436,31 @@ Util.Node.get_nearest_non_whitespace_sibling_node = function(node, next_or_previ
 };
 
 /**
- * Determines whether the given node is an element that is block-level by
- * default in HTML.
+ * Determines whether the given node is a block-level element. Tries to use the
+ * element's computed style, and if that fails, falls back on what the default
+ * is for the element's tag.
  *
  * @see Util.Element.is_block_level
  * @see Util.Block.is_block
- * @param	node	the node in question
- * @return	{boolean}	true if the node is by default a block-level element
+ * @param	{Node}	node	the node in question
+ * @return	{Boolean}	true if the node is a block-level element
  */
 Util.Node.is_block_level_element = function(node)
 {
-	return Util.Block.is_block(node);
+	var w;
+	
+	if (node.nodeType != Util.Node.ELEMENT_NODE)
+		return false;
+	
+	try {
+		w = Util.Node.get_window(node);
+		return Util.Element.is_block_level(w, node);
+	} catch (e) {
+		return Util.Block.is_block(node);
+	}
 };
+
+Util.Node.is_block = Util.Node.is_block_level_element;
 
 /**
  * Determines whether the given node, in addition to being a block-level
@@ -294,7 +470,8 @@ Util.Node.is_block_level_element = function(node)
  */
 Util.Node.is_nestable_block_level_element = function(node)
 {
-	return Util.Node.is_block_level_element && !(/^(BODY|TBODY|THEAD|TR|TH|TD)$/i).test(node.tagName);
+	return Util.Node.is_block_level_element(node)
+		&& !(/^(BODY|TBODY|THEAD|TR|TH|TD)$/i).test(node.tagName);
 };
 
 /**
@@ -332,10 +509,7 @@ Util.Node.is_leftmost_descendent = function(node, ref)
  */
 Util.Node.insert_after = function(new_node, ref_node)
 {
-	if ( ref_node == ref_node.parentNode.lastChild )
-		ref_node.parentNode.appendChild(new_node);
-	else
-		ref_node.parentNode.insertBefore(new_node, ref_node.nextSibling);
+	ref_node.parentNode.insertBefore(new_node, ref_node.nextSibling);
 };
 
 /**

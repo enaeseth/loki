@@ -121,7 +121,7 @@ UI.Page_Link_Dialog = function()
 		sites_pane.id = 'sites_pane';
 		container.appendChild(sites_pane);
 		
-		this._sites_progress = this.create_activity_indicator('textual', 'Loading sites…');
+		this._sites_progress = this.create_activity_indicator('textual', 'Loading sites&hellip;');
 		this._sites_progress.insert(sites_pane);
 		return;
 	};
@@ -570,7 +570,8 @@ UI.Page_Link_Dialog = function()
 			this._load_finder(this._finder_feed);
 		} else {
 			this._select_tab(tab);
-			this._load_sites(this._sites_feed);
+			if (this._sites_feed && this._use_rss)
+				this._load_sites(this._sites_feed);
 		}
 	};
 

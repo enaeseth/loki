@@ -7,7 +7,7 @@
  */
 UI.Menuitem = function()
 {
-	var _label, _listener, _disabled;
+	var label, listener, disabled;
 
 	/**
 	 * Inits the menuitem. Params:
@@ -17,37 +17,62 @@ UI.Menuitem = function()
 	 */
 	this.init = function(params)
 	{
-		if ( params == null || params.label == '' || params.listener == null )
-			throw(new Error('UI.Menuitem.init: invalid paramaters. (label: <<' + params.label + '>>; listener: <<' + params.listener + '>>)'));
+		if (!params || !params.label || !params.listener) {
+			throw new Error('Insufficient information to construct a menu item.');
+		}
 
-		_label = params.label;
-		_listener = params.listener;
-		_disabled = params.disabled == null ? false : params.disabled;
+		label = params.label;
+		listener = params.listener;
+		disabled = !!params.disabled;
 
 		return this;
 	};
 
 	/**
 	 * Returns an appendable chunk to render the menuitem.
+	 * @return {HTMLElement} chunk
 	 */
 	this.get_chunk = function(doc)
 	{
-		if ( _disabled )
-		{
-			var container = doc.createElement('SPAN');
+		var container;
+		
+		if (disabled) {
+			container = doc.createElement('SPAN');
 			Util.Element.add_class(container, 'disabled');
-		}
-		else
-		{
-			var container = doc.createElement('A');
+		} else {
+			container = doc.createElement('A');
 			container.href = 'javascript:void(0);';
 			Util.Element.add_class(container, 'menuitem');
-			Util.Event.add_event_listener(container, 'click', function() { _listener(); });
+			Util.Event.add_event_listener(container, 'click', listener);
 		}
-
-		//container.appendChild( doc.createTextNode(_label) );
-		container.innerHTML = _label.replace(' ', '&nbsp;');
-
+		
+		container.innerHTML = label.replace(' ', '&nbsp;');
 		return container;
 	};
+	
+	/**
+	 * Gets the menu item's label.
+	 * @return {String}
+	 */
+	this.get_label = function()
+	{
+		return label;
+	}
+	
+	/**
+	 * Gets the menu item's click listener.
+	 * @return {Function}
+	 */
+	this.get_listener = function()
+	{
+		return listener;
+	}
+	
+	/**
+	 * Returns true if the menu item is disabled, false if otherwise.
+	 * @return {Boolean}
+	 */
+	this.is_disabled = function() {
+		return disabled;
+	}
 };

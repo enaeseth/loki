@@ -22,16 +22,13 @@ UI.Menu = function()
 	{
 		_menuitems.push(menuitem);
 	};
-	
 
 	self.add_menuitems = function(menuitems)
 	{
-		if ( menuitems != null )
-		{
-			for ( var i = 0; i < menuitems.length; i++ )
-			{
+		var i, length;
+		if (menuitems) {
+			for (i = 0, length = menuitems.length; i < length; ++i)
 				self.add_menuitem(menuitems[i]);
-			}
 		}
 	};
 
@@ -64,13 +61,11 @@ UI.Menu = function()
 	 * modified from FCK; some parts are modified from TinyMCE;
 	 * some parts come from Brian's Loki menu code.
 	 */
-	self.display = function(x, y)
+	self.display = function(click_event)
 	{
-		// IE way
-		try
-		{
+		if (_loki.owner_window.createPopup) {
 			// Make the popup and append the menu to it
-			var popup = window.createPopup();
+			var popup = _loki.owner_window.createPopup();
 			var menu_chunk = _get_chunk(popup.document);
 			var popup_body = popup.document.body;
 			Util.Element.add_class(popup_body, 'loki');
@@ -112,52 +107,55 @@ UI.Menu = function()
 			Util.Event.add_event_listener(popup.document, 'click', function() { popup.hide(); });
 
 			// Show the popup
-			popup.show(x, y, width, height);
-		}
-		catch(e)
-		{
-			// Gecko way
-			try
-			{
-				// Create menu, hidden
-				var menu_chunk = _get_chunk(_loki.owner_document);
-				_loki.root.appendChild(menu_chunk);
-				menu_chunk.style.position = 'absolute';
-				menu_chunk.style.visibility = 'hidden';
+			popup.show(click_event.screenX, click_event.screenY, width, height);
+		} else {
+			// Determine the coordinates at which the menu should be displayed.
+			var frame_pos = Util.Element.get_position(_loki.iframe);
+			var event_pos = {x: click_event.clientX, y: click_event.clientY};
+			var root_offset = Util.Element.get_relative_offsets(_loki.owner_window, _loki.root);
 
-				// Position menu
-				menu_chunk.style.left = x + 'px';
-				menu_chunk.style.top = y + 'px';
+			var x = frame_pos.x + event_pos.x - root_offset.x;
+			var y = frame_pos.y + event_pos.y - root_offset.y;
+			
+			// Create menu, hidden
+			var menu_chunk = _get_chunk(_loki.owner_document);
+			_loki.root.appendChild(menu_chunk);
+			menu_chunk.style.position = 'absolute';
+			menu_chunk.style.visibility = 'hidden';
 
-				// Watch the "click" event for all windows to close the menu
-				var close_menu = function() 
-				{
-					// We're adding the listener to several windows,
-					// and aren't controlling bubbling, so the event may be triggered
-					// several times.
-					if ( menu_chunk.parentNode != null )
-						menu_chunk.parentNode.removeChild(menu_chunk);
-				};
-				var cur_window = _loki.window;
-				while ( cur_window )
-				{
-					Util.Event.add_event_listener(cur_window.document, 'click', close_menu);
-					Util.Event.add_event_listener(cur_window.document, 'contextmenu', close_menu);
-					if ( cur_window != cur_window.parent )
-						cur_window = cur_window.parent;
-					else
-						break;
+			// Position menu
+			menu_chunk.style.left = (x - 1) + 'px';
+			menu_chunk.style.top = (y - 1) + 'px';
+
+			// Watch the "click" event for all windows to close the menu
+			function close_menu() {
+				var w;
+				
+				if (menu_chunk.parentNode) {
+					menu_chunk.parentNode.removeChild(menu_chunk);
+					
+					var w = _loki.window;
+					while (w) {
+						w.document.removeEventListener('click', close_menu, false);
+						w.document.removeEventListener('contextmenu', close_menu, false);
+						w = (w != w.parent) ? w.parent : null;
+					}
 				}
-		
-				// Show menu
-				menu_chunk.style.visibility	= '';
 			}
-			catch(f)
-			{
-				throw(new Error('UI.Menu.display(): Neither the IE nor the Gecko way of displaying a menu worked. ' +
-								'When the IE way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-								'When the Gecko way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
+			
+			function add_close_listeners() {
+				var w = _loki.window;
+				while (w) {
+					w.document.addEventListener('click', close_menu, false);
+					w.document.addEventListener('contextmenu', close_menu, false);
+					w = (w != w.parent) ? w.parent : null;
+				}
 			}
+			
+			add_close_listeners.defer();
+	
+			// Show menu
+			menu_chunk.style.visibility	= '';
 		}
-	};
-};
+	}
+}

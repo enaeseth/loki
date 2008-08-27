@@ -10,7 +10,7 @@ UI.HR_Button = function()
 	var self = this;
 	Util.OOP.inherits(self, UI.Button);
 
-	this.image = 'hr.gif';
+	this.image = 'hr.png';
 	this.title = 'Horizontal rule';
 	this.click_listener = function() { self._hr_helper.insert_hr(); };
 
