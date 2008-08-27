@@ -45,6 +45,7 @@ Util.Chooser = function Chooser()
 			'+': function(name) {
 				if (name in self.sets) {
 					self.sets[name].each(function (name) {
+						name = dealias(self.aliases, name);
 						if (name in self.sets)
 							Util.OOP.mixin(working, self.get(name));
 						else
@@ -63,10 +64,10 @@ Util.Chooser = function Chooser()
 						var k;
 						if (name in self.sets) {
 							for (k in self.get(name)) {
-								delete working[k];
+								delete working[dealias(self.aliases, k)];
 							}
 						} else {
-							delete working[name];
+							delete working[dealias(name)];
 						}
 					});
 				} else if (name in self.items) {
