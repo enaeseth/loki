@@ -646,7 +646,7 @@ Util.Node.get_debug_string = function get_node_debug_string(node)
 	
 	switch (node.nodeType) {
 		case Util.Node.ELEMENT_NODE:
-			str = '<' + node.nodeName;
+			str = '<' + node.nodeName.toLowerCase();
 			
 			Util.Object.enumerate(Util.Element.get_attributes(node),
 				function append_attribute(name, value) {
