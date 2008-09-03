@@ -74,5 +74,28 @@ var Util = {
 		}
 		
 		return true;
+	},
+	
+	is_enumerable: function is_enumerable()
+	{
+		for (var i = 0; i < arguments.length; i++) {
+			var o = arguments[i];
+			if (typeof(o) != 'object' || typeof(o.length) != 'number')
+				return false;
+		}
+		
+		return true;
+	},
+	
+	trim: function trim_string(str)
+	{
+		str = str.replace(/^\s+/, '');
+		for (var i = str.length - 1; i >= 0; i--) {
+			if (/\S/.test(str.charAt(i))) {
+				str = str.substring(0, i + 1);
+				break;
+			}
+		}
+		return str;
 	}
 };

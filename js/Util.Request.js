@@ -27,7 +27,7 @@ Util.Request = function(url, options)
 				try {
 					return new ActiveXObject('Microsoft.XMLHTTP');
 				} catch (g) {
-					throw 'Util.Request: Unable to create a HTTP request object!';
+					throw new Util.Unsupported_Error('XMLHttpRequest');
 				}
 			}
 		}

@@ -265,6 +265,33 @@ Util.Node.has_child_node = function(node, boolean_test)
 };
 
 /**
+ * Returns true if the given node is an element node.
+ * @param {Node} node node whose type will be tested
+ * @returns {Boolean} true if "node" is an element node, false if otherwise
+ */
+Util.Node.is_element = function node_is_element(node) {
+	return (Util.is_object(node) && node.nodeType == Util.Node.ELEMENT_NODE);
+}
+
+/**
+ * Returns true if the given node is a text node.
+ * @param {Node} node node whose type will be tested
+ * @returns {Boolean} true if "node" is a text node, false if otherwise
+ */
+Util.Node.is_text = function node_is_text(node) {
+	return (Util.is_object(node) && node.nodeType == Util.Node.TEXT_NODE);
+}
+
+/**
+ * Returns true if the given node is a document node.
+ * @param {Node} node node whose type will be tested
+ * @returns {Boolean} true if "node" is a document node, false if otherwise
+ */
+Util.Node.is_document = function node_is_document(node) {
+	return (Util.is_object(node) && node.nodeType == Util.Node.DOCUMENT_NODE);
+}
+
+/**
  * Returns true if the node is an element node and its node name matches the
  * tag parameter, false otherwise.
  *
@@ -657,8 +684,7 @@ Util.Node.get_debug_string = function get_node_debug_string(node)
 			str += '>';
 			break;
 		case Util.Node.TEXT_NODE:
-			str = '"' +
-				node.nodeValue.toString().replace(/^\s+|\s+$/g, '') + '"';
+			str = '"' + Util.trim(node.nodeValue.toString()) + '"';
 			break;
 		case Util.Node.DOCUMENT_NODE:
 			str = '[Document';

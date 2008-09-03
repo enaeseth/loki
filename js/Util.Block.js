@@ -5,7 +5,7 @@
 Util.Block = {
 	/**
 	 * Element is a block-level element.
-	 * @type integer
+	 * @type Number
 	 */
 	BLOCK: 1,
 	
@@ -17,7 +17,7 @@ Util.Block = {
 	/**
 	 * Element can contain paragraphs (and, in fact, all inline content should
 	 * be within them).
-	 * @type integer
+	 * @type Number
 	 */
 	PARAGRAPH_CONTAINER: 4,
 	
@@ -25,28 +25,34 @@ Util.Block = {
 	 * Inline content nodes should be direct children of this element unless
 	 * multiple paragraphs are desired, in which case it should behave as a
 	 * paragraph container.
-	 * @type integer
+	 * @type Number
 	 */
 	MULTI_PARAGRAPH_CONTAINER: 8,
 	
 	/**
 	 * Directly contains inline content; should not contain paragraphs.
-	 * @type integer
+	 * @type Number
 	 */
 	INLINE_CONTAINER: 16,
 	
 	/**
 	 * Block-level element that may not contain anything.
-	 * @type integer
+	 * @type Number
 	 */
 	EMPTY: 32,
 	
 	/**
 	 * Can exist as either a block-level element or an inline child of a block-
 	 * level element.
-	 * @type integer
+	 * @type Number
 	 */
 	MIXED: 64,
+	
+	/**
+	 * Whitespace is preserved within these elements.
+	 * @type Number
+	 */
+	PREFORMATTED: 128,
 	
 	get_flags: function get_flags(element)
 	{
@@ -82,6 +88,11 @@ Util.Block = {
 	is_mixed: function is_mixed(element)
 	{
 		return !!(this.get_flags(element) & Util.Block.MIXED);
+	},
+	
+	is_preformatted: function is_preformatted(element)
+	{
+		return !!(this.get_flags(element) & Util.Block.PREFORMATTED);
 	},
 	
 	/**
@@ -513,7 +524,7 @@ Util.Block = {
 				H5: Util.Block.INLINE_CONTAINER,
 				H6: Util.Block.INLINE_CONTAINER,
 				ADDRESS: Util.Block.INLINE_CONTAINER,
-				PRE: Util.Block.INLINE_CONTAINER,
+				PRE: Util.Block.INLINE_CONTAINER | Util.Block.PREFORMATTED,
 
 				TH: Util.Block.MULTI_PARAGRAPH_CONTAINER,
 				TD: Util.Block.MULTI_PARAGRAPH_CONTAINER,

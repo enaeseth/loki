@@ -72,10 +72,12 @@ Util.Element = {
 	/**
 	 * Returns the attributes of an element.
 	 * @param {Element}	elem
-	 * @return {object}	an object whose keys are attribute names and whose
+	 * @param {Boolean} [no_translation=false] if true, attribute names that may
+	 * be language keywords (like "class" and "for") will not be translated
+	 * @return {Object}	an object whose keys are attribute names and whose
 	 *					values are the corresponding values
 	 */
-	get_attributes: function get_element_attributes(elem)
+	get_attributes: function get_element_attributes(elem, no_translation)
 	{
 		var attrs = {};
 		
@@ -97,13 +99,15 @@ Util.Element = {
 			
 			switch (a.nodeName) {
 				case 'class':
-					attrs.className = v;
+				case 'className':
+					attrs[(no_translation) ? 'class' : 'className'] = v;
 					break;
 				case 'for':
-					attrs.htmlFor = v;
+				case 'htmlFor':
+					attrs[(no_translation) ? 'for' : 'htmlFor'] = v;
 					break;
 				case 'style':
-					attrs.style = v.style.cssText;
+					attrs.style = elem.style.cssText;
 					break;
 				default:
 					attrs[a.nodeName] = v;
