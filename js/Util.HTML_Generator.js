@@ -108,6 +108,8 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 		
 		Util.Object.enumerate(Util.Element.get_attributes(element, true),
 			function append_attr(name, value) {
+				if (name.charAt(0) == "_")
+					return;
 				buffer.write(' ', name, '="', clean_text(value), '"');
 			}
 		);
