@@ -267,7 +267,7 @@ UI.Clipboard_Helper._setup = function setup_clipboard_helper() {
 	
 	function watch_onload(func)
 	{
-		if (Loki.is_document_ready()) {
+		if (typeof(Loki) == "object" && Loki.is_document_ready()) {
 			func();
 			return;
 		}
