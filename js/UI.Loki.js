@@ -31,40 +31,29 @@ UI.Loki = function Loki()
 	var _menugroups = [];
 	var _keybindings = [];
 	var _editor_domain;
+	var _html_generator = null;
 
 	var self = this;
 
 
 	/**
-	 * Returns the HTML of the document currently being edited.
+	 * Returns the (cleaned-up) HTML of the document currently being edited.
 	 *
-	 * @return	string	the HTML of the document currently being edited.
+	 * @returns {String} the HTML of the document currently being edited.
 	 */
 	this.get_html = function()
 	{
-		// For some reason, this doesn't work (clean still cleans
-		// _body, not clone) ... but it's not really necessary, either
-// 		var clone = _body.cloneNode(true);
-// 		UI.Clean.clean(clone, _settings);
-// 		return clone.innerHTML;
-
+		var html;
+		
 		_unmassage_body();
 		UI.Clean.clean(_body, _settings);
-		html = _body.innerHTML;
+		if (_html_generator)
+			html = _html_generator.generate(_body.childNodes);
+		else
+			html = _body.innerHTML;
 		html = UI.Clean.clean_HTML(html, _settings);
 		_massage_body();
 		return html;
-
-/*
-		// added NF 10/21 for TinyMCE
-		var control = new TinyMCEControl();
-		control.init(_window, _iframe);
-		var tinyMCE = new TinyMCE();
-		tinyMCE.init(_window, control);
-
-		tinyMCE._cleanupHTML(tinyMCE.selectedInstance, tinyMCE.contentWindow.document, null, tinyMCE.contentWindow.document.body, null, false);
-		//TinyMCE.prototype._cleanupHTML = function(inst, doc, config, element, visual, on_save) 
-*/
 	};
 
 	this.get_dirty_html = function()
@@ -231,6 +220,21 @@ UI.Loki = function Loki()
 		
 		if (!_settings.allowable_inline_styles) {
 			_settings.allowable_inline_styles = default_allowed_styles();
+		}
+		
+		if (!_settings.html_generator || _settings.html_generator == 'default')
+			_settings.html_generator = 'browser';
+		else
+			_settings.html_generator = _settings.html_generator.toLowerCase();
+			
+		if (_settings.html_generator == 'loki') {
+			_html_generator = new Util.HTML_Generator({
+				xhtml: _settings.use_xhtml || false,
+				indent_text: "    "
+			});
+		} else if (_settings.html_generator != 'browser') {
+			throw new Error('Unknown HTML generator "' +
+				_settings.html_generator + '"; cannot instantiate Loki.');
 		}
 		
 		UI.Clipboard_Helper._setup(_settings.base_uri);
