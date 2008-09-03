@@ -25,15 +25,15 @@ TinyMCE.prototype.isBlockElement = function(node) {
 };
 
 TinyMCE.prototype.getParentBlockElement = function(node) {
-        // Search up the tree for block element
-        while (node) {
-                if (this.blockRegExp.test(node.nodeName))
-                        return node;
+	// Search up the tree for block element
+	while (node) {
+		if (this.blockRegExp.test(node.nodeName))
+			return node;
 
-                node = node.parentNode;
-        }
+		node = node.parentNode;
+	}
 
-        return null;
+	return null;
 };
 
 TinyMCE.prototype.getNodeTree = function(node, node_array, type, node_name) {
@@ -49,18 +49,15 @@ TinyMCE.prototype.getNodeTree = function(node, node_array, type, node_name) {
 };
 
 TinyMCE.prototype.getAbsPosition = function(node) {
-	var pos = new Object();
-
-	pos.absLeft = pos.absTop = 0;
-
-	var parentNode = node;
-	while (parentNode) {
-		pos.absLeft += parentNode.offsetLeft;
-		pos.absTop += parentNode.offsetTop;
-
-		parentNode = parentNode.offsetParent;
+	var pos = {absLeft: 0, absTop: 0};
+	
+	// if (node.nodeType != 1)
+	// 	node = node.parentNode;
+	for (var n = node; n; n = n.offsetParent) {
+		pos.absLeft += n.offsetLeft;
+		pos.absTop += n.offsetTop;
 	}
-
+	
 	return pos;
 };
 
@@ -671,7 +668,7 @@ TinyMCEControl.prototype._insertPara = function(e) {
 			paraAfter = body.childNodes[1];
 		}
 
-		this.selectNode(paraAfter, true, true);
+		this.selectNode(paraAfter, true, true, true, false);
 
 		return true;
 	}
@@ -739,7 +736,7 @@ TinyMCEControl.prototype._insertPara = function(e) {
 	paraAfter.normalize();
 	paraBefore.normalize();
 
-	this.selectNode(paraAfter, true, true);
+	this.selectNode(paraAfter, true, true, true, false);
 
 	return true;
 };
@@ -780,7 +777,7 @@ TinyMCEControl.prototype._handleBackSpace = function(evt_type) {
 	if (para != null && para.nodeName.toLowerCase() == 'p' && evt_type == "keypress") {
 		var htm = para.innerHTML;
 		var block = tinyMCE.getParentBlockElement(node);
-
+		
 		// Empty node, we do the killing!!
 		if (htm == "" || htm == "&nbsp;" || block.nodeName.toLowerCase() == "li") {
 			var prevElm = para.previousSibling;
@@ -794,10 +791,10 @@ TinyMCEControl.prototype._handleBackSpace = function(evt_type) {
 			// Get previous elements last text node
 			var nodes = tinyMCE.getNodeTree(prevElm, new Array(), 3);
 			var lastTextNode = nodes.length == 0 ? null : nodes[nodes.length-1];
-
+			
 			// Select the last text node and move curstor to end
 			if (lastTextNode != null)
-				this.selectNode(lastTextNode, true, false, false);
+				this.selectNode(lastTextNode, true, false, false, false);
 
 			// Remove the empty paragrapsh
 			para.parentNode.removeChild(para);
@@ -821,7 +818,7 @@ TinyMCEControl.prototype._handleBackSpace = function(evt_type) {
 	return false;
 };
 
-TinyMCEControl.prototype.selectNode = function(node, collapse, select_text_node, to_start) {
+TinyMCEControl.prototype.selectNode = function(node, collapse, select_text_node, to_start, scroll) {
 	if (!node)
 		return;
 
@@ -833,6 +830,9 @@ TinyMCEControl.prototype.selectNode = function(node, collapse, select_text_node,
 
 	if (typeof(to_start) == "undefined")
 		to_start = true;
+		
+	if (typeof(scroll) == "undefined")
+		scroll = true;
 
 	if (tinyMCE.isMSIE) {
 		var rng = this.getBody().createTextRange();
@@ -863,7 +863,8 @@ TinyMCEControl.prototype.selectNode = function(node, collapse, select_text_node,
 					sel.realSelection.collapseToEnd();
 			}
 
-			this.scrollToNode(node);
+			if (scroll)
+				this.scrollToNode(node);
 
 			return;
 		}
@@ -893,7 +894,8 @@ TinyMCEControl.prototype.selectNode = function(node, collapse, select_text_node,
 		sel.addRange(rng);
 	}
 
-	this.scrollToNode(node);
+	if (scroll)
+		this.scrollToNode(node);
 
 	// Set selected element
 	tinyMCE.selectedElement = null;
@@ -910,8 +912,11 @@ TinyMCEControl.prototype.scrollToNode = function(node) {
 	var height = tinyMCE.isMSIE ? document.getElementById(this.editorId).style.pixelHeight : this.targetElement.clientHeight;
 
 	// Only scroll if out of visible area
-	if (!tinyMCE.settings['auto_resize'] && !(node.absTop > scrollY && node.absTop < (scrollY - 25 + height)))
+	if (!tinyMCE.settings['auto_resize'] && !(node.absTop > scrollY && node.absTop < (scrollY - 25 + height))) {
+		console.debug(node, pos);
+		console.info("Scrolling to: (", pos.absLeft, ", ", pos.absTop - height + 25, ")");
 		this.contentWindow.scrollTo(pos.absLeft, pos.absTop - height + 25);
+	}
 };
 
 TinyMCEControl.prototype.getBody = function() {
