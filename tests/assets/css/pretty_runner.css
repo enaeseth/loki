@@ -1,0 +1,141 @@
+div#pretty_runner {
+	position: absolute;
+	left: 16px;
+	right: 16px;
+	bottom: 0px;
+	background: #111;
+	color: white;
+	overflow: hidden;
+	
+	font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, sans-serif;
+}
+
+#pretty_runner #pretty_runner_title {
+	background: #333;
+	color: #F8E08D;
+	padding: 5px 8px;
+	font-weight: bold;
+	
+	font-size: 13px;
+	height: 16px;
+	cursor: pointer;
+}
+
+#pretty_runner #pretty_runner_title:hover {
+	background: #444;
+}
+
+#pretty_runner #pretty_runner_title .pr_status {
+	float: right;
+}
+
+#pretty_runner #pretty_runner_title span.pr_status {
+	width: 16px;
+	height: 16px;
+	display: inline-block;
+}
+
+#pretty_runner #pretty_runner_body {
+	border: 5px solid #333;
+	border-top: none;
+	border-bottom: none;
+	display: none;
+	position: relative;
+}
+
+#pretty_runner #pretty_runner_body.pr_active {
+	height: 144px;
+	display: block;
+	overflow: auto;
+	background: transparent;
+}
+
+#pretty_runner #pretty_runner_body table#pretty_runner_results {
+	width: 100%;
+	background: #222;
+	font-size: 13px;
+	/*margin-top: 119px;*/
+	border-spacing: 0;
+}
+
+table#pretty_runner_results td {
+	line-height: 16px;
+	border: none;
+	border-bottom: 1px solid #333;
+	padding: 4px;
+	margin: 0;
+}
+
+table#pretty_runner_results td.pr_result_icon {
+	width: 16px;
+	vertical-align: top;
+}
+
+/* IE6 alpha channel fix */
+table#pretty_runner_results td.pr_result_icon span {
+	width: 16px;
+	height: 16px;
+	display: inline-block;
+}
+
+table#pretty_runner_results td.pr_result_buttons {
+	text-align: right;
+}
+
+table#pretty_runner_results td.pr_result_buttons a {
+	color: #F9E8B1;
+	text-decoration: none;
+	border: 1px solid #444;
+	padding: 1px 3px;
+	margin-left: 4px;
+}
+
+table#pretty_runner_results td.pr_result_buttons a:hover {
+	background: #F9EFCF;
+	color: #242119;
+}
+
+table#pretty_runner_results tr.pr_passed td {
+	background: #24301D;
+}
+
+table#pretty_runner_results tr.pr_failed td {
+	background: #383821;
+}
+
+table#pretty_runner_results tr.pr_error td {
+	background: #2C1D19;
+}
+
+table#pretty_runner_results tr.pr_done td {
+	background: #16182C;
+}
+
+table#pretty_runner_results p {
+	margin: 0;
+}
+
+table#pretty_runner_results table#pr_tally {
+	border-spacing: 0;
+	margin: 0.4em 0 0 1em;
+	background: #222536;
+}
+
+table#pretty_runner_results table#pr_tally td,
+	table#pretty_runner_results table#pr_tally th
+{
+	line-height: auto;
+	padding: 3px 4px;
+}
+
+table#pretty_runner_results table#pr_tally th {
+	text-align: left;
+	margin: 0;
+	padding-right: 0.5em;
+}
+
+table#pretty_runner_results table#pr_tally td {
+	margin: 0;
+	border: none;
+	background: #222536;
+}
