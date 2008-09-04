@@ -383,7 +383,7 @@ for (var name in Util.Array.Methods) {
 	function transform_name(name)
 	{
 		var new_name = '';
-		parts = name.split(/_+/);
+		var parts = name.split(/_+/);
 		
 		new_name += parts[0];
 		for (var i = 1; i < parts.length; i++) {
