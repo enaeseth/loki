@@ -3,6 +3,7 @@ require 'rake/packagetask'
 require 'rake/clean'
 
 LOKI_PATH = File.expand_path(File.dirname(__FILE__))
+LOKI_LIB = File.join(LOKI_PATH, 'lib')
 LOKI_SRC = File.join(LOKI_PATH, 'src')
 LOKI_DOCS = File.join(LOKI_PATH, 'docs')
 LOKI_BUILD = File.join(LOKI_PATH, 'build')
@@ -22,7 +23,7 @@ file "build/loki.js" => src_files do |t|
   FileUtils::mkdir LOKI_BUILD if !File.directory?(LOKI_BUILD)
   infile = File.join(LOKI_SRC, 'loki.js')
   outfile = File.join(LOKI_BUILD, 'loki.js')
-  sh %Q{cpp -undef -P -DLOKI_VERSION=\\"#{LOKI_VER}\\" "#{infile}" "#{outfile}"}
+  sh %Q{cpp -undef -P -I#{LOKI_LIB} -DLOKI_VERSION=\\"#{LOKI_VER}\\" "#{infile}" "#{outfile}"}
 end
 
 task :docs => src_files do

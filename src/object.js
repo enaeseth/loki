@@ -249,6 +249,25 @@ Loki.Object = {
 		return typeof(obj) == 'number';
 	},
 	
+	// Function: isRegExp
+	// Checks to see if the parameter is a regular expression.
+	//
+	// Parameters:
+	//     (any) obj - the possible regular expression
+	//
+	// Returns:
+	//     (Boolean) true if _obj_ is a regular expression, false if otherwise
+	isRegExp: function object_is_regexp(obj) {
+		if (obj instanceof RegExp)
+			return true;
+		
+		// the above doesn't always work, because each window has its own
+		// copy of RegExp (sigh)
+		return (typeof(obj.test) == "function"
+			&& typeof(obj.exec) == "function"
+			&& typeof(obj.lastIndex) == "number");
+	},
+	
 	// Function: isDefined
 	// Checks to see if the parameter is defined.
 	//
