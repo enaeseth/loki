@@ -864,27 +864,15 @@ UI.Loki = function Loki()
 		var paragraph_helper = (new UI.Paragraph_Helper).init(self);
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
 		{
-			event = event == null ? _window.event : event;
-			paragraph_helper.possibly_paragraphify();
-		});
-
-		Util.Event.add_event_listener(_document, 'keypress', function(event)
-		{
-			event = event == null ? _window.event : event;
-			if ( !Util.Browser.IE ) // XXX bad
-			{
+			if (!event)
+				event = window.event;
+			if (!event.metaKey && !event.ctrlKey)
+				paragraph_helper.possibly_paragraphify();
+			if (Util.Browser.IE) {
+				return Util.Fix_Keys.fix_enter_ie(event, _window, self);
+			} else {
 				Util.Fix_Keys.fix_delete_and_backspace(event, _window);
 				tinyMCE.handleEvent(event);
-			}
-		});
-
-		// XXX make this a keybinding instead?
-		Util.Event.add_event_listener(_document, 'keypress', function(event)
-		{
-			event = event == null ? _window.event : event;
-			if ( Util.Browser.IE ) // XXX bad
-			{
-				return Util.Fix_Keys.fix_enter_ie(event, _window, self);
 			}
 		});
 
@@ -1109,19 +1097,17 @@ UI.Loki = function Loki()
 		// return value indicates whether to continue bubbling of event or not
 		function fire_keybindings(event)
 		{
-			for ( var i = 0; i < _keybindings.length; i++ )
-			{
-				if ( _keybindings[i].test(event) )
-				{
-					// return the value of action, so the keybinding can
-					// choose not to cancel the browser's default event handler
-					var ret_value = _keybindings[i].action();
-					if ( ret_value === true || ret_value === false )
-						return ret_value;
-					else
-						return false; // don't bubble
+			var i, keybinding, length = _keybindings.length;
+			for (i = 0; i < length; ++i) {
+				keybinding = _keybindings[i];
+				if (keybinding.test(event)) {
+					var should_bubble = keybinding.action();
+					return (typeof(should_bubble) == "boolean")
+						? should_bubble
+						: false; // don't bubble
 				}
 			}
+			
 			return true; // bubble
 		};
 
@@ -1131,30 +1117,25 @@ UI.Loki = function Loki()
 
 		// We need to listen for different key events for IE and Gecko,
 		// because their default actions are on different events.
-		if ( Util.Browser.IE ) // IE // XXX: hack
-		{
-			Util.Event.add_event_listener(_document, 'keydown', function(event) 
-			{ 
-				event = event == null ? _window.event : event;
-				var bubble = fire_keybindings(event);
-				if ( !bubble )
-				{
+		var firer, event_name;
+		if (Util.Browser.IE) {
+			event_name = 'keydown';
+			firer = function ie_fire_keybindings(event) {
+				if (!fire_keybindings(event)) {
 					event.cancelBubble = true;
 					return Util.Event.prevent_default(event);
 				}
-			});
+				return true;
+			};
+		} else {
+			event_name = 'keypress';
+			firer = function gecko_fire_keybindings(event) {
+				return (fire_keybindings(event))
+					? true
+					: Util.Event.prevent_default(event);
+			};
 		}
-		else // Gecko
-		{
-			Util.Event.add_event_listener(_document, 'keypress', function(event) 
-			{ 
-				var bubble = fire_keybindings(event);
-				if ( !bubble )
-				{
-					return Util.Event.prevent_default(event);
-				}
-			});
-		}
+		Util.Event.observe(_document, event_name, firer);
 	};
 
 	var _init_menugroups = function()
