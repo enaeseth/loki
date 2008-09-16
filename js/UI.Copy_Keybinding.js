@@ -9,7 +9,12 @@ UI.Copy_Keybinding = function()
 {
 	Util.OOP.inherits(this, UI.Keybinding);
 
-	this.test = function(e) { return this.matches_keycode(e, 67) && e.ctrlKey; }; // Ctrl-C
+	this.test = function(e) {
+		if (Util.Browser.Gecko && Util.Browser.Windows && !this.loki.owner_window.GeckoClipboard)
+			return false;
+		return this.matches_keycode(e, 67) && e.ctrlKey;
+	}; // Ctrl-C
+	
 	this.action = function() 
 	{
 		// try-catch so that if anything should go wrong, copy

@@ -9,7 +9,11 @@ UI.Paste_Keybinding = function()
 {
 	Util.OOP.inherits(this, UI.Keybinding);
 
-	this.test = function(e) { return this.matches_keycode(e, 86) && e.ctrlKey; }; //Ctrl-V
+	this.test = function(e) {
+		if (Util.Browser.Gecko && Util.Browser.Windows && !this.loki.owner_window.GeckoClipboard)
+			return false;
+		return this.matches_keycode(e, 86) && e.ctrlKey;
+	}; //Ctrl-V
 	this.action = function() 
 	{
 		// try-catch so that if anything should go wrong, paste
