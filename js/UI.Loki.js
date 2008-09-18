@@ -1004,9 +1004,19 @@ UI.Loki = function Loki()
 			try {
 				self.copy_iframe_to_hidden();
 			} catch (ex) {
+				var message = ex.message || ex.toString();
+				var stack = get_stack_trace(ex);
+				
+				if (stack) {
+					for (var i = 0; i < 3; i++) {
+						message += ("\n" + stack[i].source + "\t" +
+							stack[i].file + ":" + stack[i].line);
+					}
+				}
+				
 				alert("An error occurred that prevented your document from " +
 					"being safely submitted.\n\nTechnical details:\n" +
-					ex);
+					message);
 				Util.Event.prevent_default(ev);
 				
 				if (typeof(console) == 'object' && console.firebug) {
@@ -1019,6 +1029,35 @@ UI.Loki = function Loki()
 			}
 			
 			return true;
+		}
+		
+		// The following probably only works under Mozilla.
+		function get_stack_trace(e) {
+			if (typeof(e.stack) != "string")
+				return null;
+			
+			var stack = [];
+			var raw_parts = e.stack.split("\n");
+			
+			return raw_parts.map(function parse_stack_trace_element(l) {
+				var pos = l.lastIndexOf("@");
+				var source = l.substr(0, pos);
+				var location = l.substr(pos + 1);
+				
+				pos = location.lastIndexOf(":");
+				var file = location.substr(0, pos);
+				var line = parseInt(location.substr(pos + 1));
+				
+				var base = self.settings.base_uri;
+				if (file.indexOf(base) == 0)
+					file = file.substr(base.length);
+				
+				return {
+					source: source,
+					file: file,
+					line: line
+				};
+			});
 		}
 		
 		// this copies the changes made in the iframe back to the hidden form element
