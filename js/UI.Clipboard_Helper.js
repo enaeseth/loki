@@ -115,9 +115,8 @@ UI.Clipboard_Helper = function ClipboardHelper()
 		var key;
 		if (!self._loki.owner_window.GeckoClipboard) {
 			key = ((Util.Browser.Mac) ? '⌘' : 'Ctrl-') + accel;
-			alert('Unable to access your system\'s clipboard. Please choose ' +
-				command + ' from your browser\'s Edit menu, or press ' +
-				key + '.');
+			alert("In your browser, you must either choose " + command + " " +
+				"from the Edit menu, or press " + key + ".");
 			throw new Util.Unsupported_Error('programmatic clipboard access');
 		}
 	}
