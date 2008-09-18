@@ -30,7 +30,10 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 			var c = txt.charCodeAt(0);
 			if (c == 9 || c == 10 || c == 13)
 				return txt;
-			return (Util.HTML_Generator.named_entities[c] || '&#' + c + ';');
+			var entity = Util.HTML_Generator.named_entities[c];
+			return (typeof(entity) == "string")
+				? '&' + entity + ';'
+				: '&#' + c + ';'
 		}
 		
 		return text.replace(pattern, html_escape);
