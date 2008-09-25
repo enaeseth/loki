@@ -85,12 +85,12 @@ function $extend(node) {
 			var temp = this.createElement("DIV");
 			temp.innerHTML = tag;
 			if (temp.childNodes.length == 1) {
-				return temp.firstChild;
+				return $extend(temp.firstChild);
 			}
 			
 			var frag = this.createDocumentFragment();
 			while (temp.firstChild)
-				frag.appendChild(temp.firstChild);
+				frag.appendChild($extend(temp.firstChild));
 			return frag;
 		}
 		
@@ -143,7 +143,7 @@ function $extend(node) {
 			}
 		}
 		
-		return elem;
+		return $extend(elem);
 	}
 	base2.DOM.Document.prototype.build = document_build;
 	base2.DOM.Document.build = function _doument_build(doc, tag, attributes) {

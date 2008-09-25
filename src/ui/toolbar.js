@@ -1,13 +1,14 @@
 // Class: Loki.UI.Toolbar
 // A toolbar. Extends <Loki.UI.Widget>.
 Loki.UI.Toolbar = Loki.Class.create(Loki.UI.Widget, {
-	initialize: function Toolbar(class_name) {
+	initialize: function Toolbar(editor) {
 		Toolbar.superclass.call(this);
 		
 		this.items = [];
 		this.document = null;
 		this.container = null;
-		this.className = class_name || "toolbar";
+		this.editor = editor;
+		this.className = editor.settings.toolbarClass || "toolbar";
 	},
 	
 	create: function create_toolbar(document) {
@@ -61,6 +62,7 @@ Loki.UI.ToolbarItem = Loki.Class.create(Loki.UI.Widget, {
 	toolbar: null,
 	
 	_enabled: true,
+	_active: true,
 	
 	// Constructor: ToolbarItem
 	// Creates a new toolbar item.
@@ -97,6 +99,28 @@ Loki.UI.ToolbarItem = Loki.Class.create(Loki.UI.Widget, {
 			if (typeof(this._disable) == "function")
 				this._disable();
 		}
+	},
+	
+	// Method: setActive
+	// Sets the active/inactive status of the toolbar item.
+	//
+	// Parameters:
+	//     (Boolean) value - if true, the item will be activated; if false, it
+	//                       will be deactivated
+	setActive: function item_set_active(value) {
+		if (value == this._active)
+			return;
+		
+		this._active = value;
+		if (value) {
+			this.dispatchEvent("activate");
+			if (typeof(this._activate) == "function")
+				this._activate();
+		} else {
+			this.dispatchEvent("deactivate");
+			if (typeof(this._deactivate) == "function")
+				this._deactivate();
+		}
 	}
 });
 
@@ -107,22 +131,83 @@ Loki.UI.ToolbarButton = Loki.Class.create(Loki.UI.ToolbarItem, {
 	title: null,
 	
 	autofocus: true,
-	changesContext: true,
+	changesSelection: true,
 	
-	_active: false,
+	_wrapper: null,
+	_icon: null,
 	
 	// Constructor: ToolbarButton
 	// Creates a new toolbar button.
 	//
 	// Parameters:
-	//     (String) image - the image to display in the button
+	//     (String) image - the image URL to display in the button
 	//     (String) title - the tooltip and alternate text to display
-	initialize: function ToolbarButton(image, title) {
+	initialize: function ToolbarButton(image, title, settings) {
 		ToolbarButton.superclass.call(this);
 		
 		this.image = image;
 		this.title = title;
+		
+		if (!settings)
+			settings = {};
+		
+		if (typeof(settings.autofocus) != 'undefined')
+			this.autofocus = settings.autofocus;
+		
+		if (typeof(settings.changesSelection) != 'undefined')
+			this.changesSelection = settings.changesSelection;
+		else if (typeof(settings.changes_selection) != 'undefined')
+			this.changesSelection = settings.changes_selection;
+		
+		if (typeof(settings.onClick) != 'undefined')
+			this.addEventListener('click', settings.onClick);
+		else if (typeof(settings.onclick) != 'undefined')
+			this.addEventListener('click', settings.onclick);
+	},
+	
+	create: function create_toolbar_button(document) {
+		var button = this;
+		var editor = this.toolbar.editor;
+		
+		this._icon = document.build('img', {
+			src: this.image,
+			title: this.title,
+			alt: this.title,
+			unselectable: 'on'
+		});
+		
+		this._wrapper = document.build('<a class="button">');
+		this._wrapper.appendChild(this._icon);
+		
+		function toolbar_button_clicked(event) {
+			if (button.enabled)
+				button.fireEvent('click');
+			
+			if (button.changesSelection)
+				editor.selectionChanged();
+			if (button.autofocus)
+				editor.focus();
+			
+			event.preventDefault();
+			return false;
+		}
+		
+		this._wrapper.addEventListener('click', toolbar_button_clicked, false);
+	},
+	
+	_enable: function enable_toolbar_button() {
+		this._wrapper.removeClass("disabled");
+	},
+	
+	_disable: function disable_toolbar_button() {
+		this._wrapper.addClass("disabled");
+	},
+	
+	_activate: function activate_toolbar_button() {
+		this._wrapper.addClass("active");
+	},
+	
+	_deactivate: function deactivate_toolbar_button() {
+		this._wrapper.removeClass("active");
 	}
-	
-	
 });
