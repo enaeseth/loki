@@ -176,7 +176,7 @@ Loki.UI.ToolbarButton = Loki.Class.create(Loki.UI.ToolbarItem, {
 			unselectable: 'on'
 		});
 		
-		this._wrapper = document.build('<a class="button">');
+		this._wrapper = document.build('<a class="button"></a>');
 		this._wrapper.appendChild(this._icon);
 		
 		function toolbar_button_clicked(event) {
