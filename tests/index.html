@@ -6,14 +6,13 @@
 	<title>Loki Unit Tests</title>
 	<style type="text/css" media="screen">
 		body {
-			background: black;
+			background: white;
 		}
 	</style>
 	
 	<script src="crucible.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 		var pr = new Crucible.PrettyRunner("Loki 3");
-		pr.doneAdding();
 	</script>
 	
 	<script src="../lib/base2.js" type="text/javascript" charset="utf-8"></script>
@@ -22,8 +21,18 @@
 	<script src="loki/object.js" type="text/javascript" charset="utf-8"></script>
 	<script src="loki/class.js" type="text/javascript" charset="utf-8"></script>
 	<script src="loki/parser.js" type="text/javascript" charset="utf-8"></script>
+	<script src="loki/locale.js" type="text/javascript" charset="utf-8"></script>
+	<script src="loki/chooser.js" type="text/javascript" charset="utf-8"></script>
+	
+	<script type="text/javascript">
+		pr.doneAdding();
+		
+		$extend(document).addEventListener("DOMContentLoaded", function() {
+			var loki = new Loki.Editor(document.getElementById("testarea"));
+		}, false);
+	</script>
 </head>
 <body id="unit_tests">
-	
+	<textarea id="testarea" name="test" rows="16" cols="80"></textarea>
 </body>
 </html>

@@ -28,8 +28,8 @@ Loki.Locale = Loki.Class.create({
 		Loki.locales[code] = this;
 		
 		this.code = code;
-		this.language = language;
-		this.country = country || null;
+		this.language = language.toLowerCase();
+		this.country = (country) ? country.toUpperCase() : null;
 		
 		// If we're creating a locale for a country-language pair, ensure that
 		// a locale exists for just the language.
@@ -42,7 +42,6 @@ Loki.Locale = Loki.Class.create({
 		}
 		
 		this.strings = {};
-		
 	},
 	
 	// Method: getString
@@ -208,8 +207,8 @@ Loki.Locale.getNative = function get_native_locale() {
 
 Loki.locales = {};
 
-Loki.currentLocale = (navigator.language)
-	? Loki.Locale.get(navigator.language)
+Loki.currentLocale = (navigator.language || navigator.userLanguage)
+	? Loki.Locale.get(navigator.language || navigator.userLanguage)
 	: Loki.Locale.getNative();
 
 #import "locales/english.js"

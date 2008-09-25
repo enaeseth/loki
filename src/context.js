@@ -1,6 +1,6 @@
 // Class: Loki.Context
 // A Loki editor display context (abstract).
-Loki.Context = Class.create({
+Loki.Context = Loki.Class.create({
 	// var: (Loki.Editor) editor
 	// The Loki editor associated with this context.
 	editor: null,
@@ -43,3 +43,9 @@ Loki.Context = Class.create({
 	}
 });
 
+Loki.contexts = new Loki.Chooser();
+Loki.contexts.putSet("default", ["builtin"]);
+Loki.defaultContext = null;
+
+#import "contexts/visual.js"
+#import "contexts/source.js"

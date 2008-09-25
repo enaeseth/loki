@@ -29,7 +29,7 @@ pr.add("Mixing in an object", function() {
 	var Foo = Loki.Class.create({
 		initialize: function Foo() {
 			this.bar = true;
-		},
+		}
 	});
 	
 	Loki.Class.mixin(Foo, {baz: true});

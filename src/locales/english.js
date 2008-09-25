@@ -36,6 +36,17 @@
 	
 	// XXX: Temporary! Move strings into special files.
 	g.setStrings({
+		"editor:no textarea": "Cannot create a Loki editor: no textarea was " +
+			"provided.",
+		"editor:not a textarea": "Cannot create a Loki editor: the element " +
+			"provided is not a TEXTAREA element.",
+		"editor:no matching textarea":
+			'No elements matched the selector "{0}".',
+		"editor:multiple matching textarea":
+			'More than one element matched the selector "{0}".',
+		"editor:no base uri": 'Cannot automatically determine the Loki base ' +
+			'URI. Please set it explicitly.',
+		
 		"chooser:unknown name": 'Unknown item or set "{0}".',
 		"chooser:invalid selector compoment":
 			'Invalid selector component "{0}".',

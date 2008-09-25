@@ -1,0 +1,15 @@
+/* English localization strings for core Loki functionality. */
+
+"editor" {
+    "no textarea" = "Cannot create a Loki editor: no textarea was provided.";
+    "not a textarea" = "Cannot create a Loki editor: the element provided is not a TEXTAREA element.";
+    "no matching textarea" = 'No elements matched the selector "{0}".';
+    "multiple matching textarea" = 'More than one element matched the selector "{0}".';
+    "no base uri" = 'Cannot automatically determine the Loki base URI. Please set it explicitly.';
+};
+
+"chooser" {
+    "unknown name" = 'Unknown item or set "{0}".';
+    "invalid selector component" = 'Invalid selector component "{0}".';
+    "invalid operator" = 'Invalid operator "{0}".';
+};

@@ -7,28 +7,149 @@
 //
 // Returns:
 //     (Document|Element) the extended node
-var $extend = (function create_extend_func() {
-	function node_is_tag() {
+function $extend(node) {
+	return base2.DOM.bind(node);
+}
+
+(function extend_base2() {
+	base2.DOM.Node.isTag = function _node_is_tag(node, name) {
 		return false;
-	}
-	
-	function element_is_tag(tag_name) {
-		return this.tagName == tag_name.toUpperCase();
-	}
-	
-	return function $extend(node) {
-		base2.DOM.bind(node);
-
-		if (node.nodeType == Node.ELEMENT_NODE) {
-			node.isTag = element_is_tag;
-		} else {
-			node.isTag = node_is_tag;
-		}
-
-		return node;
 	};
-})();
+	base2.DOM.Node.prototype.isTag = function node_is_tag(name) {
+		return false;
+	};
+	
+	base2.DOM.Element.isTag = function _element_is_tag(element, name) {
+		return element.tagName == name.toUpperCase();
+	};
+	base2.DOM.Element.prototype.isTag = function element_is_tag(name) {
+		return this.tagName == name.toUpperCase();
+	};
+	
+	function set_element_style(styles) {
+		var es = this.style, match, property;
+		if (typeof(styles) == "string") {
+			if (es.cssText && es.cssText.charAt(es.cssText.length - 1) != ';')
+				es.cssText += ';';
+			es.cssText += styles;
+			if (styles.indexOf('opacity') != -1) {
+				base2.DOM.Element.setOpacity(
+					this,
+					styles.match(/opacity:\s*(\d?\.?\d*)/)[1]
+				);
+			}
+			return this;
+		}
+		
+		for (var name in styles) {
+			property = name;
+			if (name == 'opacity') {
+				base2.DOM.Element.setOpacity(this, styles['opacity']);
+			} else {
+				if (name == 'float' || name == 'cssFloat') {
+					property = (typeof(es.styleFloat) == "undefined")
+						? 'cssFloat' : 'styleFloat';
+				}
+				es[property] = styles[name];
+			}
+		}
+		return this;
+	}
+	if (!Element || !Element.prototype.setStyle) {
+		base2.DOM.Element.prototype.setStyle = set_element_style;
+		base2.DOM.Element.setStyle = function _set_element_style(el, styles) {
+			return set_element_style.call(el, styles);
+		}
+	}
+	
+	function set_element_opacity(value) {
+		this.style.opacity = (value == 1 || value === '')
+			? '' : (value < 0.00001) ? 0 : value;
+		return this;
+	}
+	if (!Element || !Element.prototype.setOpacity) {
+		base2.DOM.Element.prototype.setOpacity = set_element_opacity;
+		base2.DOM.Element.setOpacity = function _set_element_opacity(el,
+			value)
+		{
+			return set_element_opacity.call(el, value);
+		}
+	}
+	
+	function document_build(tag, attributes) {
+		if (!attributes)
+			attributes = {};
+		
+		// XXX: do we need jQuery-style wrapper logic here?
+		if (!(/^\w+$/.test(tag))) {
+			var temp = this.createElement("DIV");
+			temp.innerHTML = tag;
+			if (temp.childNodes.length == 1) {
+				return temp.firstChild;
+			}
+			
+			var frag = this.createDocumentFragment();
+			while (temp.firstChild)
+				frag.appendChild(temp.firstChild);
+			return frag;
+		}
+		
+		var elem;
+		if (Loki.Browser.IE && attributes.name) {
+			elem = this.createElement($format('<{0} name="{1}>"',
+				tag.toUpperCase(), attributes.name));
+		} else {
+			elem = this.createElement(tag.toUpperCase());
+		}
+		
+		for (var name in attributes) {
+			var dest_name = name;
 
+			switch (name) {
+				case 'className':
+				case 'class':
+					// In IE, e.setAttribute('class', x) does not work properly:
+					// it will indeed set an attribute named "class" to x, but
+					// the CSS for that class won't actually take effect. As a
+					// workaround, we just set className directly, which works
+					// in all browsers.
+
+					// See http://tinyurl.com/yvsqbx for more information.
+
+					var klass = attributes[name];
+
+					// Allow an array of classes to be passed in.
+					if (typeof(klass) != 'string' && klass.join)
+						klass = klass.join(' ');
+
+					elem.className = klass;
+					continue; // note that this continues the for loop!
+				case 'htmlFor':
+					dest_name = 'for';
+					break;
+				case 'style':
+					base2.DOM.Element.setStyle(elem, attributes.style);
+					continue; // note that this continues the for loop!
+			}
+
+			var a = attributes[name];
+			if (typeof(a) == 'boolean') {
+				if (a)
+					elem.setAttribute(dest_name, dest_name);
+				else
+					continue;
+			} else {
+				elem.setAttribute(dest_name, a);
+			}
+		}
+		
+		return elem;
+	}
+	base2.DOM.Document.prototype.build = document_build;
+	base2.DOM.Document.build = function _doument_build(doc, tag, attributes) {
+		return document_build.call(doc, tag, attributes);
+	}
+})();
 
 // Function: $sel
 // Finds elements under the given context that match the given CSS selector.
@@ -138,8 +259,8 @@ function $vformat(format, positional, named) {
 			
 			source = source[(isNaN(n)) ? identifier[i] : n];
 			if (typeof(source) == "undefined") {
-				throw new Error("Format parameter " +
-					identifier.slice(0, i + 1).join(".") + " is not defined.");
+				source = "(null)";
+				break;
 			}
 		}
 		
