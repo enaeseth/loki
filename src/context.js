@@ -48,4 +48,3 @@ Loki.contexts.putSet("default", ["builtin"]);
 Loki.defaultContext = null;
 
 #import "contexts/visual.js"
-#import "contexts/source.js"
