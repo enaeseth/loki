@@ -6,10 +6,18 @@
     "no matching textarea" = 'No elements matched the selector "{0}".';
     "multiple matching textarea" = 'More than one element matched the selector "{0}".';
     "no base uri" = 'Cannot automatically determine the Loki base URI. Please set it explicitly.';
+    
+    "unknown context" = 'No such context "{0}".';
+    "unavailable context" = 'The context "{0}" is not available on this Loki instance.';
+    
 };
 
 "chooser" {
     "unknown name" = 'Unknown item or set "{0}".';
     "invalid selector component" = 'Invalid selector component "{0}".';
     "invalid operator" = 'Invalid operator "{0}".';
+};
+
+"locale" {
+    "string undefined in locale" = 'No such locale string "{0}". (Current locale: {1}).';
 };

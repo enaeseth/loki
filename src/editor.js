@@ -3,6 +3,9 @@
 
 // Class: Loki.Editor
 // An in-browser HTML editor.
+//
+// Mixins:
+//  - <Loki.EventTarget>
 Loki.Editor = Loki.Class.create({
 	// var: (Element) textarea
 	textarea: null,
@@ -12,6 +15,9 @@ Loki.Editor = Loki.Class.create({
 	
 	// var: (Element) root
 	root: null,
+	
+	// var: (Element) contextRoot
+	contextRoot: null,
 	
 	// var: (Element) iframe
 	iframe: null,
@@ -25,6 +31,9 @@ Loki.Editor = Loki.Class.create({
 	// var: (String) baseURL
 	// The URL of the Loki installation.
 	baseURL: null,
+	
+	// var: ({String => Loki.Context}) contexts
+	contexts: null,
 	
 	// Constructor: Editor
 	// Creates a new instance of the Loki editor, replacing a textarea on the
@@ -41,6 +50,7 @@ Loki.Editor = Loki.Class.create({
 		
 		if (!settings)
 			settings = {};
+		this.settings = settings;
 		
 		this.contexts = this._loadContexts(settings.contexts || "default");
 		
@@ -48,13 +58,17 @@ Loki.Editor = Loki.Class.create({
 		this.ownerDocument = textarea.ownerDocument;
 		
 		this.baseURL = (settings.base_url || settings.base_uri
-			|| settings.baseURL || this._determineBaseURL()); 
+			|| settings.baseURL || this._determineBaseURL());
+			
+		this.fireEvent('startup');
 		
 		this.theme = new Loki.Theme(settings.theme || "light");
 		this.theme.applyToOwnerDocument(this);
 		this.root = this._createRoot(settings.branding || false);
-		       
+		this.contextRoot = this._createContextRoot(this.root);
 		
+		this.switchContext(settings.defaultContext || settings.default_context
+			|| Loki.defaultContext);
 	},
 	
 	// Method: switchContext
@@ -74,7 +88,7 @@ Loki.Editor = Loki.Class.create({
 		if (typeof(new_context) == "undefined") {
 			// Check to see if a context with that name is globally registered.
 			try {
-				Loki.Contexts.get(name);
+				Loki.contexts.get(name);
 			} catch (e) {
 				// It isn't.
 				throw Loki.error("NameError", "editor:unknown context", name);
@@ -89,18 +103,36 @@ Loki.Editor = Loki.Class.create({
 		
 		this.previousContext = this.activeContext || null;
 		if (this.previousContext)
-			this.previousContext.exit(this.root);
+			this.previousContext.exit(this.contextRoot);
 		this.activeContext = new_context;
-		this.activeContext.enter(this.root);
+		this.activeContext.enter(this.contextRoot);
 	},
 	
-	_createRoot: function _create_editor_root() {
+	// Method: selectionChanged
+	// This method should be called whenever something occurs that changes the
+	// user's selection in the visual context. This could be a change in the
+	// selection boundaries, but also a change in the selection's style or
+	// properties (e.g. the insertion of strong tags around the selection).
+	selectionChanged: function editor_selection_changed() {
+		
+	},
+	
+	_createRoot: function _create_editor_root(branding) {
 		var doc = this.ownerDocument;
 		var root = doc.createElement("div");
 		root.className = "loki";
 		
 		this.textarea.parentNode.replaceChild(root, this.textarea);
 		return root;
+	},
+	
+	_createContextRoot: function _create_editor_context_root(root) {
+		var doc = root.ownerDocument;
+		var cr = doc.createElement("div");
+		cr.className = "root";
+		
+		root.appendChild(cr);
+		return cr;
 	},
 	
 	_resolveTextarea: function _resolve_editor_textarea(textarea) {
@@ -143,8 +175,14 @@ Loki.Editor = Loki.Class.create({
 	},
 	
 	_loadContexts: function _load_editor_contexts(selector) {
-		return base2.map(Loki.contexts.get(selector), function(context_class) {
-			return new context_class(this);
+		var context_classes = Loki.contexts.get(selector);
+		var contexts = {};
+		
+		Loki.Object.enumerate(context_classes, function(key, context_class) {
+			contexts[key] = new context_class(this);
 		}, this);
+		
+		return contexts;
 	}
 });
+Loki.Class.mixin(Loki.Editor, Loki.EventTarget);

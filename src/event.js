@@ -118,8 +118,9 @@ Loki.EventTarget = {
 		}
 	},
 	
-	// Method: dispatchEvent
-	// Dispatches an event to registered listeners.
+	// Method: fireEvent
+	// Dispatches an event to registered listeners. Also available as
+	// _dispatchEvent_.
 	//
 	// Parameters:
 	//     (Loki.Event|String) event - the event to dispatch; if a string is

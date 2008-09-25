@@ -193,6 +193,8 @@ Loki.UI.ToolbarButton = Loki.Class.create(Loki.UI.ToolbarItem, {
 		}
 		
 		this._wrapper.addEventListener('click', toolbar_button_clicked, false);
+		
+		return this._wrapper;
 	},
 	
 	_enable: function enable_toolbar_button() {

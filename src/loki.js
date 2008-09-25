@@ -41,10 +41,8 @@ var Loki = window.Loki = {
 		requested_name = name;
 		arguments[0] = Loki.currentLocale.getString(name);
 		if (!arguments[0]) {
-			throw new Error(
-				'The locale string "' + requested_name + '" is undefined. (' +
-				'The current locale is "' + Loki.currentLocale.code + '").'
-			);
+			throw Loki.error("locale:string undefined in locale",
+				requested_name, Loki.currentLocale.code);
 		}
 		return $format.apply(null, arguments);
 	},
@@ -63,7 +61,13 @@ var Loki = window.Loki = {
 	//             name
 	error: function loki_create_error(name, message) {
 		var error_class = window[name] || Error;
-		message = $vformat(Loki.currentLocale.getString(message),
+		var requested_msg = message;
+		message = Loki.currentLocale.getString(message);
+		if (!message) {
+			throw Loki.error("locale:string undefined in locale", requested_msg,
+				Loki.currentLocale.code);
+		}
+		message = $vformat(message,
 			base2.slice(arguments, 2));
 		var error = new error_class(message);
 		error.name = name;

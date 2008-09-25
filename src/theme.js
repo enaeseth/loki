@@ -18,7 +18,8 @@ Loki.Theme = Loki.Class.create({
 	},
 	
 	applyToDocument: function apply_theme_to_doc(editor) {
-		// body...
+		this._addStyleSheet(editor.document,
+			$format("{0}themes/{1}/document.css", editor.baseURL, this.name));
 	},
 	
 	_addStyleSheet: function add_style_sheet(document, url) {
