@@ -582,8 +582,9 @@ UI.Page_Link_Dialog = function()
 			this._select_tab(this._determine_tab(false));
 		} else {
 			this._select_tab('rss');
-			this._load_sites(this._sites_feed);
 		}
+		
+		this._load_sites(this._sites_feed);
 	};
 
 	/**
