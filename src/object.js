@@ -290,7 +290,19 @@ Loki.Object = {
 	//     (Boolean) true if _obj_ is undefined, false if otherwise
 	isUndefined: function object_is_undefined(obj) {
 		return typeof(obj) == 'undefined';
-	}
+	},
+	
+	// Function: isValid
+	// Checks to see if the parameter is "valid": not undefined and non-null.
+	//
+	// Parameters:
+	//     (any) obj - the possibly-valid value
+	//
+	// Returns:
+	//     (Boolean) true if _obj_ is valid, false if otherwise
+	isValid: function object_is_valid(obj) {
+		return obj !== null && typeof(obj) != 'undefined';
+	},
 };
 
 // Improve Loki.Object.keys() if Object.prototype.hasOwnProperty is available.
