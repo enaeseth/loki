@@ -22,7 +22,9 @@ Loki.Chooser = Loki.Class.create({
 	
 	// Method: get
 	// Selects items from the chooser. Unless the _lenient_ parameter is set to
-	// true, an exception will be raised if a requested item is not found.
+	// true, an exception will be raised if a requested item is not found. If
+	// you just need the names of the items that a selector string selects, use
+	// <Loki.Chooser.resolveSelector>.
 	//
 	// Parameters:
 	//     (String) selector - the selector string; see below for the format
@@ -53,10 +55,44 @@ Loki.Chooser = Loki.Class.create({
 	//                 _lenient_ parameter was not set to a true value
 	//     SyntaxError - if the selector string is invalid
 	get: function get_from_chooser(selector, lenient) {
+		var include_unknown_names = !lenient;
+		var names = this.resolveSelector(selector, include_unknown_names);
+		var i;
+		var items = {};
+		
+		base2.forEach(names, function(name) {
+			var item = this.items[name];
+			if (typeof(item) == "undefined") {
+				// this would only happen if we included unknown names, which
+				// only happens if lenient == false
+				throw Loki.error("NameError", "chooser:unknown name",
+					name);
+			}
+			items[name] = item;
+		}, this);
+		
+		return items;
+	},
+	
+	// Method: resolveSelector
+	// Resolves a selector string into the individual items that it selects.
+	// The format of selector strings is described at <Loki.Chooser.get>.
+	//
+	// Parameters:
+	//     (String) selector - the selector string
+	//     (Boolean) [include_unknown=false] - if true, unknown items will be
+	//               included in the returned array; if false, they will not be
+	//
+	// Returns:
+	//     (String[]) - the array of desired items
+	//
+	// Throws:
+	//     SyntaxError - if the selector string is invalid
+	resolveSelector: function resolve_selector(selector, include_unknown) {
+		// Find a canonical name; i.e., resolve any aliases to their real names.
 		var items = {};
 		var self = this;
 		
-		// Find a canonical name; i.e., resolve any aliases to their real names.
 		function dealias(name) {
 			var dealised;
 			while (dealised = self.aliases[name]) {
@@ -71,12 +107,8 @@ Loki.Chooser = Loki.Class.create({
 				var set = self.sets[name];
 				if (set) {
 					base2.forEach(set, add);
-				} else {
-					items[name] = self.items[name];
-					if (!lenient && typeof(items[name]) == "undefined") {
-						throw Loki.error("NameError", "chooser:unknown name",
-							name);
-					}
+				} else if (include_unknown || name in self.items) {
+					items[name] = true;
 				}
 			},
 			
@@ -85,11 +117,8 @@ Loki.Chooser = Loki.Class.create({
 				var set = self.sets[name];
 				if (set) {
 					base2.forEach(set, subtract);
-				} else if (name in self.items) {
+				} else {
 					delete items[name];
-				} else if (!lenient) {
-					throw Loki.error("NameError", "chooser:unknown name",
-						name);
 				}
 			}
 		};
@@ -116,7 +145,7 @@ Loki.Chooser = Loki.Class.create({
 			operation(breakdown[2]);
 		}, this);
 		
-		return items;
+		return Loki.Object.keys(items);
 	},
 	
 	// Method: add
