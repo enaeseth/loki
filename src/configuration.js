@@ -11,10 +11,13 @@ Loki.Configuration = Loki.Class.create({
 	//               true, camelCase option names will automatically receive
 	//               underscored aliases. (For example,
 	//               contentType => content_type, responseXML => response_xml.)
-	initialize: function Configuration(translate_names) {
+	//     (Boolean) [reject_unknown=false] - if true, an exception will be
+	//               thrown when an unknown option is given
+	initialize: function Configuration(translate_names, reject_unknown) {
 		this.translateNames = (!Loki.Object.isValid(translate_names))
 			? true
 			: translate_names;
+		this.rejectUnknown = reject_unknown || false;
 		this.options = {};
 		this.aliases = {};
 	},
@@ -93,7 +96,11 @@ Loki.Configuration = Loki.Class.create({
 			spec = this.options[real_name];
 			
 			if (!spec) {
-				throw Loki.error("ConfigurationError", "config:unknown option");
+				if (this.rejectUnknown) {
+					throw Loki.error("ConfigurationError",
+						"config:unknown option");
+				}
+				continue;
 			}
 			
 			value = options[name];
