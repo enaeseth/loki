@@ -266,7 +266,7 @@ Loki.URL.parseQuery = function parse_query(query) {
 Loki.URL.buildQuery = function build_query(variables, separator) {
 	var parts = [];
 	
-	Object.enumerate(variables, function(name, value) {
+	Loki.Object.enumerate(variables, function(name, value) {
 		parts.push(name + '=' + value);
 	});
 	
