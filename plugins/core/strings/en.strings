@@ -26,3 +26,8 @@
     "option without name" = "Cannot define a configuration option without a name.";
     "unknown option" = 'Unknown option name "{0}".';
 };
+
+"request" {
+    "no xhr" = "Your browser lacks support for XMLHttpRequest.";
+    "non-object headers" = "Request headers must be given as an object.";
+};
