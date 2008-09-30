@@ -45,7 +45,6 @@ Loki.Class = {
 		}
 		
 		var cl = prototype.initialize || (function T() { });
-		delete prototype.initialize;
 		
 		if (superclass) {
 			var my_proto = prototype;

@@ -81,6 +81,7 @@ var Loki = window.Loki = {
 #import "browser.js"
 #import "parser.js"
 #import "locale.js"
+#import "configuration.js"
 #import "chooser.js"
 #import "event.js"
 #import "url.js"

@@ -21,3 +21,8 @@
 "locale" {
     "string undefined in locale" = 'No such locale string "{0}". (Current locale: {1}).';
 };
+
+"configuration" {
+    "option without name" = "Cannot define a configuration option without a name.";
+    "unknown option" = 'Unknown option name "{0}".';
+};
