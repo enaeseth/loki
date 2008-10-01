@@ -25,8 +25,11 @@ Loki.Editor = Loki.Class.create({
 	// var: (Window) window
 	window: null,
 	
-	// var: (Document) document
+	// var: (HTMLDocument) document
 	document: null,
+	
+	// var: (HTMLBodyElement) body
+	body: null,
 	
 	// var: (String) baseURL
 	// The URL of the Loki installation.
