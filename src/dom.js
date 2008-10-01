@@ -15,3 +15,15 @@ Loki.Object.extend(Node, {
 	DOCUMENT_FRAGMENT_NODE: 11,
 	NOTATION_NODE: 12
 }, false);
+
+if (typeof(Range) == "undefined")
+	var Range = {};
+
+Loki.Object.extend(Range, {
+	START_TO_START: 'StartToStart',
+	START_TO_END: 'StartToEnd',
+	END_TO_START: 'EndToStart',
+	END_TO_END: 'EndToEnd'
+}, false);
+
+#import "range.js"

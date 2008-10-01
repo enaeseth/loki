@@ -12,142 +12,242 @@ function $extend(node) {
 }
 
 (function extend_base2() {
-	base2.DOM.Node.isTag = function _node_is_tag(node, name) {
-		return false;
-	};
-	base2.DOM.Node.prototype.isTag = function node_is_tag(name) {
-		return false;
+	var extensions = {};
+	
+	extensions.Node = {
+		isTag: function node_is_tag(name) {
+			return false;
+		}
 	};
 	
-	base2.DOM.Element.isTag = function _element_is_tag(element, name) {
-		return element.tagName == name.toUpperCase();
-	};
-	base2.DOM.Element.prototype.isTag = function element_is_tag(name) {
-		return this.tagName == name.toUpperCase();
-	};
-	
-	function set_element_style(styles) {
-		var es = this.style, match, property;
-		if (typeof(styles) == "string") {
-			if (es.cssText && es.cssText.charAt(es.cssText.length - 1) != ';')
-				es.cssText += ';';
-			es.cssText += styles;
-			if (styles.indexOf('opacity') != -1) {
-				base2.DOM.Element.setOpacity(
-					this,
-					styles.match(/opacity:\s*(\d?\.?\d*)/)[1]
-				);
+	extensions.Element = {
+		isTag: function element_is_tag(name) {
+			return this.tagName == name.toUpperCase();
+		},
+		
+		setStyle: function set_element_style(styles) {
+			var es = this.style, match, property;
+			if (typeof(styles) == "string") {
+				if (es.cssText && es.cssText.charAt(es.cssText.length - 1) != ';')
+					es.cssText += ';';
+				es.cssText += styles;
+				if (styles.indexOf('opacity') != -1) {
+					base2.DOM.Element.setOpacity(
+						this,
+						styles.match(/opacity:\s*(\d?\.?\d*)/)[1]
+					);
+				}
+				return this;
+			}
+
+			for (var name in styles) {
+				property = name;
+				if (name == 'opacity') {
+					base2.DOM.Element.setOpacity(this, styles['opacity']);
+				} else {
+					if (name == 'float' || name == 'cssFloat') {
+						property = (typeof(es.styleFloat) == "undefined")
+							? 'cssFloat' : 'styleFloat';
+					}
+					es[property] = styles[name];
+				}
 			}
 			return this;
-		}
+		},
 		
-		for (var name in styles) {
-			property = name;
-			if (name == 'opacity') {
-				base2.DOM.Element.setOpacity(this, styles['opacity']);
-			} else {
-				if (name == 'float' || name == 'cssFloat') {
-					property = (typeof(es.styleFloat) == "undefined")
-						? 'cssFloat' : 'styleFloat';
+		setOpacity: function set_element_opacity(value) {
+			this.style.opacity = (value == 1 || value === '')
+				? '' : (value < 0.00001) ? 0 : value;
+			return this;
+		}
+	};
+	
+	extensions.Document = {
+		build: function document_build(tag, attributes) {
+			if (!attributes)
+				attributes = {};
+
+			// XXX: do we need jQuery-style wrapper logic here?
+			if (!(/^\w+$/.test(tag))) {
+				var temp = this.createElement("DIV");
+				temp.innerHTML = tag;
+				if (temp.childNodes.length == 1) {
+					return $extend(temp.firstChild);
 				}
-				es[property] = styles[name];
-			}
-		}
-		return this;
-	}
-	if (!Element || !Element.prototype.setStyle) {
-		base2.DOM.Element.prototype.setStyle = set_element_style;
-		base2.DOM.Element.setStyle = function _set_element_style(el, styles) {
-			return set_element_style.call(el, styles);
-		}
-	}
-	
-	function set_element_opacity(value) {
-		this.style.opacity = (value == 1 || value === '')
-			? '' : (value < 0.00001) ? 0 : value;
-		return this;
-	}
-	if (!Element || !Element.prototype.setOpacity) {
-		base2.DOM.Element.prototype.setOpacity = set_element_opacity;
-		base2.DOM.Element.setOpacity = function _set_element_opacity(el,
-			value)
-		{
-			return set_element_opacity.call(el, value);
-		}
-	}
-	
-	function document_build(tag, attributes) {
-		if (!attributes)
-			attributes = {};
-		
-		// XXX: do we need jQuery-style wrapper logic here?
-		if (!(/^\w+$/.test(tag))) {
-			var temp = this.createElement("DIV");
-			temp.innerHTML = tag;
-			if (temp.childNodes.length == 1) {
-				return $extend(temp.firstChild);
-			}
-			
-			var frag = this.createDocumentFragment();
-			while (temp.firstChild)
-				frag.appendChild($extend(temp.firstChild));
-			return frag;
-		}
-		
-		var elem;
-		if (Loki.Browser.IE && attributes.name) {
-			elem = this.createElement($format('<{0} name="{1}>"',
-				tag.toUpperCase(), attributes.name));
-		} else {
-			elem = this.createElement(tag.toUpperCase());
-		}
-		
-		for (var name in attributes) {
-			var dest_name = name;
 
-			switch (name) {
-				case 'className':
-				case 'class':
-					// In IE, e.setAttribute('class', x) does not work properly:
-					// it will indeed set an attribute named "class" to x, but
-					// the CSS for that class won't actually take effect. As a
-					// workaround, we just set className directly, which works
-					// in all browsers.
-
-					// See http://tinyurl.com/yvsqbx for more information.
-
-					var klass = attributes[name];
-
-					// Allow an array of classes to be passed in.
-					if (typeof(klass) != 'string' && klass.join)
-						klass = klass.join(' ');
-
-					elem.className = klass;
-					continue; // note that this continues the for loop!
-				case 'htmlFor':
-					dest_name = 'for';
-					break;
-				case 'style':
-					base2.DOM.Element.setStyle(elem, attributes.style);
-					continue; // note that this continues the for loop!
+				var frag = this.createDocumentFragment();
+				while (temp.firstChild)
+					frag.appendChild($extend(temp.firstChild));
+				return frag;
 			}
 
-			var a = attributes[name];
-			if (typeof(a) == 'boolean') {
-				if (a)
-					elem.setAttribute(dest_name, dest_name);
-				else
-					continue;
+			var elem;
+			if (Loki.Browser.IE && attributes.name) {
+				elem = this.createElement($format('<{0} name="{1}>"',
+					tag.toUpperCase(), attributes.name));
 			} else {
-				elem.setAttribute(dest_name, a);
+				elem = this.createElement(tag.toUpperCase());
 			}
+
+			for (var name in attributes) {
+				var dest_name = name;
+
+				switch (name) {
+					case 'className':
+					case 'class':
+						// See http://tinyurl.com/yvsqbx for more information
+						// on why this special handling is necessary.
+
+						var klass = attributes[name];
+						// Allow an array of classes to be passed in.
+						if (typeof(klass) != 'string' && klass.join)
+							klass = klass.join(' ');
+
+						elem.className = klass;
+						continue; // note that this continues the for loop!
+					case 'htmlFor':
+						dest_name = 'for';
+						break;
+					case 'style':
+						base2.DOM.Element.setStyle(elem, attributes.style);
+						continue; // note that this continues the for loop!
+				}
+
+				var a = attributes[name];
+				if (typeof(a) == 'boolean') {
+					if (a)
+						elem.setAttribute(dest_name, dest_name);
+					else
+						continue;
+				} else {
+					elem.setAttribute(dest_name, a);
+				}
+			}
+
+			return $extend(elem);
+		}
+	};
+	
+	function get_range_common_ancestor() {
+		return this.commonAncestorContainer;
+	}
+	
+	function get_range_boundaries() {
+		return {
+			start: {
+				container: this.startContainer,
+				offset: this.startOffset
+			},
+			end: {
+				container: this.endContainer,
+				offset: this.endOffset
+			}
+		};
+	}
+	
+	function get_range_html() {
+		var frag = this.cloneContents();
+		var container =
+			this.startContainer.ownerDocument.createElement('DIV');
+		container.appendChild(frag);
+		return container.innerHTML;
+	}
+	
+	function range_intersects_node(node) {
+		var doc = node.ownerDocument;
+		
+		node_rng = doc.createRange();
+
+		try {
+			node_rng.selectNode(node);
+		} catch (e) {
+			node_rng.selectNodeContents(node);
+		}
+
+		return (this.compareBoundaryPoints(Range.END_TO_START,
+				node_rng) == -1
+			&& this.compareBoundaryPoints(Range.START_TO_END,
+				node_rng) == 1);
+	}
+	
+	function range_surrounded_by_node(node) {
+		var r = node.ownerDocument.createRange();
+		try {
+			r.selectNode(node);
+		} catch (e) {
+			r.selectNodeContents(node);
 		}
 		
-		return $extend(elem);
+		return this.compareBoundaryPoints(Range.START_TO_START, r) >= 0
+			&& this.compareBoundaryPoints(Range.END_TO_END, r) <= 0;
 	}
-	base2.DOM.Document.prototype.build = document_build;
-	base2.DOM.Document.build = function _doument_build(doc, tag, attributes) {
-		return document_build.call(doc, tag, attributes);
+	
+	function range_contains_node(node) {
+		var r = node.ownerDocument.createRange();
+		try {
+			r.selectNode(node);
+		} catch (e) {
+			r.selectNodeContents(node);
+		}
+
+		return r.compareBoundaryPoints(Range.START_TO_START, this) >= 0
+			&& r.compareBoundaryPoints(Range.END_TO_END, this) <= 0;
+	}
+	
+	extensions.AbstractView = {
+		getSelectedRange: function get_window_selected_range() {
+			var sel = this.getSelection();
+			var range;
+			
+			if (sel.getRangeAt && typeof(sel.rangeCount) == "number") {
+				// W3C Traversal and Range
+				if (sel.rangeCount <= 0)
+					return null;
+				
+				range = sel.getRangeAt(0);
+				
+				// add convenience methods
+				range.getCommonAncestor = get_range_common_ancestor;
+				range.getBoundaries = get_range_boundaries;
+				range.getHTML = get_range_html;
+				if (!range.intersectsNode)
+					range.intersectsNode = range_intersects_node;
+				range.surroundedByNode = range_surrounded_by_node;
+				range.containsNode = range_contains_node;
+				
+				return range;
+			} else if (sel.createRange) {
+				// Internet Explorer TextRange
+				return new Loki.IERange(sel.createRange());
+			} else {
+				throw new Error("Cannot get the window's selected range.");
+			}
+		}
+	};
+	
+	if (typeof(window.getSelection) != "function") {
+		extensions.AbstractView.getSelection = function get_window_selection() {
+			if (this.document.selection)
+				return this.document.selection;
+			throw new Error("Cannot get the window's selection.");
+		};
+	}
+	
+	function create_static_version(fn) {
+		return function() {
+			return fn.apply(arguments[0], base2.slice(arguments, 1));
+		};
+	}
+	
+	var class_name, class_, ext, name;
+	for (class_name in extensions) {
+		ext = extensions[class_name];
+		class_ = base2.DOM[class_name];
+		
+		for (name in ext) {
+			class_.prototype[name] = ext[name];
+			class_[name] = create_static_version(ext[name]);
+		}
 	}
 })();
 
