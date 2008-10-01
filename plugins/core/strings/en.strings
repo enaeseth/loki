@@ -31,3 +31,7 @@
     "no xhr" = "Your browser lacks support for XMLHttpRequest.";
     "non-object headers" = "Request headers must be given as an object.";
 };
+
+"notice" {
+    "invalid level" = '"{0}" is not a valid Loki notice level.';
+};
