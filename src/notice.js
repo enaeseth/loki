@@ -51,6 +51,32 @@ Loki.Notice = Loki.Class.create({
 			: message;
 	},
 	
+	// Method: getMessageSummary
+	// Gets a one-sentence summary of the notice's message.
+	//
+	// Returns:
+	//     (String) - the summary
+	getMessageSummary: function get_notice_message_summary() {
+		var match = Loki.Notice._summary_pattern.exec(this.message);
+		
+		return (match)
+			? match[1]
+			: this.message;
+	},
+	
+	// Method: getMessageHTML
+	// Gets an HTML DOM view of the entire message.
+	//
+	// Parameters:
+	//     (HTMLDocument) document - the document on which to construct the
+	//                               DOM nodes
+	//
+	// Returns:
+	//     (Node) - the message as HTML
+	getMessageHTML: function get_notice_message_html(document) {
+		return document.createTextNode(this.message);
+	},
+	
 	// Method: toError
 	// Converts the notice to an error.
 	//
@@ -60,6 +86,7 @@ Loki.Notice = Loki.Class.create({
 		return new Error(this.message);
 	},
 	
+	// Method: toString
 	toString: function notice_to_string() {
 		return $format("({level}) {message}", this);
 	}
@@ -72,3 +99,5 @@ Loki.Notice.levels = {
 	warn: 3,
 	error: 4
 };
+
+Loki.Notice._summary_pattern = /^(.*?[\.\?\!])(\s|$)/;
