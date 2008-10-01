@@ -50,3 +50,13 @@ div.loki ul.toolbar li a.active {
 	border: 1px solid #2C4362;
 	background: #B3C2CC;
 }
+
+div.loki .infobar {
+/*  background: url('../images/error.png') #FFF9BB 4px 4px no-repeat;*/
+	border-top: 1px solid #9F8B66;
+	padding: 4px 5px 4px 25px;
+	color: black;
+	margin: 0;
+	min-height: 16px;
+	line-height: 16px;
+}

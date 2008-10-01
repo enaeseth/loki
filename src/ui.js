@@ -6,3 +6,4 @@ Loki.UI = {
 
 #import "ui/widget.js"
 #import "ui/toolbar.js"
+#import "ui/error_log.js"
