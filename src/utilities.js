@@ -125,6 +125,28 @@ function $extend(node) {
 			}
 
 			return $extend(elem);
+		},
+		
+		makeEditable: function make_document_editable() {
+			if (Loki.Browser.IE) {
+				this.body.contentEditable = true;
+				try {
+					// If the thisument isn't really editable, this will throw an
+					// error. If the thisument is editable, this is perfectly
+					// harmless.
+					this.queryCommandState('Bold');
+				} catch (e) {
+					throw new UnsupportedError('rich text editing');
+				}
+			} else {
+				this.designMode = 'On';
+				try {
+					this.execCommand('undo', false, null);
+					this.execCommand('useCSS', false, true);
+				} catch (e) {
+					throw new UnsupportedError('rich text editing');
+				}
+			}
 		}
 	};
 	

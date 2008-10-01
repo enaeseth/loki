@@ -54,6 +54,9 @@ Loki.contexts.add("visual", Loki.Class.create(Loki.Context, {
 			editor.document = $extend(editor.window.document);
 			editor.body = editor.document.querySelector("body");
 			
+			editor.theme.applyToDocument(editor);
+			editor.document.makeEditable();
+			
 			editor.fireEvent("visual_ready");
 		}
 		
