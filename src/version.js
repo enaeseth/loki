@@ -47,8 +47,10 @@ Loki.Versions = {
 	compare: function compare_versions(a, b) {
 		var i, diff;
 		
-		a = Loki.Versions.parse(a);
-		b = Loki.Versions.parse(b);
+		if (typeof(a) != 'object')
+			a = Loki.Versions.parse(a);
+		if (typeof(b) != 'object')
+			b = Loki.Versions.parse(b);
 		
 		for (i = 0; i < Math.min(a.dotted.length, b.dotted.length); i++) {
 			diff = a.dotted[i] - b.dotted[i];
