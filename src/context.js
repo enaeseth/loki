@@ -47,3 +47,4 @@ Loki.builtinContexts = {};
 Loki.defaultContext = null;
 
 #import "contexts/visual.js"
+#import "contexts/loading.js"
