@@ -35,3 +35,7 @@
 "notice" {
     "invalid level" = '"{0}" is not a valid Loki notice level.';
 };
+
+"version" {
+    "invalid" = 'Cannot parse "{0}"; it is not a valid version number.';
+};

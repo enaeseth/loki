@@ -14,13 +14,16 @@ Loki.Versions = {
 	//
 	// Returns:
 	//     (Object) - the parsed version
+	//
+	// Throws:
+	//     SyntaxError - if _ver_ is not a valid version string
 	parse: function parse_version(ver) {
 		var pattern = Loki.Versions._versionPattern;
 		var parts = pattern.exec(ver);
 		var type;
 		
 		if (!parts) {
-			throw new Error("Invalid version: '" + ver + "'.");
+			throw Loki.error("SyntaxError, ""version:invalid", ver);
 		}
 		
 		type = (typeof(parts[2]) != 'undefined')
