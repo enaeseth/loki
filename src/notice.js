@@ -6,7 +6,7 @@
 //     warning - A problem with some operation where the operation was able to
 //               complete, but perhaps not as well or as completely as it should
 //               have.
-//     notice - A small note.
+//     info - A small note.
 //     debug - A debugging notice.
 Loki.Notice = Loki.Class.create({
 	// var: (String) level
@@ -94,7 +94,7 @@ Loki.Notice = Loki.Class.create({
 
 Loki.Notice.levels = {
 	debug: 1,
-	notice: 2,
+	info: 2,
 	warning: 3,
 	warn: 3,
 	error: 4
