@@ -290,4 +290,4 @@ Loki.URL.stripHTTP = function strip_http_from_url(url) {
 Loki.URL.pattern =
 	new RegExp('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?');
 Loki.URL.authority_pattern =
-	new RegExp('^(([^:@]+)(:([^@]+))?@)?([^:]+)(:(\d+))?$');
+	new RegExp('^(([^:@]+)(:([^@]+))?@)?([^:]+)(:(\\d+))?$');
