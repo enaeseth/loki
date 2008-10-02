@@ -23,7 +23,7 @@ Loki.Versions = {
 		var type;
 		
 		if (!parts) {
-			throw Loki.error("SyntaxError, ""version:invalid", ver);
+			throw Loki.error("SyntaxError", "version:invalid", ver);
 		}
 		
 		type = (typeof(parts[2]) != 'undefined')
