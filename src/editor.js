@@ -59,7 +59,7 @@ Loki.Editor = Loki.Class.create({
 			settings = {};
 		this.settings = settings;
 		
-		this.contexts = this._loadContexts(settings.contexts || "default");
+		this.contexts = this._loadContexts();
 		
 		this.textarea = textarea;
 		this.ownerDocument = textarea.ownerDocument;
@@ -189,8 +189,8 @@ Loki.Editor = Loki.Class.create({
 		return textarea;
 	},
 	
-	_loadContexts: function _load_editor_contexts(selector) {
-		var context_classes = Loki.contexts.get(selector);
+	_loadContexts: function _load_editor_contexts() {
+		var context_classes = Loki.builtinContexts;
 		var contexts = {};
 		
 		Loki.Object.enumerate(context_classes, function(key, context_class) {

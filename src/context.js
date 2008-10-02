@@ -43,8 +43,7 @@ Loki.Context = Loki.Class.create({
 	}
 });
 
-Loki.contexts = new Loki.Chooser();
-Loki.contexts.putSet("default", ["builtin"]);
+Loki.builtinContexts = {};
 Loki.defaultContext = null;
 
 #import "contexts/visual.js"

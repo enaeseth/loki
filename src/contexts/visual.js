@@ -1,4 +1,4 @@
-Loki.contexts.add("visual", Loki.Class.create(Loki.Context, {
+Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 	toolbar: null,
 	iframe: null,
 	_initialHeight: 350,
@@ -63,8 +63,6 @@ Loki.contexts.add("visual", Loki.Class.create(Loki.Context, {
 		setup_visual_editor_frame();
 		return this.iframe;
 	}
-}));
-Loki.contexts.alias("visual", "wysiwyg");
-Loki.contexts.putSet("builtin", ["visual"]);
+});
 
 Loki.defaultContext = "visual";
