@@ -82,6 +82,7 @@ div.loki .infobar .close .cross_icon {
 }
 
 div.loki .infobar a.message {
+    display: block;
     color: black;
     text-decoration: none;
 }
