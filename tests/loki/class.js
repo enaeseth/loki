@@ -9,8 +9,6 @@ pr.add("Creating a class", function() {
 	
 	if (typeof(Foo.name) != 'undefined')
 		this.assertEqual("Foo", Foo.name);
-	this.assertSame(undefined, Foo.prototype.initialize,
-		"initialize should be gone");
 	
 	var f = new Foo();
 	this.assertSame(true, f.bar);
