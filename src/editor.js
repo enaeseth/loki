@@ -35,6 +35,10 @@ Loki.Editor = Loki.Class.create({
 	// The URL of the Loki installation.
 	baseURL: null,
 	
+	// var: (Loki.UI.ErrorLog) errorLog
+	// The editor's error log.
+	errorLog: null,
+	
 	// var: ({String => Loki.Context}) contexts
 	contexts: null,
 	
@@ -60,15 +64,22 @@ Loki.Editor = Loki.Class.create({
 		this.textarea = textarea;
 		this.ownerDocument = textarea.ownerDocument;
 		
-		this.baseURL = (settings.base_url || settings.base_uri
-			|| settings.baseURL || this._determineBaseURL());
+		if (!Loki.baseURL) {
+			Loki.baseURL = (settings.base_url || settings.base_uri
+				|| settings.baseURL || settings.baseURI);
+			if (!Loki.baseURL)
+				throw Loki.error("ConfigurationError", "editor:no base uri");
+		}
+		this.baseURL = Loki.baseURL;
+		
+		this.errorLog = new Loki.UI.ErrorLog({
+			minimumLevel: (settings.minimumLogLevel
+				|| settings.minimum_log_level || "warning")
+		});
 			
 		this.fireEvent('startup');
 		
-		this.theme = new Loki.Theme(settings.theme || "light");
-		this.theme.applyToOwnerDocument(this);
-		this.root = this._createRoot(settings.branding || false);
-		this.contextRoot = this._createContextRoot(this.root);
+		this._createUI(settings);
 		
 		this.switchContext(settings.defaultContext || settings.default_context
 			|| Loki.defaultContext);
@@ -111,6 +122,15 @@ Loki.Editor = Loki.Class.create({
 		this.activeContext.enter(this.contextRoot);
 	},
 	
+	// Method: log
+	// Logs a notice to the editor's error log (see <Loki.Editor.errorLog>).
+	//
+	// Parameters:
+	//     (Loki.Notice) notice - the notice to log
+	log: function editor_log(notice) {
+		this.errorLog.log(notice);
+	},
+	
 	// Method: selectionChanged
 	// This method should be called whenever something occurs that changes the
 	// user's selection in the visual context. This could be a change in the
@@ -118,6 +138,16 @@ Loki.Editor = Loki.Class.create({
 	// properties (e.g. the insertion of strong tags around the selection).
 	selectionChanged: function editor_selection_changed() {
 		
+	},
+	
+	_createUI: function _create_editor_ui(settings) {
+		this.theme = new Loki.Theme(settings.theme || "light");
+		this.theme.applyToOwnerDocument(this);
+		
+		this.root = this._createRoot(settings.branding || false);
+		this.contextRoot = this._createContextRoot(this.root);
+		
+		this.root.appendChild(this.errorLog.createBar(this.ownerDocument));
 	},
 	
 	_createRoot: function _create_editor_root(branding) {
@@ -157,24 +187,6 @@ Loki.Editor = Loki.Class.create({
 			throw Loki.error("ArgumentError", "editor:not a textarea");
 		
 		return textarea;
-	},
-	
-	_determineBaseURL: function _determine_loki_base_uri() {
-		var scripts = this.ownerDocument.getElementsByTagName('SCRIPT');
-		var pattern = /\loki\.js(\?[^#]*)?(#\S+)?$/;
-		var url;
-		
-		for (var i = 0; i < scripts.length; i++) {
-			if (pattern.test(scripts[i].src)) {
-				// Found Loki!
-				url = scripts[i].src.replace(pattern, '');
-				// If we're running out of a source directory, loki.js will be
-				// in a build/ subdirectory.
-				return url.replace(/build\/$/, '');
-			}
-		}
-		
-		throw Loki.error("ConfigurationError", "editor:no base uri");
 	},
 	
 	_loadContexts: function _load_editor_contexts(selector) {

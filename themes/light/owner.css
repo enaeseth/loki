@@ -1,13 +1,16 @@
 div.loki {
 	border: 1px solid #9F8B66;
 	background: #E0DCD4;
-	padding: 2px;
+	
+	font-family: Verdana, Helvetica, Arial, sans-serif;
+	font-size: 10pt;
 }
 
 div.loki iframe.visual_frame {
     width: 100%;
     border: 2px inset #F3E0B8;
     clear: left;
+    margin: 3px;
 }
 
 div.loki ul.toolbar {
@@ -54,9 +57,51 @@ div.loki ul.toolbar li a.active {
 div.loki .infobar {
 /*  background: url('../images/error.png') #FFF9BB 4px 4px no-repeat;*/
 	border-top: 1px solid #9F8B66;
-	padding: 4px 5px 4px 25px;
+	padding: 4px 25px 4px 25px;
+	position: relative;
 	color: black;
 	margin: 0;
+	font-size: 12px;
 	min-height: 16px;
 	line-height: 16px;
+	background-repeat: no-repeat;
+	background-position: 4px 4px;
+}
+
+div.loki .infobar .close {
+    display: block;
+    width: 16px;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+}
+
+div.loki .infobar .close .cross_icon {
+    border: none;
+    display: block;
+}
+
+div.loki .infobar a.message {
+    color: black;
+    text-decoration: none;
+}
+
+div.loki .warning, div.loki .warn {
+    background-color: #FFF9BB;
+    background-image: url('../../plugins/core/icons/warning.png');
+}
+
+div.loki .error {
+    background-color: #F0BFAF;
+    background-image: url('../../plugins/core/icons/exclamation.png');
+}
+
+div.loki .info {
+    background-color: #E2F2FD;
+    background-image: url('../../plugins/core/icons/information.png');
+}
+
+div.loki .debug {
+    background-color: #DAFCBB;
+    background-image: url('../../plugins/core/icons/bug_exclamation.png');
 }

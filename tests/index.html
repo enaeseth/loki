@@ -26,10 +26,11 @@
 	
 	<script type="text/javascript">
 		pr.doneAdding();
+		var loki;
 		
-		$extend(document).addEventListener("DOMContentLoaded", function() {
-			var loki = new Loki.Editor(document.getElementById("testarea"));
-		}, false);
+		Loki.runWhenReady(function() {
+			loki = new Loki.Editor(document.getElementById("testarea"));
+		});
 	</script>
 </head>
 <body id="unit_tests">

@@ -20,7 +20,7 @@ Loki.UI.ErrorLog = Loki.Class.create({
 	initialize: function ErrorLog(options) {
 		options = Loki.UI.ErrorLog._settings.process(options);
 		
-		this.minimumLevel = null;
+		this.minimumLevel = options.minimumLevel;
 		this.minimumIntensity = (this.minimumLevel)
 			? Loki.Notice.levels[this.minimumLevel]
 			: 0;
@@ -46,22 +46,37 @@ Loki.UI.ErrorLog = Loki.Class.create({
 	// Method: createBar
 	// Creates an information bar associated with the error log.
 	//
+	// Parameters:
+	//     (HTMLDocument) document - the document to create the bar's node on
+	//
 	// Returns:
-	//     (Loki.UI.Widget) - the information bar widget
-	createBar: function error_log_create_info_bar() {
-		return new Loki.UI.ErrorLog.Bar(this);
+	//     (Node) - the information bar widget
+	createBar: function error_log_create_info_bar(document) {
+		return new Loki.UI.ErrorLog.Bar(this).create(document);
+	},
+	
+	// Method: showConsole
+	// Displays the error console. The console window is created if it doesn't
+	// already exist, otherwise it is focused on.
+	showConsole: function error_log_show_console() {
+		// TODO: implement error log console
 	}
 });
 Loki.Class.mixin(Loki.UI.ErrorLog, Loki.EventTarget);
 
 Loki.UI.ErrorLog.Bar = Loki.Class.create(Loki.UI.Widget, {
+	bar: null,
+	message: null,
+	closeLink: null,
+	cross: null,
+	
+	activeNotice: null,
+	
 	initialize: function InfoBar(log) {
 		InfoBar.superclass.call(this);
 		
 		this.log = log;
 		log.addEventListener("add", this, "noticeLogged");
-		
-		this.bar = null;
 	},
 	
 	create: function create_info_bar_body(document) {
@@ -72,10 +87,72 @@ Loki.UI.ErrorLog.Bar = Loki.Class.create(Loki.UI.Widget, {
 			className: "infobar",
 			style: {display: "none"}
 		});
+		
+		function show_console(event) {
+			this.log.showConsole();
+			this.close(event); // prevents the default action
+		}
+		this.message = document.build("a", {
+			className: "message",
+			href: "#"
+		});
+		this.message.addEventListener("click", base2.bind(show_console, this),
+			false);
+		this.bar.appendChild(this.message);
+		
+		this.cross = document.build("img", {
+			className: "cross_icon",
+			src: $format("{0}/plugins/core/icons/cross.png", Loki.baseURL)
+		});
+		
+		this.closeLink = document.build("a", {
+			className: "close",
+			href: "#"
+		});
+		this.closeLink.appendChild(this.cross);
+		this.closeLink.addEventListener("click", base2.bind(this.close, this),
+			false);
+		this.bar.appendChild(this.closeLink);
+		
+		return this.bar;
+	},
+	
+	close: function close_info_bar(event) {
+		if (event !== false) {
+			// XXX: this behavior is quite magical
+			this.bar.style.display = "none";
+		}
+		
+		while (this.message.firstChild)
+			this.message.removeChild(this.message.firstChild);
+		
+		this.bar.removeClass(this.activeNotice.level);
+		this.activeNotice = null;
+		
+		if (event) {
+			event.preventDefault();
+		}
+		return false;
 	},
 	
 	noticeLogged: function info_bar_notice_logged(notice) {
+		if (this.activeNotice) {
+			if (notice.intensity <= this.activeNotice.intensity) {
+				// just ignore it
+				return;
+			}
+			this.close(false);
+		}
+		this.activeNotice = notice;
 		
+		this.bar.addClass(notice.level);
+		
+		var text_node = this.message.ownerDocument.createTextNode(
+			notice.getMessageSummary()
+		);
+		this.message.appendChild(text_node);
+		
+		this.bar.style.display = "";
 	}
 });
 
@@ -87,4 +164,5 @@ Loki.UI.ErrorLog._settings = (function create_err_log_settings() {
 			throw Loki.error("ArgumentError", "notice:invalid level", level);
 		}
 	});
+	return cfg;
 })();
