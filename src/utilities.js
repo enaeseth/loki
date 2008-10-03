@@ -330,6 +330,7 @@ function $vformat(format, positional, named) {
 	var output = [];
 	var normal, delim, identifier, n, pos, i, source, spec, type, params;
 	var min_len, pad;
+	var word;
 	
 	if (!positional)
 		positional = [];
@@ -389,7 +390,15 @@ function $vformat(format, positional, named) {
 		delim = p.scan();
 		if (delim == "!") {
 			if (p.scan("p")) {
-				source = Loki.currentLocale.pluralize(source);
+				if (p.scan(":")) {
+					word = p.scanUntilChars("|!}");
+					if (word) {
+						source = Loki.currentLocale.pluralize(word, source);
+					}
+				} else {
+					throw new Error("Illegally-formated pluralization at " +
+						p.pos + ".");
+				}
 			} else {
 				pos = p.pos;
 				throw new Error("Unknown transformation '" + p.scan() + "' " +
