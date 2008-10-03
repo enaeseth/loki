@@ -48,22 +48,31 @@ Loki.Versions = {
 	// Returns:
 	//     (Number) - 0 if a and b are equal, < 0 if a < b, or > 0 if a > b
 	compare: function compare_versions(a, b) {
-		var i, diff;
+		var i, diff, start, length;
 		
 		if (typeof(a) != 'object')
 			a = Loki.Versions.parse(a);
 		if (typeof(b) != 'object')
 			b = Loki.Versions.parse(b);
+			
+		if (a.dotted.length != b.dotted.length) {
+			// If the dotted parts of the versions are of unequal length,
+			// pad the shorter one with 0's.
+			start = Math.min(a.dotted.length, b.dotted.length);
+			length = Math.max(a.dotted.length, b.dotted.length);
+			for (i = start; i < length; i++) {
+				if (!(i in b))
+					b[i] = 0;
+				else if (!(i in a))
+					a[i] = 0;
+			}
+		}
 		
-		for (i = 0; i < Math.min(a.dotted.length, b.dotted.length); i++) {
+		for (i = 0; i < a.dotted.length; i++) {
 			diff = a.dotted[i] - b.dotted[i];
 			if (diff != 0)
 				return diff;
 		}
-		
-		diff = a.dotted.length - b.dotted.length;
-		if (diff != 0)
-			return diff;
 		
 		diff = a.type - b.type;
 		if (diff != 0)
