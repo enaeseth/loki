@@ -52,6 +52,12 @@ Loki.Request = Loki.Class.create({
 		}
 	},
 	
+	// Method: request
+	// Sends the request. It is only necessary to call this method if a null
+	// URL was passed to the constructor.
+	//
+	// Parameters:
+	//     (String) url - the URL to request
 	request: function send_http_request(url) {
 		this.url = url;
 		this.method = this.options.method;
@@ -146,7 +152,6 @@ Loki.Request = Loki.Class.create({
 			this._response = null; // kill reference cycle, just in case
 		}
 	},
-	
 	
 	_abort: function _abort_request(notify) {
 		this.transport.onreadystatechange = base2.Undefined;
@@ -263,7 +268,7 @@ Loki.Response = Loki.Class.create({
 	},
 	
 	evaluate: function eval_response() {
-		return eval(this.transport.responseText);
+		return eval(this.getText());
 	}
 });
 
