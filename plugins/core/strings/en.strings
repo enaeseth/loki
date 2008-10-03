@@ -10,6 +10,11 @@
     "unknown context" = 'No such context "{0}".';
     "unavailable context" = 'The context "{0}" is not available on this Loki instance.';
     
+    "rich text" = 'Your browser has no support for rich text (HTML) editing.';
+    
+    "loading" = 'Loading editor…';
+    "some plugins failed" = 'Some plugins failed to load.';
+    "plugin failure teaser" = 'Some plugins failed to load. Click here for details.';
 };
 
 "chooser" {

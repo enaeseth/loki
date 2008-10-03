@@ -136,7 +136,7 @@ function $extend(node) {
 					// harmless.
 					this.queryCommandState('Bold');
 				} catch (e) {
-					throw new UnsupportedError('rich text editing');
+					throw Loki.Error("UnsupportedError", "editor:rich text");
 				}
 			} else {
 				this.designMode = 'On';
@@ -144,7 +144,7 @@ function $extend(node) {
 					this.execCommand('undo', false, null);
 					this.execCommand('useCSS', false, true);
 				} catch (e) {
-					throw new UnsupportedError('rich text editing');
+					throw Loki.Error("UnsupportedError", "editor:rich text");
 				}
 			}
 		}
