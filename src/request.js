@@ -141,11 +141,12 @@ Loki.Request = Loki.Class.create({
 			
 			this._completed = true;
 			this.fireEvent(String(response.getStatus()), response);
-			this.fireEvent(response.successful() ? "success" : "failure");
+			this.fireEvent(response.successful() ? "success" : "failure",
+				response);
 		}
 		
 		if (state)
-			this.fireEvent(state);
+			this.fireEvent(state, response);
 		
 		if (state == "complete") {
 			this.transport.onreadystatechange = base2.Undefined;
