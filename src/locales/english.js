@@ -9,6 +9,7 @@
 	var g = Loki.Locale.get("en");
 	
 	var ends_sis = /sis$/;
+	var ends_y = /y$/;
 	var ends_s = /[xs]$/;
 	
 	// XXX: Verify these pluralization rules.
@@ -27,6 +28,8 @@
 			return string.substr(0, string.length - 2) + "es";
 		else if (ends_s.test(string))
 			return string + "es";
+		else if (ends_y.test(string))
+			return string.substr(0, string.length - 1) + "ies";
 		else
 			return string + "s";
 	};
