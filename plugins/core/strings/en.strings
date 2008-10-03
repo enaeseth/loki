@@ -39,3 +39,15 @@
 "version" {
     "invalid" = 'Cannot parse "{0}"; it is not a valid version number.';
 };
+
+"plugin" {
+    "manager" {
+        "invalid dep" = 'Cannot load plugin "{0}": "{1}" is not a valid dependency string.';
+        "invalid version" = 'Cannot load plugin "{0}": there is an invalid version "{1}" in its dependency string.';
+        "not found" = 'Plugin "{0}" is not available.';
+        "download failed" = 'Failed to download plugin "{0}"; HTTP error {1}: {2}.';
+        "evaluation error" = 'Error while loading plugin "{0}": {1.message}.';
+        "dependencies failed" = 'Could not load plugin "{0}" because the following {2!p:dependency} failed: {3}.';
+        "dependency constraint failure" = 'Could not load plugin "{0}": it requires plugin {1} {2}, but only version {3} is available.';
+    };
+};
