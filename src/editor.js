@@ -81,8 +81,12 @@ Loki.Editor = Loki.Class.create({
 		
 		this._createUI(settings);
 		
-		this.switchContext(settings.defaultContext || settings.default_context
-			|| Loki.defaultContext);
+		this.defaultContext = settings.defaultContext
+			|| settings.default_context || Loki.defaultContext;
+		
+		// Switch to the loading context, which is responsible for loading
+		// the editor's plugins.
+		this.switchContext("loading");
 	},
 	
 	// Method: switchContext
@@ -124,11 +128,23 @@ Loki.Editor = Loki.Class.create({
 	
 	// Method: log
 	// Logs a notice to the editor's error log (see <Loki.Editor.errorLog>).
+	// Besides using this message normally, it is also possible to pass a
+	// pre-formed <Loki.Notice> object as the sole argument.
 	//
 	// Parameters:
-	//     (Loki.Notice) notice - the notice to log
-	log: function editor_log(notice) {
-		this.errorLog.log(notice);
+	//     (String) level - the notice's severity level; possible levels are
+	//                      given in the <Loki.Notice> class description
+	//     (String) message - the message associated with the notice
+	//
+	// Throws:
+	//     ArgumentError - if the _level_ parameter does not specify a valid
+	//                     level
+	log: function editor_log(level, message) {
+		if (typeof(level) == "object") {
+			this.errorLog.log(level); // "level" is really a Notice object
+		} else {
+			this.errorLog.log(new Loki.Notice(level, message));
+		}
 	},
 	
 	// Method: selectionChanged

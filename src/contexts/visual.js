@@ -43,10 +43,11 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 		function setup_visual_editor_frame() {
 			var ready = (iframe && iframe.contentWindow &&
 				iframe.contentWindow.document &&
-				iframe.contentWindow.document.location);
+				iframe.contentWindow.document.location &&
+				iframe.contentWindow.document.body);
 			
 			if (!ready) {
-				setTimeout(setup_visual_editor_frame, 10);
+				setTimeout(setup_visual_editor_frame, 30);
 				return;
 			}
 			

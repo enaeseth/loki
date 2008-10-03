@@ -6,6 +6,12 @@ div.loki {
 	font-size: 10pt;
 }
 
+div.loki .loading {
+    text-align: center;
+    margin: 3em 0;
+    color: #222;
+}
+
 div.loki iframe.visual_frame {
     width: 100%;
     border: 2px inset #F3E0B8;

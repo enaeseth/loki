@@ -419,7 +419,7 @@ Loki.PluginManager.Loader = Loki.Class.create({
 	_localeLoaded: function _locale_loaded(plugin) {
 		// all steps complete!
 		base2.forEach(this.tasks, function notify_task_of_success(task) {
-			task.stepFinished(this.id, plugin);
+			task.stepFinished(this.id, plugin.implementation);
 		}, this);
 	},
 });
