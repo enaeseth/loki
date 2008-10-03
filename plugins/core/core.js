@@ -4,5 +4,10 @@
  */
 Loki.Plugin.create("core", {
 	name: "Loki Core",
-	version: LOKI_VERSION
+	version: LOKI_VERSION,
+	sets: 'default',
+	
+	initialize: function CorePlugin(editor) {
+		CorePlugin.superclass.call(this, editor);
+	}
 });
