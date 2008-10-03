@@ -34,7 +34,12 @@ Loki.Versions = {
 				return parseInt(v);
 			}),
 			type: Loki.Versions._versionTypeMap[type],
-			modifier: (parts[3]) ? parseInt(parts[3]) : 0
+			modifier: (parts[3]) ? parseInt(parts[3]) : 0,
+			raw: ver,
+			
+			toString: function version_to_string() {
+				return this.raw;
+			}
 		};
 	},
 	

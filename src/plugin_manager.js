@@ -150,7 +150,7 @@ Loki.PluginManager = {
 		var pm = Loki.PluginManager;
 		var specs = str.split(/\s*,\s*/);
 		var dependencies = {};
-		var parts, conditions, name, version;
+		var parts, conditions, name, version, reduce;
 		
 		// "reverses" an operator; e.g., "<=" is changed to ">="
 		function reverse(operator) {
@@ -164,16 +164,16 @@ Loki.PluginManager = {
 			}
 		}
 		
-		function parse_version(version) {
+		function parse_version(version, reduce) {
 			try {
 				var version = Loki.Versions.parse(version);
 				
-				if (version.dotted.length < 3 && version.type == 4) {
+				if (reduce && version.dotted.length < 3 && version.type == 4) {
 					// When a version like "3.0" is specified, as opposed to
-					// "3.0.0" or "3.0b1", we want to change it to be the
-					// earliest-possible variant of that version. This allows
-					// dependencies like "foo > 3.0" to do what's expected when
-					// the "foo" plugin is at, e.g., version 3.0b1.
+					// "3.0.0" or "3.0b1", we sometimes want to change it to be
+					// the earliest-possible variant of that version. This
+					// allows dependencies like "foo >= 3.0" to do what's
+					// expected when the "foo" plugin is at, e.g., v3.0b1.
 					
 					version.type = 0;
 					version.modifier = 0;
@@ -203,17 +203,21 @@ Loki.PluginManager = {
 			
 			if (parts[1]) {
 				// a condition before the plugin name
+				reduce = (parts[3] == "==" || parts[3] == "=" ||
+					parts[3] == ">" || parts[3] == "<=");
 				conditions.push({
 					operator: reverse(parts[3]),
-					version: parse_version(parts[2])
+					version: parse_version(parts[2], reduce)
 				});
 			}
 			
 			if (parts[5]) {
+				reduce = (parts[3] == "==" || parts[3] == "=" ||
+					parts[3] == "<" || parts[3] == ">=");
 				// a condition after the plugin name
 				conditions.push({
 					operator: parts[6],
-					version: parse_version(parts[7])
+					version: parse_version(parts[7], reduce)
 				});
 			}
 		}
@@ -353,7 +357,7 @@ Loki.PluginManager.Loader = Loki.Class.create({
 				c = constraints[i];
 				op = c.operator;
 				
-				if (!pm.depOps[op](pm.plugins[name].version, c.version)) {
+				if (!pm._depOps[op](pm.plugins[name].version, c.version)) {
 					// Constraint not satisfied.
 					c = $format("{0} {1}", op, c.version);
 					this._fail(new Loki.Notice("warning", Loki._(

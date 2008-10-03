@@ -21,7 +21,8 @@ Loki.builtinContexts.loading = Loki.Class.create(Loki.Context, {
 			}, this);
 			
 			if (fail_count > 0) {
-				pfn = new Loki.Notice("error", "editor:some plugins failed");
+				pfn = new Loki.Notice("error",
+					Loki._("editor:some plugins failed"));
 				
 				pfn.getMessageSummary = function() {
 					return Loki._("editor:plugin failure teaser");
