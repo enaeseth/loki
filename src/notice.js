@@ -29,9 +29,6 @@ Loki.Notice = Loki.Class.create({
 	//     (String) level - the notice's severity level; possible levels are
 	//                      given in the <Loki.Notice> class description
 	//     (String) message - the message associated with the notice
-	//     (Boolean) [localized=true] - if true, _message_ will be treated as a
-	//               key to a localized string; if false, _message_ will be used
-	//               verbatim
 	//
 	// Throws:
 	//     ArgumentError - if the _level_ parameter does not specify a valid
@@ -46,9 +43,7 @@ Loki.Notice = Loki.Class.create({
 		}
 		
 		this.level = level;
-		this.message = (localized)
-			? Loki._(message)
-			: message;
+		this.message = message;
 	},
 	
 	// Method: getMessageSummary
