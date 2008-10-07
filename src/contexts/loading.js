@@ -31,7 +31,7 @@ Loki.builtinContexts.loading = Loki.Class.create(Loki.Context, {
 				this.editor.log(pfn);
 			}
 			
-			this.editor.switchContext("visual");
+			this.editor.switchContext(this.editor.defaultContext);
 		}
 		
 		function load_plugins() {
