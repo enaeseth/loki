@@ -7,8 +7,7 @@
     "multiple matching textarea" = 'More than one element matched the selector "{0}".';
     "no base uri" = 'Cannot automatically determine the Loki base URI. Please set it explicitly.';
     
-    "unknown context" = 'No such context "{0}".';
-    "unavailable context" = 'The context "{0}" is not available on this Loki instance.';
+    "unavailable context" = 'No context named "{0}" is available on this Loki instance.';
     
     "rich text" = 'Your browser has no support for rich text (HTML) editing.';
     
