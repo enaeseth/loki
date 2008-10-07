@@ -14,6 +14,32 @@ function $extend(node) {
 (function extend_base2() {
 	var extensions = {};
 	
+	var camelize;
+	if (typeof("".camelize) == "function") {
+		// Prototype; use its camelize function.
+		camelize = function camelize(str) {
+			return str.camelize();
+		};
+	} else {
+		function capitalize(str) {
+			return str.charAt(0).toUpperCase() + str.substr(1);
+		}
+		
+		camelize = function camelize(str) {
+			var parts = str.split("-");
+			
+			var camelized = (str.charAt(0) == '-')
+				? [capitalize(parts[0])]
+				: [parts[0]];
+			
+			for (var i = 1; i < parts.length; i++) {
+				camelized.push(capitalize(parts[i]));
+			}
+			
+			return camelized.join('');
+		};
+	}
+	
 	extensions.Node = {
 		isTag: function node_is_tag(name) {
 			return false;
@@ -23,6 +49,33 @@ function $extend(node) {
 	extensions.Element = {
 		isTag: function element_is_tag(name) {
 			return this.tagName == name.toUpperCase();
+		},
+		
+		getStyle: function get_element_style(name) {
+			name = (name == "float")
+				? "cssFloat"
+				: camelize(name);
+			
+			var value = this.style[name];
+			if (!value || value == "auto") {
+				var doc = $extend(this.ownerDocument);
+				var computed;
+				
+				try {
+					computed = doc.defaultView.getComputedStyle(this, "");
+				} catch (e) {
+					// Work around a base2 bug.
+					if (Window && Window.prototype) {
+						computed = Window.prototype.getComputedStyle.call(
+							doc.defaultView, this, "");
+					}
+				}
+				value = (computed) ? computed[name] : null;
+			}
+			
+			return (name == "opacity")
+				? (value ? parseFloat(value) : 1.0)
+				: (value == "auto" ? null : value);
 		},
 		
 		setStyle: function set_element_style(styles) {
@@ -41,7 +94,7 @@ function $extend(node) {
 			}
 
 			for (var name in styles) {
-				property = name;
+				property = camelize(name);
 				if (name == 'opacity') {
 					base2.DOM.Element.setOpacity(this, styles['opacity']);
 				} else {
