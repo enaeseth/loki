@@ -104,14 +104,6 @@ Loki.Editor = Loki.Class.create({
 	switchContext: function switch_editor_context(name) {
 		var new_context = this.contexts[name];
 		if (typeof(new_context) == "undefined") {
-			// Check to see if a context with that name is globally registered.
-			try {
-				Loki.contexts.get(name);
-			} catch (e) {
-				// It isn't.
-				throw Loki.error("NameError", "editor:unknown context", name);
-			}
-			
 			// It is registered, but isn't on this instance.
 			throw Loki.error("NameError", "editor:unavailable context", name);
 		}
