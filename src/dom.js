@@ -27,3 +27,5 @@ Loki.Object.extend(Range, {
 }, false);
 
 #import "range.js"
+#import "block.js"
+
