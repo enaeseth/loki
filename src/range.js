@@ -148,6 +148,10 @@ Loki.IERange = Loki.Class.create({
 		return this.real.text;
 	},
 	
+	isCollapsed: function is_range_collapsed() {
+		return this.real.text.length == 0;
+	},
+	
 	intersectsNode: function range_intersectcs_node(node) {
 		var node_rng = doc.body.createTextRange();
 		node_rng.moveToNodeText(node);
@@ -190,6 +194,16 @@ Loki.IERange = Loki.Class.create({
 	
 	setStartBefore: function set_range_start_before(container) {
 		this._set_endpoint('Start', container.parentNode,
+			base2.DOM.Traversal.getNodeIndex(container));
+	},
+	
+	setStartAfter: function set_range_start_after(container) {
+		this._set_endpoint('Start', container.parentNode,
+			base2.DOM.Traversal.getNodeIndex(container) + 1);
+	},
+	
+	setEndBefore: function set_range_end_before(container) {
+		this._set_endpoint('End', container.parentNode,
 			base2.DOM.Traversal.getNodeIndex(container));
 	},
 	

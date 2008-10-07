@@ -203,6 +203,12 @@ function $extend(node) {
 		}
 	};
 	
+	if (!document.createRange && document.body.createTextRange) {
+		extensions.Document.createRange = function create_document_range() {
+			return new Loki.IERange(document.body.createTextRange());
+		};
+	}
+	
 	function get_range_common_ancestor() {
 		return this.commonAncestorContainer;
 	}
@@ -269,6 +275,10 @@ function $extend(node) {
 			&& r.compareBoundaryPoints(Range.END_TO_END, this) <= 0;
 	}
 	
+	function is_range_collapsed() {
+		return this.collapsed;
+	}
+	
 	extensions.AbstractView = {
 		getSelectedRange: function get_window_selected_range() {
 			var sel = this.getSelection();
@@ -289,6 +299,7 @@ function $extend(node) {
 					range.intersectsNode = range_intersects_node;
 				range.surroundedByNode = range_surrounded_by_node;
 				range.containsNode = range_contains_node;
+				range.isCollapsed = is_range_collapsed;
 				
 				return range;
 			} else if (sel.createRange) {
