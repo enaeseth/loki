@@ -38,9 +38,9 @@ Loki.Block = {
 	// Contains preformatted content. (0x80)
 	PREFORMATTED: 128,
 	
-	getFlags: function getFlags(element) {
+	getFlags: function get_element_flags(element) {
 		var tn = element.tagName || element.toUpperCase();
-		return (this._get_flag_map()[tn] || 0);
+		return (Loki.Block.Flags[tn] || 0);
 	},
 	
 	isBlock: function is_block(element) {
