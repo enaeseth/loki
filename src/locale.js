@@ -196,7 +196,9 @@ Loki.Locale = Loki.Class.create({
 // Function: get
 Loki.Locale.get = function get_locale(code) {
 	code = code.split(/[_-]/);
-	return new Loki.Locale(code[0], code[1]);
+	return (code.length > 1)
+		? new Loki.Locale(code[0], code[1])
+		: new Loki.Locale(code[0]);
 	// return Loki.locales[code] || null;
 };
 
