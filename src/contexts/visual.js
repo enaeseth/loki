@@ -1,6 +1,7 @@
 Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 	toolbar: null,
 	iframe: null,
+	selection: null,
 	_initialHeight: 350,
 	
 	initialize: function VisualContext(editor) {
@@ -21,6 +22,15 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 	exit: function exit_visual_context(root) {
 		while (root.firstChild)
 			root.removeChild(root.firstChild);
+	},
+	
+	getHTML: function visual_get_html() {
+		return this.iframe.contentWindow.document.body.innerHTML;
+	},
+	
+	setHTML: function visual_set_html(html) {
+		var body = this.iframe.contentWindow.document.body;
+		body.innerHTML = html;
 	},
 	
 	_getFrame: function get_visual_editor_frame() {
@@ -51,12 +61,15 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 				return;
 			}
 			
-			editor.window = $extend(iframe.contentWindow);
+			editor.window = iframe.contentWindow;
 			editor.document = $extend(editor.window.document);
 			editor.body = editor.document.querySelector("body");
 			
 			editor.theme.applyToDocument(editor);
 			editor.document.makeEditable();
+			
+			var selection = new Loki.Selection(editor.window);
+			this.selection = editor.selection = selection;
 			
 			editor.fireEvent("visual_ready");
 		}
