@@ -119,7 +119,7 @@ Loki.IERange = Loki.Class.create({
 		}
 	},
 	
-	clone: function clone_range() {
+	cloneRange: function clone_range() {
 		return new Loki.IERange(rng.duplicate());
 	},
 	
