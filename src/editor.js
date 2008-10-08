@@ -31,6 +31,9 @@ Loki.Editor = Loki.Class.create({
 	// var: (HTMLBodyElement) body
 	body: null,
 	
+	// var: (Loki.Selection) selection
+	selection: null,
+	
 	// var: (String) baseURL
 	// The URL of the Loki installation.
 	baseURL: null,

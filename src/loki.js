@@ -160,6 +160,7 @@ Loki.runWhenReady(function determine_loki_base_url() {
 #import "request.js"
 #import "chooser.js"
 #import "url.js"
+#import "selection.js"
 #import "plugin.js"
 #import "ui.js"
 #import "editor.js"
