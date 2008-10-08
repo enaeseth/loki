@@ -8,11 +8,98 @@
 // Returns:
 //     (Document|Element) the extended node
 function $extend(node) {
+	if (node.cloneRange)
+		return _extend_range(node);
 	return base2.DOM.bind(node);
 }
 
+function _extend_range(range) {
+	Loki.Object.extend(range, _extend_range.extensions, false);
+	return range;
+}
+_extend_range.extensions = {
+	getCommonAncestor: function get_range_common_ancestor() {
+		return this.commonAncestorContainer;
+	},
+
+	getBoundaries: function get_range_boundaries() {
+		return {
+			start: {
+				container: this.startContainer,
+				offset: this.startOffset
+			},
+			end: {
+				container: this.endContainer,
+				offset: this.endOffset
+			}
+		};
+	},
+
+	getHTML: function get_range_html() {
+		var frag = this.cloneContents();
+		var container =
+			this.startContainer.ownerDocument.createElement('DIV');
+		container.appendChild(frag);
+		return container.innerHTML;
+	},
+
+	intersectsNode: function range_intersects_node(node) {
+		var doc = node.ownerDocument;
+
+		node_rng = doc.createRange();
+
+		try {
+			node_rng.selectNode(node);
+		} catch (e) {
+			node_rng.selectNodeContents(node);
+		}
+
+		return (this.compareBoundaryPoints(Range.END_TO_START,
+				node_rng) == -1
+			&& this.compareBoundaryPoints(Range.START_TO_END,
+				node_rng) == 1);
+	},
+
+	surroundedByNode: function range_surrounded_by_node(node) {
+		var r = node.ownerDocument.createRange();
+		try {
+			r.selectNode(node);
+		} catch (e) {
+			r.selectNodeContents(node);
+		}
+
+		return this.compareBoundaryPoints(Range.START_TO_START, r) >= 0
+			&& this.compareBoundaryPoints(Range.END_TO_END, r) <= 0;
+	},
+
+	containsNode: function range_contains_node(node) {
+		var r = node.ownerDocument.createRange();
+		try {
+			r.selectNode(node);
+		} catch (e) {
+			r.selectNodeContents(node);
+		}
+
+		return r.compareBoundaryPoints(Range.START_TO_START, this) >= 0
+			&& r.compareBoundaryPoints(Range.END_TO_END, this) <= 0;
+	},
+
+	isCollapsed: function is_range_collapsed() {
+		return this.collapsed;
+	}
+};
+
 (function extend_base2() {
 	var extensions = {};
+	var RangeExtensions;
+	
+	// base2.DOM.Document.implement(base2.DOM.Interface.extend({
+	// 	createRange: function create_document_range(document) {
+	// 		return this.base(document);
+	// 		// return Loki.Object.extend(this.base(document), RangeExtensions,
+	// 		// 	false);
+	// 	}
+	// }));
 	
 	var camelize;
 	if (typeof("".camelize) == "function") {
@@ -209,75 +296,7 @@ function $extend(node) {
 		};
 	}
 	
-	function get_range_common_ancestor() {
-		return this.commonAncestorContainer;
-	}
 	
-	function get_range_boundaries() {
-		return {
-			start: {
-				container: this.startContainer,
-				offset: this.startOffset
-			},
-			end: {
-				container: this.endContainer,
-				offset: this.endOffset
-			}
-		};
-	}
-	
-	function get_range_html() {
-		var frag = this.cloneContents();
-		var container =
-			this.startContainer.ownerDocument.createElement('DIV');
-		container.appendChild(frag);
-		return container.innerHTML;
-	}
-	
-	function range_intersects_node(node) {
-		var doc = node.ownerDocument;
-		
-		node_rng = doc.createRange();
-
-		try {
-			node_rng.selectNode(node);
-		} catch (e) {
-			node_rng.selectNodeContents(node);
-		}
-
-		return (this.compareBoundaryPoints(Range.END_TO_START,
-				node_rng) == -1
-			&& this.compareBoundaryPoints(Range.START_TO_END,
-				node_rng) == 1);
-	}
-	
-	function range_surrounded_by_node(node) {
-		var r = node.ownerDocument.createRange();
-		try {
-			r.selectNode(node);
-		} catch (e) {
-			r.selectNodeContents(node);
-		}
-		
-		return this.compareBoundaryPoints(Range.START_TO_START, r) >= 0
-			&& this.compareBoundaryPoints(Range.END_TO_END, r) <= 0;
-	}
-	
-	function range_contains_node(node) {
-		var r = node.ownerDocument.createRange();
-		try {
-			r.selectNode(node);
-		} catch (e) {
-			r.selectNodeContents(node);
-		}
-
-		return r.compareBoundaryPoints(Range.START_TO_START, this) >= 0
-			&& r.compareBoundaryPoints(Range.END_TO_END, this) <= 0;
-	}
-	
-	function is_range_collapsed() {
-		return this.collapsed;
-	}
 	
 	extensions.AbstractView = {
 		getSelectedRange: function get_window_selected_range() {
@@ -292,14 +311,7 @@ function $extend(node) {
 				range = sel.getRangeAt(0);
 				
 				// add convenience methods
-				range.getCommonAncestor = get_range_common_ancestor;
-				range.getBoundaries = get_range_boundaries;
-				range.getHTML = get_range_html;
-				if (!range.intersectsNode)
-					range.intersectsNode = range_intersects_node;
-				range.surroundedByNode = range_surrounded_by_node;
-				range.containsNode = range_contains_node;
-				range.isCollapsed = is_range_collapsed;
+				_extend_range(range);
 				
 				return range;
 			} else if (sel.createRange) {
@@ -311,7 +323,7 @@ function $extend(node) {
 		}
 	};
 	
-	if (typeof(window.getSelection) != "function") {
+	if (!((window || document.defaultView || {}).getSelection)) {
 		extensions.AbstractView.getSelection = function get_window_selection() {
 			if (this.document.selection)
 				return this.document.selection;
