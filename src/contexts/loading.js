@@ -32,6 +32,11 @@ Loki.builtinContexts.loading = Loki.Class.create(Loki.Context, {
 			}
 			
 			this.editor.switchContext(this.editor.defaultContext);
+			
+			Loki.Object.enumerate(plugins, function(id, plugin) {
+				if (typeof(plugin.setup) == "function")
+					plugin.setup();
+			});
 		}
 		
 		function load_plugins() {
@@ -49,7 +54,7 @@ Loki.builtinContexts.loading = Loki.Class.create(Loki.Context, {
 		this.message.appendChild(doc.createTextNode(Loki._("editor:loading")));
 		root.appendChild(this.message);
 		
-		setTimeout(base2.bind(load_plugins, this), 1);
+		setTimeout(base2.bind(load_plugins, this), 15);
 	},
 	
 	exit: function exit_loading_context(root) {

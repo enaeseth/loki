@@ -110,10 +110,28 @@ Loki.PluginManager = {
 		}
 		
 		var names = pm._chooser.resolveSelector(selector, true);
-		var task = new pm.Task(callback, names);
+		var task;
+		var names_obj = {
+			map: {},
+			
+			contains: function has_name(name) {
+				return (name in this.map);
+			},
+			
+			add: function add_name(name) {
+				if (name in this.map)
+					return false;
+				this.map[name] = true;
+				names.push(name);
+				task.add(name);
+				return true;
+			}
+		};
+		base2.forEach(names, function(name) { names_obj.map[name] = true; });
+		task = new pm.Task(callback, names);
 		
 		base2.forEach(names, function _start_loading_plugin(id) {
-			new pm.Loader(id, locale);
+			new pm.Loader(id, locale, names_obj);
 		});
 	},
 	
@@ -175,6 +193,7 @@ Loki.PluginManager = {
 					// allows dependencies like "foo >= 3.0" to do what's
 					// expected when the "foo" plugin is at, e.g., v3.0b1.
 					
+					version.dotted.push(0);
 					version.type = 0;
 					version.modifier = 0;
 				}
@@ -212,8 +231,8 @@ Loki.PluginManager = {
 			}
 			
 			if (parts[5]) {
-				reduce = (parts[3] == "==" || parts[3] == "=" ||
-					parts[3] == "<" || parts[3] == ">=");
+				reduce = (parts[6] == "==" || parts[6] == "=" ||
+					parts[6] == "<" || parts[6] == ">=");
 				// a condition after the plugin name
 				conditions.push({
 					operator: parts[6],
@@ -239,12 +258,13 @@ Loki.PluginManager = {
 };
 
 Loki.PluginManager.Loader = Loki.Class.create({
-	initialize: function PluginLoader(plugin_id, locale) {
+	initialize: function PluginLoader(plugin_id, locale, all_names) {
 		this.id = plugin_id;
 		this.locale = locale;
 		this.base = $format("{0}plugins/{1}/", Loki.baseURL, plugin_id);
+		this.requestedNames = all_names;
 		
-		this.tasks = this._register();
+		this._register();
 		
 		var plugin = Loki.PluginManager.plugins[plugin_id];
 		if (!plugin) {
@@ -254,20 +274,28 @@ Loki.PluginManager.Loader = Loki.Class.create({
 		}
 	},
 	
+	_getTasks: function _loader_get_tasks() {
+		var tasks = Loki.PluginManager._loadTasks[this.id];
+		return Loki.PluginManager._loadTasks[this.id];
+	},
+	
 	_register: function _register_plugin_loader() {
 		var tasks = Loki.PluginManager._loadTasks[this.id];
 		if (!tasks)
-			return [];
+			return false;
 		
 		base2.forEach(tasks, function register_with_task(task) {
 			task.add(this.id);
 		}, this);	
 		
-		return tasks;
+		return true;
 	},
 	
 	_fail: function _plugin_load_failed(reason) {
-		base2.forEach(this.tasks, function notify_task_of_failure(task) {
+		// Make a copy of our tasks, as tasks will remove themselves from the
+		// original array as they are notified of completion.
+		var tasks = this._getTasks().slice(0);
+		base2.forEach(tasks, function notify_task_of_failure(task) {
 			task.stepFailed(this.id, reason);
 		}, this);
 	},
@@ -315,8 +343,10 @@ Loki.PluginManager.Loader = Loki.Class.create({
 		var task;
 		
 		for (var plugin_id in deps) {
-			if (!(plugin_id in Loki.PluginManager.plugins))
+			if (!this.requestedNames.contains(plugin_id)) {
 				needed.push(plugin_id);
+				this.requestedNames.add(plugin_id);
+			}
 		}
 		
 		if (needed.length == 0) {
@@ -340,7 +370,8 @@ Loki.PluginManager.Loader = Loki.Class.create({
 			);
 			
 			base2.forEach(needed, function(id) {
-				new Loki.PluginManager.Loader(id, this.locale);
+				new Loki.PluginManager.Loader(id, this.locale,
+					this.requestedNames);
 			}, this);
 		}
 	},
@@ -421,8 +452,11 @@ Loki.PluginManager.Loader = Loki.Class.create({
 	},
 	
 	_localeLoaded: function _locale_loaded(plugin) {
-		// all steps complete!
-		base2.forEach(this.tasks, function notify_task_of_success(task) {
+		// All steps complete!
+		// Make a copy of our tasks, as tasks will remove themselves from the
+		// original array as they are notified of completion.
+		var tasks = this._getTasks().slice(0);
+		base2.forEach(tasks, function notify_task_of_success(task) {
 			task.stepFinished(this.id, plugin.implementation);
 		}, this);
 	},
@@ -446,15 +480,16 @@ Loki.PluginManager.Task = Loki.Class.create({
 		if (typeof(steps) == "string")
 			steps = [steps];
 		
-		base2.forEach(steps, function(step) {
+		base2.forEach(steps, function add_step(step) {
 			if (step in this.pendingSteps)
 				return;
 			
 			this.remaining++;
 			this.pendingSteps[step] = true;
 			
-			if (!tasks[step])
+			if (typeof(tasks[step]) != 'object') {
 				tasks[step] = [];
+			}
 			tasks[step].push(this);
 		}, this);
 	},
@@ -462,7 +497,6 @@ Loki.PluginManager.Task = Loki.Class.create({
 	stepFinished: function task_step_finished(name, result) {
 		if (!this.pendingSteps[name])
 			return false;
-		
 		this._removeStep(name);
 		this.finishedSteps[name] = result;
 		
