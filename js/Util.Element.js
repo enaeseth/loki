@@ -81,8 +81,8 @@ Util.Element = {
 	{
 		var attrs = {};
 		
-		if (!Util.is_valid_object(elem)) {
-			throw new TypeError('Cannot get the attributes of a non-object.');
+		if (!elem) {
+			throw new TypeError('No element provided; cannot get attributes.');
 		}
 		
 		if (elem.nodeType != Util.Node.ELEMENT_NODE || !elem.hasAttributes())
