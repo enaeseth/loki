@@ -191,7 +191,8 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 	
 	function make_element(buffer, element) {
 		if (!Util.Node.is_element(element))
-			throw new TypeError();
+			throw new TypeError("Tried to make a non-element as an element: " +
+				element);
 			
 		if (Util.Node.is_tag(element, 'PRE'))
 			return make_pre_element(buffer, element);
