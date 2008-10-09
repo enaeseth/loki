@@ -265,7 +265,11 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 
 		{
 			description : 'Remove all comment nodes.',
-			test : function(node) { return node.nodeType == Util.Node.COMMENT_NODE; },
+			test : function(node) {
+				if (node.nodeType != Util.Node.COMMENT_NODE)
+					return false;
+				return ("!" in allowable_tags);
+			},
 			action : remove_node
 		},
 		{
