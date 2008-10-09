@@ -14,16 +14,15 @@ div.loki .loading {
 
 div.loki iframe.visual_frame {
     width: 100%;
-    border: 2px inset #F3E0B8;
+    /*border: 2px inset #F3E0B8;*/
     clear: left;
-    margin: 3px;
 }
 
 div.loki ul.toolbar {
 	clear: left;
 	display: block;
 	list-style: none;
-	margin: 0 0 2px 0;
+	margin: 2px;
 	padding: 0;
 	overflow: auto;
 }
@@ -37,6 +36,7 @@ div.loki ul.toolbar li {
 div.loki ul.toolbar li a {
 	border: 1px solid transparent;
 	display: block;
+	padding: 1px;
 }
 
 div.loki ul.toolbar li a.button:hover {
