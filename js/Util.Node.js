@@ -270,7 +270,7 @@ Util.Node.has_child_node = function(node, boolean_test)
  * @returns {Boolean} true if "node" is an element node, false if otherwise
  */
 Util.Node.is_element = function node_is_element(node) {
-	return (Util.is_object(node) && node.nodeType == Util.Node.ELEMENT_NODE);
+	return (node && node.nodeType == Util.Node.ELEMENT_NODE);
 }
 
 /**
@@ -279,7 +279,7 @@ Util.Node.is_element = function node_is_element(node) {
  * @returns {Boolean} true if "node" is a text node, false if otherwise
  */
 Util.Node.is_text = function node_is_text(node) {
-	return (Util.is_object(node) && node.nodeType == Util.Node.TEXT_NODE);
+	return (node && node.nodeType == Util.Node.TEXT_NODE);
 }
 
 /**
@@ -288,7 +288,7 @@ Util.Node.is_text = function node_is_text(node) {
  * @returns {Boolean} true if "node" is a document node, false if otherwise
  */
 Util.Node.is_document = function node_is_document(node) {
-	return (Util.is_object(node) && node.nodeType == Util.Node.DOCUMENT_NODE);
+	return (node && node.nodeType == Util.Node.DOCUMENT_NODE);
 }
 
 /**
