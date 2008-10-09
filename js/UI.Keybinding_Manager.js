@@ -46,7 +46,7 @@ UI.Keybinding_Manager = function(event_source)
 				}).join(') && (') + ')';
 			}).join(' || ');
 			
-			key_test = eval('function(e) { return ' + test + '; }');
+			key_test = eval('(function(e) { return ' + test + '; })');
 		}
 		
 		bindings.push({
