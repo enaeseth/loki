@@ -14,7 +14,20 @@ function $extend(node) {
 }
 
 function _extend_range(range) {
-	Loki.Object.extend(range, _extend_range.extensions, false);
+	var exts = _extend_range.extensions;
+	if (!exts.getBoundaryNodes)
+		exts.getBoundaryNodes = Loki.IERange.prototype.getBoundaryNodes;
+	if (!exts.enumerateNodes)
+		exts.enumerateNodes = Loki.IERange.prototype.enumerateNodes;
+	if (!exts.splitTextNodes) {
+		exts.splitTextNodes = function split_range_text_nodes() {
+			var b = Loki.IERange.prototype.splitTextNodes.call(this);
+			this.setStart(b.start.container, b.start.offset);
+			this.setEnd(b.end.container, b.end.offset);
+			return b;
+		};
+	}
+	Loki.Object.extend(range, exts, false);
 	return range;
 }
 _extend_range.extensions = {
@@ -127,15 +140,39 @@ _extend_range.extensions = {
 		};
 	}
 	
+	var WHITESPACE_PATTERN = /^\s*$/;
 	extensions.Node = {
 		isTag: function node_is_tag(name) {
 			return false;
+		},
+		
+		isElement: function node_is_element() {
+			return false;
+		},
+		
+		isTextNode: function node_is_textual() {
+			return this.nodeType == Node.TEXT_NODE;
+		},
+		
+		containsOnlyWhitespace: function node_contains_only_whitespace() {
+			if (!this.isTextNode())
+				return false;
+			
+			return WHITESPACE_PATTERN.test(this.nodeValue);
 		}
 	};
 	
 	extensions.Element = {
 		isTag: function element_is_tag(name) {
 			return this.tagName == name.toUpperCase();
+		},
+		
+		isElement: function element_is_element() {
+			return true;
+		},
+		
+		isTextNode: function element_is_text_node() {
+			return false;
 		},
 		
 		getStyle: function get_element_style(name) {
@@ -319,6 +356,19 @@ _extend_range.extensions = {
 				return new Loki.IERange(sel.createRange());
 			} else {
 				throw new Error("Cannot get the window's selected range.");
+			}
+		},
+		
+		selectRange: function window_select_range(range) {
+			if (range.real && range.real.select) {
+				// wrapped IE text range
+				range.real.select();
+			} else if (this.getSelection) {
+				var sel = this.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+			} else {
+				throw new Error("Cannot select a range in the window.");
 			}
 		}
 	};

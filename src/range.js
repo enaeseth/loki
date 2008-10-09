@@ -119,6 +119,105 @@ Loki.IERange = Loki.Class.create({
 		}
 	},
 	
+	getBoundaryNodes: function get_boundary_nodes() {
+		function get_boundary_node(b) {
+			var c = b.container, d, l;
+			if (c.nodeType == Node.TEXT_NODE)
+				return b.container;
+			d = c.childNodes[b.offset];
+			if (d)
+				return d;
+			l = c.childNodes.length;
+			if (b.offset >= l)
+				return c.childNodes[l - 1];
+			return c; // shouldn't ever be necessary...
+		}
+		
+		var bounds = this.getBoundaries();
+		var nodes = [
+			get_boundary_node(bounds.start),
+			get_boundary_node(bounds.end)
+		];
+		
+		nodes.start = nodes[0];
+		nodes.end = nodes[1];
+		
+		return nodes;
+	},
+	
+	splitTextNodes: function split_range_text_nodes() {
+		var b = this.getBoundaries();
+		
+		function fix_boundary(bound) {
+			var container, offset, index, split;
+			
+			if ((container = bound.container).nodeType == Node.TEXT_NODE) {
+				offset = bound.offset;
+				bound.container = container.parentNode;
+				if (offset == 0) {
+					bound.offset = base2.DOM.Traversal.getNodeIndex(container);
+				} else if (offset == container.nodeValue.length) {
+					bound.offset = (1 +
+						base2.DOM.Traversal.getNodeIndex(container));
+				} else {
+					console.debug(container, bound.offset);
+					split = container.splitText(bound.offset);
+					if (bound === b.start && container == b.end.container) {
+						console.info("!");
+						b.end.container = split;
+						b.end.offset -= bound.offset;
+					}
+					bound.offset = base2.DOM.Traversal.getNodeIndex(split);
+				}
+			}
+			
+			return bound;
+		}
+		
+		b.start = fix_boundary(b.start);
+		b.end = fix_boundary(b.end);
+		
+		return b;
+	},
+	
+	enumerateNodes: function enumerate_range_nodes(iterator) {
+		function get_following_node(n) {
+			if (n.hasChildNodes()) {
+				n = n.firstChild;
+			} else if (n.nextSibling) {
+				n = n.nextSibling;
+			} else if (n.parentNode && n.parentNode.nextSibling) {
+				n = n.parentNode.nextSibling;
+			} else {
+				n = null;
+			}
+
+			return n;
+		}
+		
+		var bounds = this.getBoundaryNodes();
+		var nodes;
+		var start = bounds.start;
+		var end = bounds.end;
+		var node;
+		
+		if (iterator) {
+			for (node = start; node; node = get_following_node(node)) {
+				iterator(node);
+				if (node === end)
+					break;
+			}
+		} else {
+			nodes = [];
+			for (node = start; node; node = get_following_node(node)) {
+				nodes.push(node);
+				if (node === end)
+					break;
+			}
+			return nodes;
+		}
+	},
+	
 	cloneRange: function clone_range() {
 		return new Loki.IERange(rng.duplicate());
 	},
