@@ -12,6 +12,15 @@ Loki.Selection = Loki.Class.create({
 		this.document = document;
 	},
 	
+	// Method: getRange
+	// Gets the selected range.
+	//
+	// Returns:
+	//     (Range) - the selected range
+	getRange: function get_selection_range() {
+		return this.window.getSelectedRange();
+	},
+	
 	// Method: getInlineSections
 	// 
 	//
@@ -22,19 +31,6 @@ Loki.Selection = Loki.Class.create({
 		var bounds = null;
 		var doc = this.document;
 		var range;
-		
-		function get_boundary_node(b) {
-			var c = b.container, d, l;
-			if (c.nodeType == Node.TEXT_NODE)
-				return b.container;
-			d = c.childNodes[b.offset];
-			if (d)
-				return d;
-			l = c.childNodes.length;
-			if (b.offset >= l)
-				return c.childNodes[l - 1];
-			return c; // shouldn't ever be necessary...
-		}
 		
 		function save_range(r) {
 			if (!bounds)
@@ -54,20 +50,6 @@ Loki.Selection = Loki.Class.create({
 			bounds.start = {container: container || null, offset: 0};
 		}
 		
-		function get_following_node(n) {
-			if (n.hasChildNodes()) {
-				n = n.firstChild;
-			} else if (n.nextSibling) {
-				n = n.nextSibling;
-			} else if (n.parentNode && n.parentNode.nextSibling) {
-				n = n.parentNode.nextSibling;
-			} else {
-				n = null;
-			}
-
-			return n;
-		}
-		
 		function bounds_are_empty(b) {
 			return (b.start.offset === b.end.offset &&
 				b.start.node === b.end.node);
@@ -84,17 +66,9 @@ Loki.Selection = Loki.Class.create({
 			return [sel.cloneRange()];
 		}
 		
-		var termini = sel.getBoundaries();
-		bounds = {
-			start: Loki.Object.clone(termini.start),
-			end: Loki.Object.clone(termini.end)
-		};
+		var bounds = Loki.Object.clone(sel.getBoundaries());
 		
-		var start = get_boundary_node(bounds.start);
-		var end = get_boundary_node(bounds.end);
-		
-		var node = start;
-		while (node !== end) {
+		sel.enumerateNodes(function each_node_in_range(node) {
 			if (is_element(node) && Loki.Block.isBlock(node)) {
 				range = $extend(doc.createRange());
 				range.setStart(bounds.start.container, bounds.start.offset);
@@ -104,9 +78,7 @@ Loki.Selection = Loki.Class.create({
 				
 				new_range(node);
 			}
-			
-			node = get_following_node(node);
-		}
+		});
 		
 		save_range();
 		return ranges;

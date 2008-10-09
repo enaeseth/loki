@@ -148,7 +148,24 @@ Loki.Editor = Loki.Class.create({
 	// selection boundaries, but also a change in the selection's style or
 	// properties (e.g. the insertion of strong tags around the selection).
 	selectionChanged: function editor_selection_changed() {
+		this.fireEvent("selection_changed");
+	},
+	
+	// Method: focus
+	// Calls focus() on the active context if it provides a focus method.
+	//
+	// Returns:
+	//     (Boolean) - true if this.activeContext.focus was called and returned
+	//                 successfully; false otherwise
+	focus: function focus() {
+		var ret;
 		
+		if (typeof(this.activeContext.focus) != 'function')
+			return false;
+		
+		return (typeof(ret = this.activeContext.focus()) == "undefined")
+			? true
+			: !!ret;
 	},
 	
 	_createUI: function _create_editor_ui(settings) {

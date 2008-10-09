@@ -41,6 +41,7 @@ Loki.UI.Toolbar = Loki.Class.create(Loki.UI.Widget, {
 		}
 		
 		item.toolbar = this;
+		this.items.push(item);
 		if (this.container)
 			this._appendItem(item);
 	},
@@ -180,7 +181,7 @@ Loki.UI.ToolbarButton = Loki.Class.create(Loki.UI.ToolbarItem, {
 		this._wrapper.appendChild(this._icon);
 		
 		function toolbar_button_clicked(event) {
-			if (button.enabled)
+			if (button.isEnabled())
 				button.fireEvent('click');
 			
 			if (button.changesSelection)
