@@ -913,8 +913,6 @@ TinyMCEControl.prototype.scrollToNode = function(node) {
 
 	// Only scroll if out of visible area
 	if (!tinyMCE.settings['auto_resize'] && !(node.absTop > scrollY && node.absTop < (scrollY - 25 + height))) {
-		console.debug(node, pos);
-		console.info("Scrolling to: (", pos.absLeft, ", ", pos.absTop - height + 25, ")");
 		this.contentWindow.scrollTo(pos.absLeft, pos.absTop - height + 25);
 	}
 };
