@@ -130,7 +130,7 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 	function make_empty_element(buffer, element) {
 		if (!Util.Node.is_element(element))
 			throw new TypeError();
-			
+		
 		make_open_tag(buffer, element, gen.xhtml);
 	}
 	
@@ -190,16 +190,17 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 	}
 	
 	function make_element(buffer, element) {
-		if (!Util.Node.is_element(element))
+		if (!Util.Node.is_element(element)) {
 			throw new TypeError("Tried to make a non-element as an element: " +
 				element);
+		}
 			
 		if (Util.Node.is_tag(element, 'PRE'))
 			return make_pre_element(buffer, element);
-		else if (Util.Block.is_block(element))
-			return make_block_element(buffer, element);
 		else if (!element.hasChildNodes() && Util.Element.empty_tag(element))
 			return make_empty_element(buffer, element);
+		else if (Util.Block.is_block(element))
+			return make_block_element(buffer, element);
 		else
 			return make_inline_element(buffer, element);
 	}
