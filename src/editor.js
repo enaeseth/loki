@@ -172,13 +172,13 @@ Loki.Editor = Loki.Class.create({
 		this.theme = new Loki.Theme(settings.theme || "light");
 		this.theme.applyToOwnerDocument(this);
 		
-		this.root = this._createRoot(settings.branding || false);
+		this.root = this._createRoot();
 		this.contextRoot = this._createContextRoot(this.root);
 		
 		this.root.appendChild(this.errorLog.createBar(this.ownerDocument));
 	},
 	
-	_createRoot: function _create_editor_root(branding) {
+	_createRoot: function _create_editor_root() {
 		var doc = this.ownerDocument;
 		var root = doc.createElement("div");
 		root.className = "loki";
