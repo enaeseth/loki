@@ -132,6 +132,8 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 			throw new TypeError();
 		
 		make_open_tag(buffer, element, gen.xhtml);
+		if (element.nodeName == "PARAM")
+			buffer.end_line();
 	}
 	
 	function make_inline_element(buffer, element) {
