@@ -58,7 +58,7 @@ Util.Node.find_children = function find_matching_node_children(node, match) {
 	var i, length, node_type;
 	var children = [], child;
 	
-	if (!Util.is_valid_object(node) || !node.nodeType) {
+	if (!node || !node.nodeType) {
 		throw new TypeError('Must provide Util.Node.find_children with a ' +
 			'node to traverse.');
 	}
@@ -188,7 +188,7 @@ Util.Node.get_enclosing_block =
 	function get_enclosing_block_of_node(node, node_window)
 {
 	// Sanity checks.
-	if (!Util.is_valid_object(node)) {
+	if (!node || !node.nodeType) {
 		throw new TypeError('Must provide a node to ' + 
 			'Util.Node.get_enclosing_block.');
 	} else if (!Util.is_valid_object(node_window)) {

@@ -28,7 +28,7 @@ Util.Element = {
 	 */
 	get_computed_style: function get_element_computed_style(window, elem)
 	{
-		if (!Util.is_valid_object(window, elem)) {
+		if (!elem || !Util.is_valid_object(window)) {
 			throw new TypeError('Valid window and element objects must be ' +
 				'provided to Util.Element.get_computed_style.');
 		}
@@ -129,7 +129,7 @@ Util.Element = {
 	 */
 	is_basically_empty: function element_is_basically_empty(elem)
 	{
-		if (elem.nodeType != Util.Node.ELEMENT_NODE) {
+		if (!elem || elem.nodeType != Util.Node.ELEMENT_NODE) {
 			throw new TypeError('Must provide an element node to ' +
 				'Util.Element.is_basically_empty(); instead got ' +
 				Util.Node.get_debug_string(elem));
@@ -437,7 +437,7 @@ Util.Element = {
 	 */
 	get_relative_offsets: function get_element_relative_offsets(window, elem)
 	{
-		if (!Util.is_valid_object(window, elem)) {
+		if (!Util.Node.is_element(elem) || !Util.is_valid_object(window)) {
 			throw new TypeError('Must provide valid window and element ' +
 				'objects to Util.Event.get_relative_offsets().');
 		}
