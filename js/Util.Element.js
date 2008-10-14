@@ -85,8 +85,11 @@ Util.Element = {
 			throw new TypeError('No element provided; cannot get attributes.');
 		}
 		
-		if (elem.nodeType != Util.Node.ELEMENT_NODE || !elem.hasAttributes())
+		if (elem.nodeType != Util.Node.ELEMENT_NODE) {
 			return attrs;
+		} else if (elem.hasAttributes && !elem.hasAttributes()) {
+			return attrs;
+		}
 		
 		for (var i = 0; i < elem.attributes.length; i++) {
 			var a = elem.attributes[i];
