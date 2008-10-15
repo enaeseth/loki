@@ -14,7 +14,9 @@ Loki.PluginManager = {
 	_watchers: {},
 	
 	// Method: register
-	// Registers a plugin with Loki.
+	// Registers a plugin with Loki. Any function that have been added as
+	// watchers of the plugin's registration (see Loki.PluginManager.watch) will
+	// be invoked.
 	//
 	// Parameters:
 	//     (Object) plugin - Plugin specification. This method adds properties
@@ -231,9 +233,9 @@ Loki.PluginManager = {
 			}
 			
 			if (parts[5]) {
+				// a condition after the plugin name
 				reduce = (parts[6] == "==" || parts[6] == "=" ||
 					parts[6] == "<" || parts[6] == ">=");
-				// a condition after the plugin name
 				conditions.push({
 					operator: parts[6],
 					version: parse_version(parts[7], reduce)
