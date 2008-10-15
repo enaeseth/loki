@@ -160,10 +160,8 @@ Loki.IERange = Loki.Class.create({
 					bound.offset = (1 +
 						base2.DOM.Traversal.getNodeIndex(container));
 				} else {
-					console.debug(container, bound.offset);
 					split = container.splitText(bound.offset);
 					if (bound === b.start && container == b.end.container) {
-						console.info("!");
 						b.end.container = split;
 						b.end.offset -= bound.offset;
 					}
