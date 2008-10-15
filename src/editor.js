@@ -121,6 +121,27 @@ Loki.Editor = Loki.Class.create({
 		this.activeContext.enter(this.contextRoot);
 	},
 	
+	// Method: addContext
+	// Adds a context to the editor instance.
+	//
+	// Parameters:
+	//     (String) name - the name of the context being added
+	//     (Function) context_class - a constructor function for the context
+	//
+	// Returns:
+	//     (void)
+	//
+	// Throws:
+	//     ConflictError - if a context is already registered with that name
+	addContext: function add_editor_context(name, context_class) {
+		if (name in this.contexts) {
+			throw Loki.error("ConflictError", "editor:context already added",
+				name);
+		}
+		
+		this.contexts[name] = new context_class(this);
+	},
+	
 	// Method: log
 	// Logs a notice to the editor's error log (see <Loki.Editor.errorLog>).
 	// Besides using this message normally, it is also possible to pass a

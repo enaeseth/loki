@@ -8,6 +8,7 @@
     "no base uri" = 'Cannot automatically determine the Loki base URI. Please set it explicitly.';
     
     "unavailable context" = 'No context named "{0}" is available on this Loki instance.';
+    "context already added" = 'A context named "{0}" is already registered on theis Loki instance.';
     
     "rich text" = 'Your browser has no support for rich text (HTML) editing.';
     
