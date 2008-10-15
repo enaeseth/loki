@@ -5,7 +5,7 @@
     "not a textarea" = "Cannot create a Loki editor: the element provided is not a TEXTAREA element.";
     "no matching textarea" = 'No elements matched the selector "{0}".';
     "multiple matching textarea" = 'More than one element matched the selector "{0}".';
-    "no base uri" = 'Cannot automatically determine the Loki base URI. Please set it explicitly.';
+    "no base uri" = 'Cannot automatically determine the Loki base URI. Please set the "base_uri" setting.';
     
     "unavailable context" = 'No context named "{0}" is available on this Loki instance.';
     "context already added" = 'A context named "{0}" is already registered on theis Loki instance.';
