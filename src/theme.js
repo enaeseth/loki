@@ -55,6 +55,8 @@ Loki.Theme = Loki.Class.create({
 		if (!body.length) {
 			body = document.createElement("BODY");
 			root.appendChild(body);
+		} else {
+			body = body[0];
 		}
 		
 		var head = document.createElement("HEAD");
