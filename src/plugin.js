@@ -26,6 +26,9 @@ Loki.Plugin.create = function create_plugin(handle, members) {
 	
 	var plugin_class = Loki.Class.create(Loki.Plugin, members);
 	var pt = plugin_class.prototype;
+	pt.contexts = (typeof(pt.contexts) == 'string')
+		? pt.contexts.split(/\s*,\s*|\s+/)
+		: pt.contexts || [];
 	
 	var spec = {
 		id: handle,
@@ -34,10 +37,11 @@ Loki.Plugin.create = function create_plugin(handle, members) {
 		version: pt.version || '0.0a0',
 		depends: pt.depends || null,
 		sets: pt.sets || null,
+		contexts: pt.contexts,
 		implementation: plugin_class
 	};
 	
-	plugin_class.prototype.id = handle;
+	pt.id = handle;
 	
 	Loki.PluginManager.register(spec);
 };

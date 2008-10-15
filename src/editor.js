@@ -6,6 +6,11 @@
 //
 // Mixins:
 //  - <Loki.EventTarget>
+//
+// Events:
+//     startup - fired before the Loki UI is created
+//     context_add - fired when a new context is added
+//     context_switch - fired when the active context is switched
 Loki.Editor = Loki.Class.create({
 	// var: (Element) textarea
 	textarea: null,
@@ -119,6 +124,7 @@ Loki.Editor = Loki.Class.create({
 			this.previousContext.exit(this.contextRoot);
 		this.activeContext = new_context;
 		this.activeContext.enter(this.contextRoot);
+		this.fireEvent("context_switch", new_context);
 	},
 	
 	// Method: addContext
@@ -139,7 +145,9 @@ Loki.Editor = Loki.Class.create({
 				name);
 		}
 		
-		this.contexts[name] = new context_class(this);
+		var context = new context_class(this);
+		this.contexts[name] = context;
+		this.fireEvent("context_added", context);
 	},
 	
 	// Method: log
