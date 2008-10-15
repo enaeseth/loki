@@ -50,6 +50,9 @@ Loki.Editor = Loki.Class.create({
 	// var: ({String => Loki.Context}) contexts
 	contexts: null,
 	
+	// var: ({String => Loki.Plugin}) plugins
+	plugins: null,
+	
 	// Constructor: Editor
 	// Creates a new instance of the Loki editor, replacing a textarea on the
 	// document with itself. If the textarea belongs to a form, Loki will
@@ -92,8 +95,19 @@ Loki.Editor = Loki.Class.create({
 		this.defaultContext = settings.defaultContext
 			|| settings.default_context || Loki.defaultContext;
 		
-		// Switch to the loading context, which is responsible for loading
-		// the editor's plugins.
+		this.addEventListener("context_add", function context_added(name, ctx) {
+			if (!this.plugins)
+				return;
+			
+			Loki.Object.enumerate(this.plugins, function(id, plugin) {
+				if (plugin.usesContext(name)) {
+					this._pluginUsesContext(plugin, ctx);
+				}
+			}, this);
+		}, this);
+		
+		// Switch to the loading context, which will call our _loadPlugins
+		// method.
 		this.switchContext("loading");
 	},
 	
@@ -124,7 +138,7 @@ Loki.Editor = Loki.Class.create({
 			this.previousContext.exit(this.contextRoot);
 		this.activeContext = new_context;
 		this.activeContext.enter(this.contextRoot);
-		this.fireEvent("context_switch", new_context);
+		this.fireEvent("context_switch", name, new_context);
 	},
 	
 	// Method: addContext
@@ -147,7 +161,7 @@ Loki.Editor = Loki.Class.create({
 		
 		var context = new context_class(this);
 		this.contexts[name] = context;
-		this.fireEvent("context_add", context);
+		this.fireEvent("context_add", name, context);
 	},
 	
 	// Method: log
@@ -255,6 +269,62 @@ Loki.Editor = Loki.Class.create({
 		}, this);
 		
 		return contexts;
+	},
+	
+	// Called by the loading context.
+	_loadPlugins: function _load_editor_plugins() {
+		if (this.plugins) {
+			throw new Error("Plugins already loaded!");
+		}
+		
+		function loaded(plugin_classes, failed) {
+			var plugins = {}, fail_count = 0, pfn;
+			
+			Loki.Object.enumerate(plugin_classes, function(id, plugin_class) {
+				plugins[id] = new plugin_class(this);
+			}, this);
+			
+			this.plugins = plugins;
+			
+			Loki.Object.enumerate(failed, function(id, reason) {
+				fail_count++;
+				this.log(reason);
+			}, this);
+			
+			if (fail_count > 0) {
+				pfn = new Loki.Notice("error",
+					Loki._("editor:some plugins failed"));
+				
+				pfn.getMessageSummary = function() {
+					return Loki._("editor:plugin failure teaser");
+				};
+				
+				this.log(pfn);
+			}
+			
+			this.switchContext(this.defaultContext);
+			
+			Loki.Object.enumerate(plugins, function(id, plugin) {
+				base2.forEach(plugin.contexts, function(context_name) {
+					this._pluginUsesContext(plugin, context_name);
+				}, this);
+				
+				if (typeof(plugin.setup) == "function")
+					plugin.setup();
+			}, this);
+		}
+		
+		var selector = (this.settings.plugins || "default") + " + core";
+		Loki.PluginManager.load(selector, Loki.currentLocale,
+			base2.bind(loaded, this));
+	},
+	
+	_pluginUsesContext: function plugin_uses_context(plugin, context_name) {
+		var context = this.contexts[context_name];
+		if (!context)
+			return;
+		plugin[context_name] = context;
+		context.processPlugin(plugin);
 	}
 });
 Loki.Class.mixin(Loki.Editor, Loki.EventTarget);

@@ -10,6 +10,17 @@ Loki.Plugin = Loki.Class.create({
 	
 	getPath: function get_plugin_resource_path(path) {
 		return $format("{0}plugins/{1}/{2}", Loki.baseURL, this.id, path);
+	},
+	
+	usesContext: function plugin_uses_context(context_name) {
+		if (!this._context_map) {
+			this._context_map = {};
+			base2.forEach(this.contexts, function(context) {
+				this._context_map[context] = true;
+			}, this);
+		}
+		
+		return this._context_map[context_name] || false;
 	}
 });
 

@@ -40,6 +40,15 @@ Loki.Context = Loki.Class.create({
 	//     (void)
 	exit: function context_exit(root) {
 		
+	},
+	
+	// Method: processPlugin
+	// Does any desired work on the given plugin.
+	//
+	// Parameters:
+	//     (Loki.Plugin) plugin - a plugin
+	processPlugin: function context_process_plugin(plugin) {
+		
 	}
 });
 

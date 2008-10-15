@@ -26,6 +26,16 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 			root.removeChild(root.firstChild);
 	},
 	
+	processPlugin: function visual_process_plugin(plugin) {
+		plugin.toolbar = this.toolbar;
+		plugin.keybindings = this.keybindings;
+		
+		if (typeof(plugin._visualReady) == "function") {
+			this.editor.addEventListener("visual_ready", plugin,
+				"_visualReady");
+		}
+	},
+	
 	focus: function visual_context_focus() {
 		this.window.focus();
 	},
