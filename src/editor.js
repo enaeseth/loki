@@ -147,7 +147,7 @@ Loki.Editor = Loki.Class.create({
 		
 		var context = new context_class(this);
 		this.contexts[name] = context;
-		this.fireEvent("context_added", context);
+		this.fireEvent("context_add", context);
 	},
 	
 	// Method: log
