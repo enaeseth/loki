@@ -12,6 +12,16 @@ Loki.Plugin = Loki.Class.create({
 		return $format("{0}plugins/{1}/{2}", Loki.baseURL, this.id, path);
 	},
 	
+	getDependents: function get_plugin_dependents() {
+		var dependents = [];
+		var plugins = Loki.PluginManager.plugins;
+		Loki.Object.enumerate(this.editor.plugins, function(id, plugin) {
+			if (this.id in plugins[id].dependencies)
+				dependents.push(plugin);
+		}, this);
+		return dependents;
+	},
+	
 	usesContext: function plugin_uses_context(context_name) {
 		if (!this._context_map) {
 			this._context_map = {};
@@ -21,6 +31,10 @@ Loki.Plugin = Loki.Class.create({
 		}
 		
 		return this._context_map[context_name] || false;
+	},
+	
+	toString: function plugin_to_string(plugin) {
+		return $format("[{name} plugin]", this);
 	}
 });
 
