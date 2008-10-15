@@ -3,6 +3,7 @@ Loki.Plugin.create("bold", {
 	version: "0.1.0",
 	sets: "default, power",
 	depends: "core >= 3.0, browser_commands >= 0.1",
+	contexts: "visual",
 	
 	_ready: false,
 	
@@ -11,13 +12,6 @@ Loki.Plugin.create("bold", {
 		
 		this.button = new Loki.UI.ToolbarButton(this.getPath("icons/bold.png"),
 			"Bold");
-		
-		if (!this.visual)
-			this.visual = this.editor.contexts.visual;
-		if (!this.toolbar)
-			this.toolbar = this.visual.toolbar;
-			
-		this.editor.addEventListener("visual_ready", this, "_visualReady");
 	},
 	
 	_visualReady: function setup_bold_plugin() {
@@ -36,7 +30,7 @@ Loki.Plugin.create("bold", {
 		}
 		
 		this.button.addEventListener("click", invoke_bold);
-		this.visual.keybindings.add("Ctrl B", invoke_bold);
+		this.keybindings.add("Ctrl B", invoke_bold);
 		
 		this.editor.addEventListener("selection_changed", this,
 			"selectionChanged");
