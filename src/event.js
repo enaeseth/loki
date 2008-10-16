@@ -196,6 +196,10 @@ Loki.EventTarget = {
 		
 		var old_target = event.target;
 		event.target = this;
+		
+		if (typeof(event.preflight) == "function")
+			event.preflight();
+		
 		try {
 			var listeners = this._loki_event_listeners[event.type];
 			
@@ -223,6 +227,13 @@ Loki.EventTarget = {
 				}
 			}
 		} finally {
+			if (typeof(event.postflight) == "function") {
+				try {
+					event.postflight();
+				} catch (e) {
+					// ignore
+				}
+			}
 			event.target = old_target; // reset the event's target
 		}
 	}
