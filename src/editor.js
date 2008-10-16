@@ -279,9 +279,14 @@ Loki.Editor = Loki.Class.create({
 		
 		function loaded(plugin_classes, failed) {
 			var plugins = {}, fail_count = 0, pfn;
+			var dependent_processors = [];
 			
 			Loki.Object.enumerate(plugin_classes, function(id, plugin_class) {
-				plugins[id] = new plugin_class(this);
+				var plugin = new plugin_class(this);
+				if (typeof(plugin.processDependents) == "function") {
+					dependent_processors.push(plugin);
+				}
+				plugins[id] = plugin;
 			}, this);
 			
 			this.plugins = plugins;
@@ -303,6 +308,10 @@ Loki.Editor = Loki.Class.create({
 			}
 			
 			this.switchContext(this.defaultContext);
+			
+			base2.forEach(dependent_processors, function(plugin) {
+				plugin.processDependents(plugin.getDependents());
+			}, this);
 			
 			Loki.Object.enumerate(plugins, function(id, plugin) {
 				base2.forEach(plugin.contexts, function(context_name) {
