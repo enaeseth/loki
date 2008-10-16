@@ -19,10 +19,9 @@ Loki.Plugin.create("bold", {
 			return;
 		this._ready = true;
 		
-		var bc = this.editor.plugins.browser_commands;
 		var selection = this.editor.selection;
 		
-		bc.wrapToggleCommand("bold");
+		this.wrapToggleCommand("bold");
 		//iw.extendSelection("bold", "b, strong", "strong");
 		
 		function invoke_bold() {

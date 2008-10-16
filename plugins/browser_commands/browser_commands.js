@@ -9,6 +9,12 @@ Loki.Plugin.create("browser_commands", {
 		BrowserCommandPlugin.superclass.call(this, editor);
 	},
 	
+	processDependents: function process_browser_command_dependents(deps) {
+		base2.forEach(deps, function(plugin) {
+			plugin.wrapToggleCommand = this.wrapToggleCommand;
+		}, this);
+	},
+	
 	wrapToggleCommand: function wrap_toggle_command(command) {
 		function capitalize(s) {
 			return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
