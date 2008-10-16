@@ -23,6 +23,7 @@ Loki.Event = Loki.Class.create({
 		this.type = type;
 		this.timestamp = new Date();
 		this._stopped = false;
+		this._defaultPrevented = false;
 	},
 	
 	// Method: stopPropagation
@@ -33,6 +34,16 @@ Loki.Event = Loki.Class.create({
 	//     (void) - Nothing
 	stopPropagation: function stop_event_propagation() {
 		this._stopped = true;
+	},
+	
+	// Method: preventDefault
+	// Signals to the event dispatcher that the Loki default action for this
+	// event (if any) should not be run.
+	//
+	// Returns:
+	//     (void) - Nothing
+	preventDefault: function prevent_event_default_action() {
+		this._defaultPrevented = true;
 	}
 });
 
@@ -131,6 +142,37 @@ Loki.EventTarget = {
 	// Returns:
 	//     (void) - Nothing
 	fireEvent: function fire_event(event) {
+		if (arguments.length <= 1) {
+			this.fireEventWithDefault(event, null, null);
+		} else {
+			var args = base2.slice(arguments);
+			args.splice(1, 0, null, null);
+			this.fireEventWithDefault.apply(this, args);
+		}
+	},
+	
+	// Method: fireEventWithDefault
+	// Dispatches an event to registered listeners, and also executes a default
+	// listener unless one of the explicit listeners calls the _preventDefault_
+	// method on the event. Also available as _dispatchEventWithDefault_.
+	//
+	// Parameters:
+	//     (Loki.Event|String) event - the event to dispatch; if a string is
+	//                                 given, a new event will be created with
+	//                                 the string as the event's name
+	//     (Function|Object) default_listener - the default event listener
+	//     (Object|String) context - context for the default listener; if the
+	//                               listener is a function, the context should
+	//                               be its "this" context; if the listener is
+	//                               an object, it should be the name of the
+	//                               method to call on it
+	//     (any) [...] - any extra parameters to be passed to event handlers
+	//
+	// Returns:
+	//     (void) - Nothing
+	fireEventWithDefault: function fire_event_with_default_listener(event,
+		default_listener, context)
+	{
 		if (!this._loki_event_listeners) {
 			this._loki_event_listeners = {};
 			return;
@@ -149,7 +191,7 @@ Loki.EventTarget = {
 			return;
 		}
 		
-		var handler_args = base2.slice(arguments, 1);
+		var handler_args = base2.slice(arguments, 3);
 		handler_args.push(event);
 		
 		var old_target = event.target;
@@ -157,18 +199,28 @@ Loki.EventTarget = {
 		try {
 			var listeners = this._loki_event_listeners[event.type];
 			
+			var l_fn, r;
 			for (var i = 0; i < listeners.length; i++) {
-				var r = listeners[i];
+				r = listeners[i];
 				
 				if (typeof(r.listener) == 'function') {
 					r.listener.apply(r.context, handler_args);
 				} else {
-					var l_fn = r.listener[r.context || 'handleEvent'];
+					l_fn = r.listener[r.context || 'handleEvent'];
 					l_fn.apply(r.listener, handler_args);
 				}
 				
 				if (event._stopped)
 					break;
+			}
+			
+			if (default_listener && !event._defaultPrevented) {
+				if (typeof(default_listener) == "function") {
+					default_listener.apply(context, handler_args);
+				} else {
+					l_fn = default_listener[context || 'handleEvent'];
+					l_fn.apply(default_listener, handler_args);
+				}
 			}
 		} finally {
 			event.target = old_target; // reset the event's target
@@ -176,4 +228,7 @@ Loki.EventTarget = {
 	}
 };
 
-Loki.EventTarget.dispatchEvent = Loki.EventTarget.fireEvent; // Alias
+// Aliases
+Loki.EventTarget.dispatchEvent = Loki.EventTarget.fireEvent;
+Loki.EventTarget.dispatchEventWithDefault =
+	Loki.EventTarget.fireEventWithDefault;
