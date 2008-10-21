@@ -12,13 +12,7 @@ function $extend(node) {
 		return node;
 	if (node.cloneRange)
 		return _extend_range(node);
-	base2.DOM.bind(node);
-	
-	if (node.defaultView && Window && Window.prototype) {
-		node.defaultView.getComputedStyle = Window.prototype.getComputedStyle;
-	}
-	
-	return node;
+	return base2.DOM.bind(node);
 }
 
 function _extend_range(range) {
