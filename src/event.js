@@ -33,7 +33,7 @@ Loki.Event = Loki.Class.create({
 	// Returns:
 	//     (void) - Nothing
 	stopPropagation: function stop_event_propagation() {
-		this._stopped = true;
+		this._stopped = this._defaultPrevented = true;
 	},
 	
 	// Method: preventDefault
@@ -187,7 +187,7 @@ Loki.EventTarget = {
 			throw new Error('The given event has no type; cannot dispatch.');
 		}
 		
-		if (!this._loki_event_listeners[event.type]) {
+		if (!this._loki_event_listeners[event.type] && !default_listener) {
 			return;
 		}
 		
@@ -202,9 +202,10 @@ Loki.EventTarget = {
 		
 		try {
 			var listeners = this._loki_event_listeners[event.type];
+			var length = (listeners) ? listeners.length : 0;
 			
 			var l_fn, r;
-			for (var i = 0; i < listeners.length; i++) {
+			for (var i = 0; i < length; i++) {
 				r = listeners[i];
 				
 				if (typeof(r.listener) == 'function') {
