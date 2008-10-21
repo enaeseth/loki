@@ -216,7 +216,7 @@ Loki.ParagraphMaker = Loki.Class.create({
 		if (!Loki.Browser.WebKit) {
 			select_and_scroll();
 		} else {
-			select_and_scroll.defer(); // absolute voodoo
+			setTimeout(select_and_scroll, 5); // absolute voodoo
 		}
 			
 		// All done!

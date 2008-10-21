@@ -113,6 +113,8 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 					return;
 				
 				var range = self.window.getSelectedRange();
+				if (!range)
+					return;
 				var bounds = range.getBoundaries();
 				if (bounds.start && bounds.start.container.nodeName == "BODY") {
 					editor.document.execCommand("FormatBlock", false, "<p>");
