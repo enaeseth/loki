@@ -39,4 +39,12 @@ Loki.UI.KeyEvent.addInterpretation = function add_interpretation(code, type) {
 	}, this);
 };
 
+Loki.UI.KeyEvent.hasInterpretation = function has_interpretation(event) {
+	return (event.keyCode in Loki.UI.KeyEvent._interpretations);
+};
+
+Loki.UI.KeyEvent.DOM_TYPE = (Loki.Browser.Gecko || Loki.Browser.Opera)
+	? "keypress"
+	: "keydown";
+
 Loki.UI.KeyEvent._interpretations = [];

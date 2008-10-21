@@ -8,9 +8,17 @@
 // Returns:
 //     (Document|Element) the extended node
 function $extend(node) {
+	if (!node)
+		return node;
 	if (node.cloneRange)
 		return _extend_range(node);
-	return base2.DOM.bind(node);
+	base2.DOM.bind(node);
+	
+	if (node.defaultView && Window && Window.prototype) {
+		node.defaultView.getComputedStyle = Window.prototype.getComputedStyle;
+	}
+	
+	return node;
 }
 
 function _extend_range(range) {

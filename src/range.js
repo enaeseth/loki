@@ -119,7 +119,7 @@ Loki.IERange = Loki.Class.create({
 		}
 	},
 	
-	getBoundaryNodes: function get_boundary_nodes() {
+	getBoundaryNodes: function get_boundary_nodes(bounds) {
 		function get_boundary_node(b) {
 			var c = b.container, d, l;
 			if (c.nodeType == Node.TEXT_NODE)
@@ -133,7 +133,8 @@ Loki.IERange = Loki.Class.create({
 			return c; // shouldn't ever be necessary...
 		}
 		
-		var bounds = this.getBoundaries();
+		if (!bounds)
+			bounds = this.getBoundaries();
 		var nodes = [
 			get_boundary_node(bounds.start),
 			get_boundary_node(bounds.end)

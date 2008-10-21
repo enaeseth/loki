@@ -1,3 +1,5 @@
+#import "../paragraph_maker.js"
+
 Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 	toolbar: null,
 	iframe: null,
@@ -10,6 +12,7 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 		
 		this.toolbar = new Loki.UI.Toolbar(editor);
 		this.keybindings = new Loki.UI.KeybindingManager();
+		this.paragraphMaker = null;
 		
 		editor.addEventListener("startup", function() {
 			this._initialHeight = this.editor.textarea.clientHeight;
@@ -24,6 +27,7 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 	exit: function exit_visual_context(root) {
 		while (root.firstChild)
 			root.removeChild(root.firstChild);
+		this.paragraphMaker = null;
 	},
 	
 	processPlugin: function visual_process_plugin(plugin) {
@@ -90,6 +94,31 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 			
 			var selection = new Loki.Selection(editor.window);
 			self.selection = editor.selection = selection;
+			
+			
+			self.paragraphMaker = new Loki.ParagraphMaker(editor.window);
+			function wrap_key_event(e) {
+				if (e.keyCode == 13 /* return */) {
+					editor.fireEventWithDefault(new Loki.UI.KeyEvent(e),
+						self.paragraphMaker, "handleEvent");
+				} else if (Loki.UI.KeyEvent.hasInterpretation(e)) {
+					editor.fireEvent(new Loki.UI.KeyEvent(e));
+				}
+			}
+			self.document.addEventListener(Loki.UI.KeyEvent.DOM_TYPE,
+				wrap_key_event, false);
+			
+			function paragraphify(event) {
+				if (event.metaKey || event.ctrlKey)
+					return;
+				
+				var range = self.window.getSelectedRange();
+				var bounds = range.getBoundaries();
+				if (bounds.start && bounds.start.container.nodeName == "BODY") {
+					editor.document.execCommand("FormatBlock", false, "<p>");
+				}
+			}
+			self.document.addEventListener("keypress", paragraphify, false);
 			
 			self._listenForSelectionChanges();
 			
