@@ -21,7 +21,7 @@ Loki.HTMLGenerator = Loki.Class.create({
 	
 	generate: function generate_html(nodes) {
 		var gen = this;
-		var pattern = (gen.escape_non_ascii)
+		var pattern = (gen.escapeNonASCII)
 			? /[\x00-\x1F\x80-\uFFFF]/g
 			: /[\x00-\x1F]/g;
 
