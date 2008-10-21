@@ -156,12 +156,39 @@ _extend_range.extensions = {
 			return this.nodeType == Node.TEXT_NODE;
 		},
 		
+		isEmptyTag: function node_is_empty_tag() {
+			return false;
+		},
+		
+		getAttributes: function get_node_attributes() {
+			return {};
+		},
+		
 		containsOnlyWhitespace: function node_contains_only_whitespace() {
 			if (!this.isTextNode())
 				return false;
 			
 			return WHITESPACE_PATTERN.test(this.nodeValue);
+		},
+		
+		findChildren: function find_children(test) {
+			var matches = [];
+			
+			if (typeof(test) == "string") {
+				// CSS selector
+				var sel = test;
+				test = function test_selector(element) {
+					return $extend(element).matchesSelector(sel);
+				};
+			}
+			
+			return base2.filter(this.childNodes, test);
 		}
+	};
+	
+	var empty_tags = {
+		BR: true, AREA: true, LINK: true, IMG: true, PARAM: true, HR: true,
+		INPUT: true, COL: true, BASE: true, META: true
 	};
 	
 	extensions.Element = {
@@ -175,6 +202,10 @@ _extend_range.extensions = {
 		
 		isTextNode: function element_is_text_node() {
 			return false;
+		},
+		
+		isEmptyTag: function element_is_empty_tag() {
+			return (this.nodeName in empty_tags);
 		},
 		
 		getStyle: function get_element_style(name) {
@@ -238,6 +269,42 @@ _extend_range.extensions = {
 			this.style.opacity = (value == 1 || value === '')
 				? '' : (value < 0.00001) ? 0 : value;
 			return this;
+		},
+		
+		getAttributes: function get_element_attributes(no_translation) {
+			var attrs = {};
+
+			if (this.hasAttributes && !this.hasAttributes()) {
+				return attrs;
+			}
+
+			for (var i = 0; i < this.attributes.length; i++) {
+				var a = this.attributes[i];
+				if (!a.specified || a.nodeName in attrs)
+					continue;
+
+				var v = (a.nodeValue.toString)
+					? a.nodeValue.toString()
+					: a.nodeValue;
+
+				switch (a.nodeName) {
+					case 'class':
+					case 'className':
+						attrs[(no_translation) ? 'class' : 'className'] = v;
+						break;
+					case 'for':
+					case 'htmlFor':
+						attrs[(no_translation) ? 'for' : 'htmlFor'] = v;
+						break;
+					case 'style':
+						attrs.style = this.style.cssText;
+						break;
+					default:
+						attrs[a.nodeName] = v;
+				}
+			}
+
+			return attrs;
 		}
 	};
 	
