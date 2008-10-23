@@ -25,20 +25,40 @@ Loki.Plugin.create("browser_commands", {
 		var sel = editor.selection;
 		
 		function query_command() {
-			return editor.document.queryCommandState(command);
+			if (!editor.document)
+				return false;
+			
+			try {
+				if (editor.document.queryCommandEnabled) {
+					if (!editor.document.queryCommandEnabled(command))
+						return false;
+				}
+				return editor.document.queryCommandState(command);
+			} catch (e) {
+				return false;
+			}
 		}
 		
 		function set_command(value) {
 			if (query_command() != value)
-				toggle_command();
+				return toggle_command();
+			else
+				return true;
 		}
 		
 		function toggle_command() {
-			if (editor.document.queryCommandEnabled) {
-				if (!editor.document.queryCommandEnabled(command))
-					return false;
+			if (!editor.document)
+				return false;
+			try {
+				if (editor.document.queryCommandEnabled) {
+					if (!editor.document.queryCommandEnabled(command))
+						return false;
+				}
+				editor.document.execCommand(command, false, null);
+			} catch (e) {
+				return false;
 			}
-			editor.document.execCommand(command, false, null);
+			
 			return true;
 		}
 		

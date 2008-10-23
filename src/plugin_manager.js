@@ -467,6 +467,7 @@ Loki.PluginManager.Loader = Loki.Class.create({
 Loki.PluginManager.Task = Loki.Class.create({
 	initialize: function PluginLoadTask(callback, initial_steps) {
 		this.callback = callback;
+		this.steps = [];
 		this.pendingSteps = {};
 		this.finishedSteps = {};
 		this.failedSteps = {};
@@ -488,6 +489,7 @@ Loki.PluginManager.Task = Loki.Class.create({
 			
 			this.remaining++;
 			this.pendingSteps[step] = true;
+			this.steps.push(step);
 			
 			if (typeof(tasks[step]) != 'object') {
 				tasks[step] = [];
@@ -545,9 +547,21 @@ Loki.PluginManager.Task = Loki.Class.create({
 	},
 	
 	_taskFinished: function _task_finished() {
-		var callback = this.callback
-		var finished = this.finishedSteps;
-		var failed = this.failedSteps;
+		var callback = this.callback;
+		
+		var finished = {};
+		var failed = {};
+		
+		// Iterating through this.steps preserves the intitial order of the
+		// steps.
+		base2.forEach(this.steps, function check_step(name) {
+			var result;
+			if ((result = this.finishedSteps[name]) != null) {
+				finished[name] = result;
+			} else if ((result = this.finishedSteps[name]) != null) {
+				failed[name] = result;
+			}
+		}, this);
 		
 		setTimeout(function call_task_callback() {
 			callback(finished, failed);

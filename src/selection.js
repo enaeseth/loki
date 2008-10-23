@@ -8,8 +8,7 @@ Loki.Selection = Loki.Class.create({
 	// Parameters:
 	//     (Window) window - a browser window
 	initialize: function Selection(window) {
-		this.window = window;
-		this.document = document;
+		this.setWindow(window);
 	},
 	
 	// Method: getRange
@@ -19,6 +18,13 @@ Loki.Selection = Loki.Class.create({
 	//     (Range) - the selected range
 	getRange: function get_selection_range() {
 		return this.window.getSelectedRange();
+	},
+	
+	// Method: setWindow
+	// Re-sets the window on which this selection object operates.
+	setWindow: function set_selection_window(window) {
+		this.window = window;
+		this.document = document;
 	},
 	
 	// Method: getInlineSections

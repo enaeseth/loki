@@ -28,7 +28,12 @@ CLOBBER.include('build', 'pkg', 'docs', 'private')
 rule(/\.strings.js$/ => [
     proc {|task_name| task_name.sub(/\.[^.]+$/, '') }
 ]) do |t|
-  puts "compiling #{t.source}"
+  if RakeFileUtils.verbose_flag == :default
+    verbose = false
+  else
+    verbose ||= RakeFileUtils.verbose_flag
+  end
+  puts "compiling #{t.source}" if verbose
   parser = StringsParser.new
   ast = parser.parse(File.read(t.source))
   strings = ast.strings

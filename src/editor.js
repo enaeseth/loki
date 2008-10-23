@@ -87,6 +87,12 @@ Loki.Editor = Loki.Class.create({
 			minimumLevel: (settings.minimumLogLevel
 				|| settings.minimum_log_level || "warning")
 		});
+		
+		this.generator = new Loki.HTMLGenerator({
+			xhtml: ('xhtml' in settings) ? settings.xhtml : true,
+			indentText: "    "
+		});
+		this._savedHTML = null;
 			
 		this.fireEvent('startup');
 		
@@ -136,7 +142,10 @@ Loki.Editor = Loki.Class.create({
 		this.previousContext = this.activeContext || null;
 		if (this.previousContext)
 			this.previousContext.exit(this.contextRoot);
+		var html = this.getHTML();
+		
 		this.activeContext = new_context;
+		this.setHTML(html);
 		this.activeContext.enter(this.contextRoot);
 		this.fireEvent("context_switch", name, new_context);
 	},
@@ -162,6 +171,29 @@ Loki.Editor = Loki.Class.create({
 		var context = new context_class(this);
 		this.contexts[name] = context;
 		this.fireEvent("context_add", name, context);
+	},
+	
+	// Method: getHTML
+	getHTML: function editor_get_html() {
+		var c = this.activeContext;
+		if (c) {
+			if (c.getDocumentRoot) {
+				return this.generator.generate(c.getDocumentRoot().childNodes);
+			} else if (c.getHTML) {
+				return c.getHTML();
+			}
+		}
+		return this._savedHTML || "";
+	},
+	
+	// Method: setHTML
+	setHTML: function editor_set_html(html) {
+		if (this.activeContext.setHTML) {
+			this.activeContext.setHTML(html);
+			this._savedHTML = null;
+		} else {
+			this._savedHTML = html;
+		}
 	},
 	
 	// Method: log

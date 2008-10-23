@@ -1,10 +1,16 @@
 #import "../paragraph_maker.js"
 
 Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
+	alive: false,
+	firstTime: true,
 	toolbar: null,
 	iframe: null,
+	window: null,
+	document: null,
+	body: null,
 	selection: null,
 	keybinder: null,
+	html: null,
 	_initialHeight: 350,
 	
 	initialize: function VisualContext(editor) {
@@ -25,9 +31,11 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 	},
 	
 	exit: function exit_visual_context(root) {
+		this.alive = false;
 		while (root.firstChild)
 			root.removeChild(root.firstChild);
 		this.paragraphMaker = null;
+		this.html = null;
 	},
 	
 	processPlugin: function visual_process_plugin(plugin) {
@@ -44,17 +52,23 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 		this.window.focus();
 	},
 	
+	getDocumentRoot: function visual_get_document_root() {
+		return this.body;
+	},
+	
 	getHTML: function visual_get_html() {
-		return this.iframe.contentWindow.document.body.innerHTML;
+		return this.body.innerHTML;
 	},
 	
 	setHTML: function visual_set_html(html) {
-		var body = this.iframe.contentWindow.document.body;
-		body.innerHTML = html;
+		if (!this.alive || !this.body)
+			this.html = html;
+		else
+			this.body.innerHTML = html;
 	},
 	
 	_getFrame: function get_visual_editor_frame() {
-		if (this.iframe)
+		if (this.alive && this.iframe)
 			return this.iframe;
 		
 		var self = this;
@@ -85,6 +99,7 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 			editor.window = self.window = iframe.contentWindow;
 			editor.document = self.document = $extend(editor.window.document);
 			editor.body = self.body = editor.document.querySelector("body");
+			self.alive = true;
 			
 			editor.theme.applyToDocument(editor);
 			editor.document.makeEditable();
@@ -92,9 +107,18 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 				return self.keybindings.evaluate(ev);
 			}, false);
 			
-			var selection = new Loki.Selection(editor.window);
-			self.selection = editor.selection = selection;
+			var selection;
+			if (self.selection) {
+				editor.selection = selection = self.selection;
+			} else {
+				selection = new Loki.Selection(editor.window);
+				self.selection = editor.selection = selection;
+			}
 			
+			if (self.html) {
+				self.body.innerHTML = self.html;
+				self.html = null;
+			}
 			
 			self.paragraphMaker = new Loki.ParagraphMaker(editor.window);
 			function wrap_key_event(e) {
@@ -124,10 +148,11 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 			
 			self._listenForSelectionChanges();
 			
-			editor.fireEvent("visual_ready");
+			editor.fireEvent("visual_ready", self.firstTime);
+			self.firstTime = false;
 		}
 		
-		setup_visual_editor_frame();
+		setTimeout(setup_visual_editor_frame, 30);
 		return this.iframe;
 	},
 	
@@ -135,7 +160,8 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 		var selection_changing_events = [
 			'mousedown', // Moves the carat (anchor) position
 			'mouseup',   // Sets the selection focus position
-			'keyup'      // Move via keyboard completed (arrow keys, etc.) 
+			'keydown',   // Move via keyboard (arrow keys, etc.) 
+			'keyup'
 		];
 		
 		base2.forEach(selection_changing_events, function reg_sc_listener(ev) {
