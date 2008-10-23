@@ -24,8 +24,8 @@ Loki.Browser = {
 	
 	// var: (Boolean) Gecko
 	// True if the user's browser uses Mozilla Gecko for rendering.
-	Gecko:  (navigator.userAgent.indexOf('Gecko') > -1
-		&& navigator.userAgent.indexOf('KHTML') == -1),
+	Gecko:  (navigator.userAgent.indexOf('Gecko') > -1 &&
+		navigator.userAgent.indexOf('KHTML') == -1),
 		
 	// var: (Boolean) Windows
 	// True if the user's browser is running under Microsoft Windows.
@@ -45,12 +45,14 @@ Loki.Browser = {
 		} else if (Loki.Browser.WebKit) {
 			if (/Safari/.test(navigator.userAgent)) {
 				match = /Version\/([\d+\.]+)/.exec(navigator.userAgent);
-				if (match && match.length >= 1)
+				if (match && match.length >= 1) {
 					return match[1];
+				}
 				match = /Safari\/([\d+\.]+)/.exec(navigator.userAgent);
 				if (match && match.length >= 1) {
-					if (Loki.Browser._safari_versions[match[1]])
+					if (Loki.Browser._safari_versions[match[1]]) {
 						return Loki.Browser._safari_versions[match[1]];
+					}
 				}
 			}
 			return '';
@@ -59,9 +61,7 @@ Loki.Browser = {
 		}
 		
 		match = pattern.exec(navigator.userAgent);
-		return (match && match.length >= 1)
-			? match[1]
-			: '';
+		return (match && match.length >= 1) ? match[1] : '';
 	},
 	
 	_safari_versions: {

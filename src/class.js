@@ -30,7 +30,7 @@ Loki.Class = {
 	//     TypeError - if _prototype_ is not an object or if _superclass_ (if
 	//                 given) is not a function
 	create: function create_class(superclass, prototype) {
-		if (arguments.length == 0) {
+		if (arguments.length === 0) {
 			superclass = null;
 			prototype = {};
 		} else if (arguments.length == 1) {
@@ -44,13 +44,13 @@ Loki.Class = {
 			throw new TypeError("The class's prototype must be an object.");
 		}
 		
-		var cl = prototype.initialize || (function T() { });
+		var cl = prototype.initialize || function T() { };
 		
 		if (superclass) {
 			var my_proto = prototype;
-			var subclass = function() { };
-			subclass.prototype = superclass.prototype;
-			prototype = new subclass();
+			var Subclass = function() { };
+			Subclass.prototype = superclass.prototype;
+			prototype = new Subclass();
 			Loki.Object.extend(prototype, my_proto);
 			cl.superclass = superclass;
 		}

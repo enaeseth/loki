@@ -95,7 +95,7 @@ Loki.Chooser = Loki.Class.create({
 		
 		function dealias(name) {
 			var dealised;
-			while (dealised = self.aliases[name]) {
+			while ((dealised = self.aliases[name])) {
 				name = dealised;
 			}
 			return name;
@@ -124,9 +124,9 @@ Loki.Chooser = Loki.Class.create({
 		};
 		
 		var operation = operations['+'];
-		var part_pattern = /([+-])?\s*(\w+)/;
+		var part_pattern = /([+\-])?\s*(\w+)/;
 		
-		var parts = (selector || 'default').match(/([+-])?\s*(\w+)/g);
+		var parts = (selector || 'default').match(/([+\-])?\s*(\w+)/g);
 		base2.forEach(parts, function process_selector_part(part) {
 			var breakdown = part.match(part_pattern);
 			if (!breakdown) {
@@ -164,8 +164,9 @@ Loki.Chooser = Loki.Class.create({
 	//                     given name
 	add: function add_to_chooser(name, item) {
 		if (name in this.items) {
-			if (this.items[name] === item)
+			if (this.items[name] === item) {
 				return this;
+			}
 			throw Loki.error('ConflictError', 'chooser:item exists', name);
 		} else if (name in this.aliases) {
 			throw Loki.error('ConflictError',
