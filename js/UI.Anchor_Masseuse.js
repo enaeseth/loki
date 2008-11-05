@@ -74,8 +74,11 @@ UI.Anchor_Masseuse = function()
 		var anchor = self.get_anchor_for_placeholder(placeholder);
 		
 		placeholder.title = '#' + name;
-		if (anchor)
+		if (anchor) {
+			if (anchor.id && anchor.id == anchor.name)
+				anchor.id = name;
 			anchor.name = name;
+		}		
 	};
 	
 	this.unmassage = function unmassage_anchor(placeholder) {
