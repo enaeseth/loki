@@ -75,8 +75,10 @@ UI.Anchor_Masseuse = function()
 		
 		placeholder.title = '#' + name;
 		if (anchor) {
-			if (anchor.id && anchor.id == anchor.name)
+			if (anchor.id && anchor.id == anchor.name) {
 				anchor.id = name;
+				placeholder.setAttribute("loki:anchor_id", name);
+			}
 			anchor.name = name;
 		}		
 	};
