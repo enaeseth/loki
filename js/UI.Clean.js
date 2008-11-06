@@ -453,6 +453,17 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			}
 		},
 		{
+			description: "Normalize all link URI's",
+			test: Util.Node.curry_is_tag('A'),
+			action: function normalize_image_uri(link) {
+				if (!link.href)
+					return;
+				var norm = Util.URI.normalize(link.href);
+				norm.scheme = null;
+				link.href = Util.URI.build(norm);
+			}
+		},
+		{
 			description: 'Remove unnecessary BR\'s that are elements\' last ' +
 				'children',
 			run_on_live: false,
