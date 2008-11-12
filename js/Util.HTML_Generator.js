@@ -22,8 +22,8 @@ Util.HTML_Generator = function HTMLGenerator(options) {
 Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 	var gen = this;
 	var pattern = (gen.escape_non_ascii)
-		? /[\x00-\x1F\x80-\uFFFF]/g
-		: /[\x00-\x1F]/g;
+		? /[\x00-\x1F\x80-\uFFFF&<>]/g
+		: /[\x00-\x1F^<>]/g;
 	
 	function clean_text(text) {
 		function html_escape(txt) {
