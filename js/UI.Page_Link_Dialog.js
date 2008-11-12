@@ -767,6 +767,22 @@ UI.Page_Link_Dialog = function()
 			this._new_window_checkbox.checked = false;
 		}
 	};
+	
+	this._update_link_title = function update_link_title(tab_name, title)
+	{
+		var info;
+		var active = (this._tabset.get_name_of_selected_tab() == tab_name);
+		if (!(info = this._link_information[tab_name])) {
+			info = this._link_information[tab_name] = {
+				link_title: '',
+				new_window: (active && this._new_window_checkbox.checked)
+			};
+		}
+		
+		info.link_title = title;
+		if (active)
+			this._set_link_title(title);
+	}
 
 	/**
 	 * Creates and appends a chunk containing a "remove link" button. 

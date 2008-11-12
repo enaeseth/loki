@@ -207,7 +207,7 @@ UI.Page_Link_Selector = function(dialog)
 					Util.Event.add_event_listener(link, 'click', function(e)
 					{
 						try {
-							dialog._set_link_title('');
+							dialog._update_link_title('rss', '');
 							select_type.call(this, type, item);
 						} finally {
 							Util.Event.prevent_default(e || window.event);
@@ -436,7 +436,8 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 				function item_changed()
 				{
 					var el = select.element;
-					dialog._set_link_title(el.options[el.selectedIndex].text);
+					dialog._update_link_title('rss',
+						el.options[el.selectedIndex].text);
 				}
 					
 				Util.Event.add_event_listener(select.element, 'change',
