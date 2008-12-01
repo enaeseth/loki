@@ -254,6 +254,10 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		
 		return false;
 	}
+	
+	function is_on_current_page(uri) {
+		return (!uri.host && (!uri.path || (/$\.\/?/.exec(uri.path))));
+	}
 
 	var tests =
 	[
@@ -433,17 +437,6 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			}
 		},
 		{
-			description: 'Remove protocol from links on the current server',
-			test: function(node) { return has_tagname(node, ['A']); },
-			action: function(node) {
-				var href = node.getAttribute('href');
-				if (href != null) {
-					node.setAttribute('href',
-						UI.Clean.clean_URI(href));
-				}
-			}
-		},
-		{
 			description: "Normalize all image URI's",
 			test: Util.Node.curry_is_tag('IMG'),
 			action: function normalize_image_uri(img) {
@@ -457,6 +450,9 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			test: Util.Node.curry_is_tag('A'),
 			action: function normalize_image_uri(link) {
 				if (!link.href)
+					return;
+				var uri = Util.URI.parse(link.href);
+				if (is_on_current_page(uri))
 					return;
 				var norm = Util.URI.normalize(link.href);
 				norm.scheme = null;

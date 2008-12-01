@@ -48,7 +48,7 @@ Util.URI.parse = function parse_uri(uri)
 		? Util.URI.authority_pattern.exec(match[4])
 		: [];
 	
-	// this wouldn't need to be so convulted if JScript weren't so crappy!
+	// this wouldn't need to be so convoluted if JScript weren't so crappy!
 	function get_match(source, index)
 	{
 		try {
@@ -71,7 +71,7 @@ Util.URI.parse = function parse_uri(uri)
 		password: get_match(authority_match, 4),
 		host: get_match(authority_match, 5),
 		port: (port ? Number(port) : port),
-		path: get_match(match, 5) || '/',
+		path: get_match(match, 5) || (host ? '/' : null),
 		query: get_match(match, 7),
 		fragment: get_match(match, 9)
 	};
