@@ -136,6 +136,11 @@ Util.Request = function(url, options)
 	try {
 		this.transport.open(this.method.toUpperCase(), this.url,
 			this.options.asynchronus);
+		if (this.options.headers) {
+			Util.Object.enumerate(this.options.headers, function(k, v) {
+				this.transport.setRequestHeader(k, v);
+			}, this);
+		}
 		this.transport.send(this.options.body || null);
 	} catch (e) {
 		if (timeout) {
