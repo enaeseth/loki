@@ -58,13 +58,13 @@ Util.JSON = (function JSON() {
 			start = ci + primitive_dumpers.string(name) + ": ";
 			value = object[name];
 			t = typeof(value);
-			if (object !== null && t == "object") {
+			if (value !== null && t == "object") {
 				buf.push(start);
 				json_dump_object(buf, level + 1, value);
 				if (i < last)
 					buf[buf.length - 1] = buf[buf.length - 1] + ",";
 			} else {
-				value = (object === null) ? 'null' : primitive_dumpers[t](value);
+				value = (value === null) ? 'null' : primitive_dumpers[t](value);
 				buf.push(start + value + (i < last ? "," : ""));
 			}
 		}
