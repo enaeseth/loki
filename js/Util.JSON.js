@@ -54,13 +54,13 @@ Util.JSON = (function JSON() {
 			start = ci + primitive_dumpers.string(name) + ": ";
 			value = object[name];
 			t = typeof(value);
-			if (t == "object") {
+			if (object !== null && t == "object") {
 				buf.push(start);
 				json_dump_object(buf, level + 1, value);
 				if (i < last)
 					buf[buf.length - 1] = buf[buf.length - 1] + ",";
 			} else {
-				value = primitive_dumpers[t](value);
+				value = (t === null) ? 'null' : primitive_dumpers[t](value);
 				buf.push(start + value + (i < last ? "," : ""));
 			}
 		}
@@ -71,7 +71,9 @@ Util.JSON = (function JSON() {
 	return {
 		dump: function json_dump(object) {
 			var t = typeof(object), dumper, buf;
-			if (t == "object") {
+			if (object === null) {
+				return 'null';
+			} else if (t == "object") {
 				buf = [''];
 				json_dump_object(buf, 0, object);
 				return buf.join("\n");
