@@ -35,6 +35,10 @@ Util.JSON = (function JSON() {
 			return (b) ? "true" : "false";
 		},
 		
+		"undefined": function json_dump_undefined() {
+			return "undefined";
+		},
+		
 		"function": function json_dump_function(fn) {
 			throw new TypeError("JSON cannot represent functions!");
 		}
