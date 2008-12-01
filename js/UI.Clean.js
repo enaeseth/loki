@@ -256,7 +256,15 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	}
 	
 	function is_on_current_page(uri) {
-		return (!uri.host && (!uri.path || (/$\.\/?/.exec(uri.path))));
+		if (!uri.host && (!uri.path || (/$\.\/?/.exec(uri.path))))
+			return true;
+		
+		// Mozilla makes us go the extra mile.
+		var base = Util.URI.parse(window.location);
+		if (base.authority == uri.authority && base.path == uri.path)
+			return true;
+		
+		return false;
 	}
 
 	var tests =
