@@ -72,6 +72,19 @@ UI.Loki = function Loki()
 		UI.Clean.clean(_body, _settings);
 		_massage_body();
 	};
+	
+	this.crash_report = function editor_generate_crash_report(exc)
+	{
+		return {
+			version: "1.0",
+			user_agent: navigator.userAgent,
+			platform: navigator.platform,
+			settings: this.settings,
+			options: this.options,
+			'exception': exc,
+			document: this.get_dirty_html()
+		};
+	};
 
 	/**
 	 * Copies the value of the iframe to the value of the textarea.
