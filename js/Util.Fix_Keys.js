@@ -2,6 +2,7 @@ Util.Fix_Keys = function()
 {
 };
 
+Util.Fix_Keys.NO_MERGE = /^(BODY|HEAD|TABLE|TBODY|THEAD|TR|TH|TD)$/;
 Util.Fix_Keys.fix_delete_and_backspace = function(e, win)
 {
 	function is_not_at_end_of_body(rng)
@@ -13,7 +14,7 @@ Util.Fix_Keys.fix_delete_and_backspace = function(e, win)
 		rng2.setStart(start_container, start_offset);
 		var ret = rng2.toString().length > 0;// != '';
 		return ret;
-	};
+	}
 
 	function is_not_at_beg_of_body(rng)
 	{
@@ -24,14 +25,14 @@ Util.Fix_Keys.fix_delete_and_backspace = function(e, win)
 		rng2.setEnd(start_container, start_offset);
 		var ret = rng2.toString().length > 0;// != '';
 		return ret;
-	};
+	}
 
 	function move_selection_to_end(node, sel)
 	{
 		var rightmost = Util.Node.get_rightmost_descendent(node);
 		Util.Selection.select_node(sel, rightmost);
 		Util.Selection.collapse(sel, false); // to end
-	};
+	}
 
 	function remove_trailing_br(node)
 	{
@@ -41,34 +42,44 @@ Util.Fix_Keys.fix_delete_and_backspace = function(e, win)
 		{
 			node.removeChild(node.lastChild);
 		}
-	};
-
+	}
+	
+	
 	function merge_blocks(one, two)
 	{
-		while ( two.firstChild != null )
+		while (two.firstChild)
 			one.appendChild(two.firstChild);
 		two.parentNode.removeChild(two);
-
-		//one.normalize(); // this messes up cursor position
-		return;
-	};
+	}
 	
+	/*
+	 * If the node is a special Loki container (e.g. for a horizontal rule),
+	 * we shouldn't merge with it.
+	 */
 	function is_container(node)
 	{
 		return (node && node.nodeType == Util.Node.ELEMENT_NODE &&
 			node.getAttribute('loki:container'));
 	}
+	
+	function is_empty_block(node)
+	{
+		return (Util.Node.is_block_level_element(node) && 
+			Util.Node.is_basically_empty(node));
+	}
+	
+	function is_unmergable(node)
+	{
+		return (is_container(node) ||
+			is_empty_block(node) || 
+			Util.Element.empty_tag(node));
+	}
 
 	function do_merge(one, two, sel)
 	{
-		/*
-		 * If the node is a special Loki container (e.g. for a horizontal rule),
-		 * we shouldn't merge with it. Instead, delete the container (and the)
-		 * page element it contains.
-		 */
-		function handle_containers(node)
+		function handle_unmergable(node)
 		{
-			if (is_container(node)) {
+			if (is_unmergable(node)) {
 				node.parentNode.removeChild(node);
 				return true;
 			}
@@ -76,24 +87,18 @@ Util.Fix_Keys.fix_delete_and_backspace = function(e, win)
 			return false;
 		}
 		
-		var tags_regexp = new RegExp('BODY|HEAD|TABLE|TBODY|THEAD|TR|TH|TD', '');
-		if ( one == null || one.nodeName.match(tags_regexp) ||
-			 two == null || two.nodeName.match(tags_regexp) )
-		{
+		var tags = Util.Fix_Keys.NO_MERGE;
+		if (!one || !two || one.nodeName.match(tags) || two.nodeName.match(tags)) {
 			return;
-		}
-		else if (handle_containers(one) || handle_containers(two))
-		{
+		} else if (handle_unmergable(one) || handle_unmergable(two)) {
 			return;
-		}
-		else
-		{
+		} else {
 			remove_trailing_br(one);
 			move_selection_to_end(one, sel);
 			merge_blocks(one, two);
 			e.preventDefault();
 		}
-	};
+	}
 	
 	function remove_container(container)
 	{
