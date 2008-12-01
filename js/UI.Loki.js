@@ -1059,15 +1059,29 @@ UI.Loki = function Loki()
 			Util.Event.add_event_listener(_document, 'keyup', key_raised);
 		}
 		
+		function send_crash_report(destination, exc) {
+			new Util.Request(destination, {
+				method: "POST",
+				headers: {'Content-Type': 'application/json'},
+				body: self.crash_report(exc)
+			});
+		}
+		
 		function submit_handler(ev)
 		{
 			try {
 				self.copy_iframe_to_hidden();
 			} catch (ex) {
+				var r_uri = _settings.crash_report_uri;
 				alert("An error occurred that prevented your document from " +
-					"being safely submitted.\n\nTechnical details:\n" +
+					"being safely submitted." +
+					(r_uri ? " A report of this error has been sent." : "") +
+					"\n\nTechnical details:\n" +
 					self.describe_error(ex));
 				Util.Event.prevent_default(ev);
+				
+				if (r_uri)
+					send_crash_report(r_uri, ex);
 				
 				if (typeof(console) == 'object' && console.firebug) {
 					console.error('Failed to generate HTML:',

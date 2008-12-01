@@ -72,6 +72,7 @@ class Loki2
 	var $_allowable_inline_styles = null;
 	var $_external_script_path = null;
 	var $_html_generator = null;
+	var $_crash_report_uri = null;
 	var $_document_style_sheets = array();
 
 	/**
@@ -176,6 +177,16 @@ class Loki2
 	function set_html_generator($generator)
 	{
 		$this->_html_generator = $generator;
+	}
+	
+	/**
+	 * Sets the URI of a script to receive reports of Loki crashes.
+	 * @param string $uri the URI of a script that will receive the crash reports
+	 * @return void
+	 */
+	function set_crash_report_uri($uri)
+	{
+		$this->_crash_report_uri = $uri;
 	}
 
 	/**
@@ -431,6 +442,8 @@ class Loki2
 			$s->allowable_inline_styles = $this->_allowable_inline_styles;
 		if ($this->_html_generator)
 			$s->html_generator = $this->_html_generator;
+		if ($this->_crash_report_uri)
+		    $s->crash_report_uri = $this->_crash_report_uri;
 		
 		return $s;
 	}
