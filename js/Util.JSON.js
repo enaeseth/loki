@@ -64,7 +64,7 @@ Util.JSON = (function JSON() {
 				if (i < last)
 					buf[buf.length - 1] = buf[buf.length - 1] + ",";
 			} else {
-				value = (t === null) ? 'null' : primitive_dumpers[t](value);
+				value = (object === null) ? 'null' : primitive_dumpers[t](value);
 				buf.push(start + value + (i < last ? "," : ""));
 			}
 		}
