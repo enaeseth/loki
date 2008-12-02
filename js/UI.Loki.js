@@ -1079,15 +1079,16 @@ UI.Loki = function Loki()
 		function submit_handler(ev)
 		{
 			try {
+				throw new TypeError("Foo!");
 				self.copy_iframe_to_hidden();
 			} catch (ex) {
-				var sent = this.crashed(ex);
+				Util.Event.prevent_default(ev);
+				var sent = self.crashed(ex);
 				alert("An error occurred that prevented your document from " +
 					"being safely submitted." +
 					(sent ? " A report of this error has been sent." : "") +
 					"\n\nTechnical details:\n" +
 					self.describe_error(ex));
-				Util.Event.prevent_default(ev);
 				
 				if (typeof(console) == 'object' && console.firebug) {
 					console.error('Failed to generate HTML:',
