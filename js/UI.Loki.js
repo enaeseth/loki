@@ -83,7 +83,7 @@ UI.Loki = function Loki()
 			user_agent: navigator.userAgent,
 			platform: navigator.platform,
 			settings: s,
-			options: Util.Object.keys(this.options),
+			options: Util.Object.names(this.options),
 			'exception': exc,
 			document: this.get_dirty_html()
 		};
