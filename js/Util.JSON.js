@@ -43,14 +43,29 @@ Util.JSON = (function JSON() {
 			return "null";
 		}
 	};
-	primitive_dumpers['undefined'] = primitive_dumpers['null'];
+	
+	function json_dump_regexp(re) {
+		return primitive_dumpers.string(re.toString());
+	}
+	
+	function is_regexp(value) {
+		return (typeof(value.test) == "function" &&
+			typeof(value.exec) == "function" &&
+			typeof(value.global) == "boolean");
+	}
 	
 	function _json_dump_child_value(buf, level, value) {
 		var t = typeof(value), end;
-		if (value !== null && t == "object") {
+		var is_re = is_regexp(value);
+		if (value !== null && t == "object" && !is_re) {
 			json_dump_object(buf, level + 1, value);
 		} else {
-			value = (value === null) ? 'null' : primitive_dumpers[t](value);
+			if (value === null)
+				value = 'null';
+			else if (is_re)
+				value = json_dump_regexp(value);
+			else
+				value = primitive_dumpers[t](value);
 			end = buf.length - 1;
 			buf[end] = buf[end] + value;
 		}
@@ -107,6 +122,8 @@ Util.JSON = (function JSON() {
 			if (object === null) {
 				return 'null';
 			} else if (t == "object") {
+				if (is_regexp(object))
+					return json_dump_regexp(object);
 				buf = [''];
 				json_dump_object(buf, 0, object);
 				return buf.join("\n");
