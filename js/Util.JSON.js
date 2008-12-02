@@ -40,7 +40,7 @@ Util.JSON = (function JSON() {
 		},
 		
 		"function": function json_dump_function(fn) {
-			throw new TypeError("JSON cannot represent functions!");
+			return "null";
 		}
 	};
 	primitive_dumpers['undefined'] = primitive_dumpers['null'];
@@ -58,7 +58,9 @@ Util.JSON = (function JSON() {
 			start = ci + primitive_dumpers.string(name) + ": ";
 			value = object[name];
 			t = typeof(value);
-			if (value !== null && t == "object") {
+			if (t == "function") {
+				continue;
+			} else if (value !== null && t == "object") {
 				buf.push(start);
 				json_dump_object(buf, level + 1, value);
 				if (i < last)
