@@ -1063,7 +1063,7 @@ UI.Loki = function Loki()
 			new Util.Request(destination, {
 				method: "POST",
 				headers: {'Content-Type': 'application/json'},
-				body: self.crash_report(exc)
+				body: Util.JSON.dump(self.crash_report(exc))
 			});
 		}
 		
