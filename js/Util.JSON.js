@@ -36,7 +36,7 @@ Util.JSON = (function JSON() {
 		},
 		
 		"undefined": function json_dump_undefined() {
-			return "undefined";
+			return "null";
 		},
 		
 		"function": function json_dump_function(fn) {
