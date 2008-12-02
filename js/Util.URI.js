@@ -63,13 +63,14 @@ Util.URI.parse = function parse_uri(uri)
 	}
 	
 	var port = get_match(authority_match, 7);
+	var host = get_match(authority_match, 5);
 	
 	return {
 		scheme: get_match(match, 2),
 		authority: get_match(match, 4),
 		user: get_match(authority_match, 2),
 		password: get_match(authority_match, 4),
-		host: get_match(authority_match, 5),
+		host: host,
 		port: (port ? Number(port) : port),
 		path: get_match(match, 5) || (host ? '/' : null),
 		query: get_match(match, 7),
