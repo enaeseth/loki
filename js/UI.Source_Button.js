@@ -17,8 +17,11 @@ UI.Source_Button = function()
 		try {
 			self._loki.toggle_iframe_textarea(); 
 		} catch (e) {
+			var sent = self._loki.crashed(e);
 			alert("An error occurred that prevented your document's HTML " +
-				"from being generated.\n\nTechnical details:\n" +
+				"from being generated." +
+				(sent ? " A report of this error has been sent." : "") +
+				"\n\nTechnical details:\n" +
 				self._loki.describe_error(e));
 		}
 		

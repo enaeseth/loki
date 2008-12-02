@@ -75,15 +75,32 @@ UI.Loki = function Loki()
 	
 	this.crash_report = function editor_generate_crash_report(exc)
 	{
+		var s = Util.Object.clone(this.settings);
+		delete s.options;
+		
 		return {
 			version: "1.0",
 			user_agent: navigator.userAgent,
 			platform: navigator.platform,
-			settings: this.settings,
-			options: this.options,
+			settings: s,
+			options: Util.Object.keys(this.options),
 			'exception': exc,
 			document: this.get_dirty_html()
 		};
+	};
+	
+	this.crashed = function loki_editor_crashed(exc)
+	{
+		var report_uri = _settings.crash_report_uri;
+		if (!report_uri)
+			return false;
+		
+		new Util.Request(report_uri, {
+			method: "POST",
+			headers: {'Content-Type': 'application/json'},
+			body: Util.JSON.dump(self.crash_report(exc))
+		});
+		return true;
 	};
 
 	/**
@@ -1059,29 +1076,18 @@ UI.Loki = function Loki()
 			Util.Event.add_event_listener(_document, 'keyup', key_raised);
 		}
 		
-		function send_crash_report(destination, exc) {
-			new Util.Request(destination, {
-				method: "POST",
-				headers: {'Content-Type': 'application/json'},
-				body: Util.JSON.dump(self.crash_report(exc))
-			});
-		}
-		
 		function submit_handler(ev)
 		{
 			try {
 				self.copy_iframe_to_hidden();
 			} catch (ex) {
-				var r_uri = _settings.crash_report_uri;
+				var sent = this.crashed(ex);
 				alert("An error occurred that prevented your document from " +
 					"being safely submitted." +
-					(r_uri ? " A report of this error has been sent." : "") +
+					(sent ? " A report of this error has been sent." : "") +
 					"\n\nTechnical details:\n" +
 					self.describe_error(ex));
 				Util.Event.prevent_default(ev);
-				
-				if (r_uri)
-					send_crash_report(r_uri, ex);
 				
 				if (typeof(console) == 'object' && console.firebug) {
 					console.error('Failed to generate HTML:',
