@@ -92,7 +92,7 @@ Util.JSON = (function JSON() {
 			value = array[i];
 			if (typeof(value) == "function")
 				continue;
-			buf.push(indent);
+			buf.push(ci);
 			_json_dump_child_value(buf, level, value);
 			if (i < last)
 				buf[buf.length - 1] = buf[buf.length - 1] + ",";
