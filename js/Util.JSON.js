@@ -46,12 +46,13 @@ Util.JSON = (function JSON() {
 	primitive_dumpers['undefined'] = primitive_dumpers['null'];
 	
 	function _json_dump_child_value(buf, level, value) {
-		var t = typeof(value);
+		var t = typeof(value), end;
 		if (value !== null && t == "object") {
 			json_dump_object(buf, level + 1, value);
 		} else {
 			value = (value === null) ? 'null' : primitive_dumpers[t](value);
-			buf.push(value);
+			end = buf.length - 1;
+			buf[end] = buf[end] + value;
 		}
 	}
 	
