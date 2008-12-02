@@ -79,7 +79,7 @@ UI.Loki = function Loki()
 		delete s.options;
 		
 		return {
-			version: Loki.version,
+			version: this.version,
 			report_version: "1.0",
 			user_agent: navigator.userAgent,
 			platform: navigator.platform,
@@ -1392,6 +1392,7 @@ UI.Loki = function Loki()
 		}
 	};
 };
+UI.Loki.prototype.version = "$Rev$";
 
 UI.Loki.Options = new Util.Chooser();
 UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
