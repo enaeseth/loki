@@ -1079,7 +1079,6 @@ UI.Loki = function Loki()
 		function submit_handler(ev)
 		{
 			try {
-				throw new TypeError("Foo!");
 				self.copy_iframe_to_hidden();
 			} catch (ex) {
 				Util.Event.prevent_default(ev);
