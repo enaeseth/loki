@@ -49,7 +49,8 @@ Util.JSON = (function JSON() {
 	}
 	
 	function is_regexp(value) {
-		return (typeof(value.test) == "function" &&
+		return (value && typeof(value) == object &&
+			typeof(value.test) == "function" &&
 			typeof(value.exec) == "function" &&
 			typeof(value.global) == "boolean");
 	}
