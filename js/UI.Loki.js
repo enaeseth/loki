@@ -79,7 +79,8 @@ UI.Loki = function Loki()
 		delete s.options;
 		
 		return {
-			version: "1.0",
+			version: Loki.version,
+			report_version: "1.0",
 			user_agent: navigator.userAgent,
 			platform: navigator.platform,
 			settings: s,
