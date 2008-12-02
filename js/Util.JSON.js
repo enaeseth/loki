@@ -45,7 +45,22 @@ Util.JSON = (function JSON() {
 	};
 	primitive_dumpers['undefined'] = primitive_dumpers['null'];
 	
+	function _json_dump_child_value(buf, level, value) {
+		var t = typeof(value);
+		if (value !== null && t == "object") {
+			json_dump_object(buf, level + 1, value);
+		} else {
+			value = (value === null) ? 'null' : primitive_dumpers[t](value);
+			buf.push(value);
+		}
+	}
+	
 	function json_dump_object(buf, level, object) {
+		if (typeof(object.each) == "function") {
+			json_dump_array(buf, level, object);
+			return;
+		}
+		
 		var last = buf.length - 1;
 		buf[last] = buf[last] + '{';
 		
@@ -55,23 +70,34 @@ Util.JSON = (function JSON() {
 		last = keys.length - 1;
 		for (i = 0; i < keys.length; i++) {
 			name = keys[i];
-			start = ci + primitive_dumpers.string(name) + ": ";
 			value = object[name];
-			t = typeof(value);
-			if (t == "function") {
+			if (typeof(value) == "function")
 				continue;
-			} else if (value !== null && t == "object") {
-				buf.push(start);
-				json_dump_object(buf, level + 1, value);
-				if (i < last)
-					buf[buf.length - 1] = buf[buf.length - 1] + ",";
-			} else {
-				value = (value === null) ? 'null' : primitive_dumpers[t](value);
-				buf.push(start + value + (i < last ? "," : ""));
-			}
+			buf.push(ci + primitive_dumpers.string(name) + ": ");
+			_json_dump_child_value(buf, level, value);
+			if (i < last)
+				buf[buf.length - 1] = buf[buf.length - 1] + ",";
 		}
 		
 		buf.push(str_repeat(indent, level) + "}");
+	}
+	
+	function json_dump_array(buf, level, array) {
+		var last = buf.length - 1;
+		buf[last] = buf[last] + '[';
+		var ci = str_repeat(indent, level + 1);
+		var i, value, last = array.length - 1;
+		for (i = 0; i < array.length; i++) {
+			value = array[i];
+			if (typeof(value) == "function")
+				continue;
+			buf.push(indent);
+			_json_dump_child_value(buf, level, value);
+			if (i < last)
+				buf[buf.length - 1] = buf[buf.length - 1] + ",";
+		}
+		
+		buf.push(str_repeat(indent, level) + "]");
 	}
 	
 	return {
