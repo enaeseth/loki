@@ -410,8 +410,7 @@ Loki.PluginManager.Loader = Loki.Class.create({
 	
 	_loadLocale: function _load_locale(plugin) {
 		function load_plugin_locale(locale, next_locale) {
-			var url = $format("{0}strings/{1}.strings.js",
-				this.base, locale);
+			var url = $format("{0}strings/{1}.js", this.base, locale);
 				
 			if (locale in plugin.locales) {
 				if (next_locale)
