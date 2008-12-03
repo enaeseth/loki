@@ -1,0 +1,37 @@
+configuration: 
+  unknown option: Unknown option name "{0}".
+  option without name: Cannot define a configuration option without a name.
+plugin: 
+  manager: 
+    dependencies failed: "Could not load plugin \"{0}\" because the following {2!p:dependency} failed: {3}."
+    not found: Plugin "{0}" is not available.
+    invalid version: "Cannot load plugin \"{0}\": there is an invalid version \"{1}\" in its dependency string."
+    invalid dep: "Cannot load plugin \"{0}\": \"{1}\" is not a valid dependency string."
+    evaluation error: "Error while loading plugin \"{0}\": {1.message}."
+    dependency constraint failure: "Could not load plugin \"{0}\": it requires plugin {1} {2}, but only version {3} is available."
+    download failed: "Failed to download plugin \"{0}\"; HTTP error {1}: {2}."
+notice: 
+  invalid level: "\"{0}\" is not a valid Loki notice level."
+version: 
+  invalid: Cannot parse "{0}"; it is not a valid version number.
+editor: 
+  no matching textarea: No elements matched the selector "{0}".
+  some plugins failed: Some plugins failed to load.
+  multiple matching textarea: More than one element matched the selector "{0}".
+  loading: "Loading editor…"
+  rich text: Your browser has no support for rich text (HTML) editing.
+  context already added: A context named "{0}" is already registered on theis Loki instance.
+  no textarea: "Cannot create a Loki editor: no textarea was provided."
+  plugin failure teaser: Some plugins failed to load. Click here for details.
+  unavailable context: No context named "{0}" is available on this Loki instance.
+  no base uri: Cannot automatically determine the Loki base URI. Please set the "base_uri" setting.
+  not a textarea: "Cannot create a Loki editor: the element provided is not a TEXTAREA element."
+request: 
+  no xhr: Your browser lacks support for XMLHttpRequest.
+  non-object headers: Request headers must be given as an object.
+locale: 
+  string undefined in locale: "No such locale string \"{0}\". (Current locale: {1})."
+chooser: 
+  unknown name: Unknown item or set "{0}".
+  invalid operator: Invalid operator "{0}".
+  invalid selector component: Invalid selector component "{0}".
