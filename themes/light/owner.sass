@@ -1,4 +1,6 @@
 !border_color = #9F8B66
+!border_radius = 3px
+!toolbar_border_radius = 2px
 !infobar_height = 16px
 !infobar_padding = 4px
 
@@ -9,6 +11,12 @@
 
 div.loki
   :border = 1px solid !border_color
+  :border-top-left-radius = !border_radius
+  :border-top-right-radius = !border_radius
+  :-webkit-border-top-left-radius = !border_radius
+  :-webkit-border-top-right-radius = !border_radius
+  :-moz-border-radius-topleft = !border_radius
+  :-moz-border-radius-topright = !border_radius
   :background #E0DCD4
   :font
     :family Verdana, Helvetica, Arial, sans-serif
@@ -38,6 +46,9 @@ div.loki
       
       a
         :border 1px solid transparent
+        :border-radius = !toolbar_border_radius
+        :-webkit-border-radius = !toolbar_border_radius
+        :-moz-border-radius = !toolbar_border_radius
         :display block
         :padding 1px
         
