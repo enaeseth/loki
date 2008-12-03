@@ -31,25 +31,6 @@ def expand(strings)
   strings
 end
 
-desc "Convert all old-style strings files to YAML"
-task :yamlize_strings do
-  %w(strings_nodes strings).each {|l| require paths.treetop(l)}
-  parser = StringsParser.new
-  
-  Loki.plugins.each do |plugin|
-    path = paths.plugins(plugin)
-    next unless File.directory?("#{path}/strings")
-    
-    files = Dir[File.join(path, 'strings', '*.strings')]
-    files.each do |file|
-      strings = expand(parser.parse(File.read(file)).strings)
-      File.open(file.sub(/\.strings$/, '.yaml'), 'w') do |io|
-        YAML.dump strings, io
-      end
-    end
-  end
-end
-
 namespace :plugins do
   Loki.plugins.each do |plugin|
     plugin = plugin.to_sym
