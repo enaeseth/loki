@@ -377,8 +377,8 @@ _extend_range.extensions = {
 			if (Loki.Browser.IE) {
 				this.body.contentEditable = true;
 				try {
-					// If the thisument isn't really editable, this will throw an
-					// error. If the thisument is editable, this is perfectly
+					// If the doc isn't really editable, this will throw an
+					// error. If the document is editable, this is perfectly
 					// harmless.
 					this.queryCommandState('Bold');
 				} catch (e) {
@@ -393,6 +393,49 @@ _extend_range.extensions = {
 					throw Loki.Error("UnsupportedError", "editor:rich text");
 				}
 			}
+		},
+		
+		addStyleSheet: function add_style_sheet(url) {
+			base2.DOM.bind(this);
+			
+			function fix_document() {
+				var root = this.documentElement ||
+					this.getElementsByTagName("HTML")[0];
+				var body = this.getElementsByTagName("BODY");
+				if (!body.length) {
+					body = this.createElement("BODY");
+					root.appendChild(body);
+				} else {
+					body = body[0];
+				}
+
+				var head = this.createElement("HEAD");
+				root.insertBefore(head, body);
+			}
+			
+			var selector = "link[rel=stylesheet][href=" + url + "]";
+			try {
+				if (this.querySelector(selector)) {
+					// already exists
+					return false;
+				}
+			} catch (e) {
+				// ignore
+			}
+
+			var link = this.build("link", {
+				rel: 'stylesheet',
+				type: 'text/css',
+				href: url
+			});
+			var head = this.querySelector("head");
+			if (!head) {
+				fix_document();
+				head = this.querySelector("head");
+			}
+			head.appendChild(link);
+
+			return true;
 		}
 	};
 	

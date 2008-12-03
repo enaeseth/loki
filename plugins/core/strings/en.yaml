@@ -14,6 +14,10 @@ notice:
   invalid level: "\"{0}\" is not a valid Loki notice level."
 version: 
   invalid: Cannot parse "{0}"; it is not a valid version number.
+theme:
+  not found: The theme "{0}" could not be found on the server.
+  download failed: Failed to download the specification for theme "{0}". {1}
+  eval failed: Could not evaluate the specification for theme "{0}". {1}
 editor: 
   no matching textarea: No elements matched the selector "{0}".
   some plugins failed: Some plugins failed to load.

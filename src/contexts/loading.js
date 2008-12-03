@@ -13,7 +13,7 @@ Loki.builtinContexts.loading = Loki.Class.create(Loki.Context, {
 		this.message.appendChild(doc.createTextNode(Loki._("editor:loading")));
 		root.appendChild(this.message);
 		
-		setTimeout(base2.bind(this.editor._loadPlugins, this.editor), 15);
+		setTimeout(base2.bind(this.editor._load, this.editor), 15);
 	},
 	
 	exit: function exit_loading_context(root) {

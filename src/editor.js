@@ -304,6 +304,10 @@ Loki.Editor = Loki.Class.create({
 	},
 	
 	// Called by the loading context.
+	_load: function _load_editor() {
+		this._loadPlugins();
+	},
+	
 	_loadPlugins: function _load_editor_plugins() {
 		if (this.plugins) {
 			throw new Error("Plugins already loaded!");
