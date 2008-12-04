@@ -130,10 +130,15 @@ namespace :themes do
     
     spec_dest = paths.build('themes', theme.name, "#{theme.name}.json")
     spec_src = File.join(theme.path, "#{theme.name}.yaml")
-    sources = [dest, paths.plugins]
+    sources = [paths.plugins]
     sources << spec_src if File.exists?(spec_src)
     file spec_dest => sources do
-      spec = YAML.load_file(src) rescue {}
+      spec = if File.exists?(spec_src)
+        YAML.load_file(spec_src)
+      else
+        {}
+      end
+      
       spec['name'] ||= theme.name.capitalize
       spec['parent'] = nil unless spec.has_key?('parent')
       spec['processed_plugins'] = Loki.plugins
