@@ -125,9 +125,9 @@ Loki.Configuration = Loki.Class.create({
 	},
 	
 	_dealias: function _config_dealias_name(name) {
-		var dealised;
-		while (dealised = this.aliases[name]) {
-			name = dealised;
+		var dealiased;
+		while (dealiased = this.aliases[name]) {
+			name = dealiased;
 		}
 		return name;
 	},
