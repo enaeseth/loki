@@ -9,8 +9,8 @@ Loki.Chooser = Loki.Class.create({
 	// Creates a new chooser.
 	//
 	// Parameters:
-	//     (Object) items - the initial set of items to choose from
-	//     (Object) sets - the sets of items to choose from: the keys of this
+	//     (Object) [items] - the initial set of items to choose from
+	//     (Object) [sets] - the sets of items to choose from: the keys of this
 	//                     object should be names of sets and the value should
 	//                     be an array consisting of the names of its members
 	initialize: function Chooser(items, sets) {
