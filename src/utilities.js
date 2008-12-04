@@ -305,6 +305,20 @@ _extend_range.extensions = {
 			}
 
 			return attrs;
+		},
+		
+		replaceWithChildren: function replace_element_with_children() {
+			var parent = this.parentNode;
+			
+			if (!parent)
+				return false;
+			
+			while (this.firstChild) {
+				parent.insertBefore(this.firstChild, this);
+			}
+			
+			parent.removeChild(this);
+			return true;
 		}
 	};
 	
