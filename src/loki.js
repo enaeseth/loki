@@ -113,6 +113,20 @@ var Loki = window.Loki = {
 		}
 	},
 	
+	// Method: request
+	// A more natural way of creating a <Loki.Request> when that request is to
+	// be issued immediately.
+	//
+	// Parameters:
+	//     (String) url - the URL to request
+	//     (Object) [options] - any options for the request
+	//
+	// Returns:
+	//     (Loki.Request) - the request
+	request: function loki_http_request(url, options) {
+		return new Loki.Request(url, options);
+	},
+	
 	_waitingForReady: [],
 	_ready: false
 };
