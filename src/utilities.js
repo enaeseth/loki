@@ -398,18 +398,18 @@ _extend_range.extensions = {
 		addStyleSheet: function add_style_sheet(url) {
 			base2.DOM.bind(this);
 			
-			function fix_document() {
-				var root = this.documentElement ||
-					this.getElementsByTagName("HTML")[0];
-				var body = this.getElementsByTagName("BODY");
+			function fix_document(document) {
+				var root = document.documentElement ||
+					document.getElementsByTagName("HTML")[0];
+				var body = document.getElementsByTagName("BODY");
 				if (!body.length) {
-					body = this.createElement("BODY");
+					body = document.createElement("BODY");
 					root.appendChild(body);
 				} else {
 					body = body[0];
 				}
 
-				var head = this.createElement("HEAD");
+				var head = document.createElement("HEAD");
 				root.insertBefore(head, body);
 			}
 			
@@ -430,7 +430,7 @@ _extend_range.extensions = {
 			});
 			var head = this.querySelector("head");
 			if (!head) {
-				fix_document();
+				fix_document(this);
 				head = this.querySelector("head");
 			}
 			head.appendChild(link);
