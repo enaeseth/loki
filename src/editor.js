@@ -48,10 +48,15 @@ Loki.Editor = Loki.Class.create({
 	errorLog: null,
 	
 	// var: ({String => Loki.Context}) contexts
+	// All contexts loaded into the editor.
 	contexts: null,
 	
 	// var: ({String => Loki.Plugin}) plugins
+	// All plugins loaded into the editor.
 	plugins: null,
+	
+	// var: (Loki.Theme) theme
+	// The editor's theme.
 	
 	// Constructor: Editor
 	// Creates a new instance of the Loki editor, replacing a textarea on the
@@ -99,7 +104,7 @@ Loki.Editor = Loki.Class.create({
 		this._createUI(settings);
 		
 		this.defaultContext = settings.defaultContext
-			|| settings.default_context || Loki.defaultContext;
+			|| settings.default_context || Loki.Editor.DEFAULT_CONTEXT;
 		
 		this.addEventListener("context_add", function context_added(name, ctx) {
 			if (!this.plugins)
@@ -112,8 +117,7 @@ Loki.Editor = Loki.Class.create({
 			}, this);
 		}, this);
 		
-		// Switch to the loading context, which will call our _loadPlugins
-		// method.
+		// Switch to the loading context, which will call our _load method.
 		this.switchContext("loading");
 	},
 	
@@ -235,6 +239,8 @@ Loki.Editor = Loki.Class.create({
 	focus: function focus() {
 		var ret;
 		
+		if (!this.activeContext)
+			return false;
 		if (typeof(this.activeContext.focus) != 'function')
 			return false;
 		
@@ -244,7 +250,8 @@ Loki.Editor = Loki.Class.create({
 	},
 	
 	_createUI: function _create_editor_ui(settings) {
-		this.theme = new Loki.Theme(settings.theme || "light");
+		this.theme = Loki.Theme.get(settings.theme ||
+			Loki.Editor.DEFAULT_THEME);
 		this.theme.applyToOwnerDocument(this);
 		
 		this.root = this._createRoot();
@@ -315,12 +322,12 @@ Loki.Editor = Loki.Class.create({
 		
 		function loaded(plugin_classes, failed) {
 			var plugins = {}, fail_count = 0, pfn;
-			var dependent_processors = [];
+			this._dependent_processors = [];
 			
 			Loki.Object.enumerate(plugin_classes, function(id, plugin_class) {
 				var plugin = new plugin_class(this);
 				if (typeof(plugin.processDependents) == "function") {
-					dependent_processors.push(plugin);
+					this._dependent_processors.push(plugin);
 				}
 				plugins[id] = plugin;
 			}, this);
@@ -343,20 +350,7 @@ Loki.Editor = Loki.Class.create({
 				this.log(pfn);
 			}
 			
-			this.switchContext(this.defaultContext);
-			
-			base2.forEach(dependent_processors, function(plugin) {
-				plugin.processDependents(plugin.getDependents());
-			}, this);
-			
-			Loki.Object.enumerate(plugins, function(id, plugin) {
-				base2.forEach(plugin.contexts, function(context_name) {
-					this._pluginUsesContext(plugin, context_name);
-				}, this);
-				
-				if (typeof(plugin.setup) == "function")
-					plugin.setup();
-			}, this);
+			this._loadTheme();
 		}
 		
 		var selector = (this.settings.plugins || "default") + " + core";
@@ -364,7 +358,50 @@ Loki.Editor = Loki.Class.create({
 			base2.bind(loaded, this));
 	},
 	
-	_pluginUsesContext: function plugin_uses_context(plugin, context_name) {
+	_loadTheme: function _editor_load_theme() {
+		function theme_load_finished(status, theme, message) {
+			if (status == "success") {
+				load_plugin_themes.call(this);
+			} else {
+				this.log("warn", message);
+				// Do something desperate.
+				if (theme.id != Loki.Editor.DEFAULT_THEME) {
+					this.theme = Loki.Theme.get(Loki.Editor.DEFAULT_THEME);
+					this._loadTheme();
+				}
+			}
+		}
+		
+		function load_plugin_themes() {
+			this.theme.loadPluginContent(this, plugin_themes_loaded, this);
+		}
+		
+		function plugin_themes_loaded(status, theme, loaded_plugins) {
+			this._loaded();
+		}
+		
+		this.theme.load(theme_load_finished, this);
+	},
+	
+	_loaded: function _editor_loaded() {
+		this.switchContext(this.defaultContext);
+		
+		base2.forEach(this._dependent_processors, function(plugin) {
+			plugin.processDependents(plugin.getDependents());
+		}, this);
+		delete this._dependent_processors;
+		
+		Loki.Object.enumerate(this.plugins, function(id, plugin) {
+			base2.forEach(plugin.contexts, function(context_name) {
+				this._pluginUsesContext(plugin, context_name);
+			}, this);
+			
+			if (typeof(plugin.setup) == "function")
+				plugin.setup();
+		}, this);
+	},
+	
+	_pluginUsesContext: function _plugin_uses_context(plugin, context_name) {
 		var context = this.contexts[context_name];
 		if (!context)
 			return;
@@ -373,3 +410,11 @@ Loki.Editor = Loki.Class.create({
 	}
 });
 Loki.Class.mixin(Loki.Editor, Loki.EventTarget);
+
+// const: DEFAULT_THEME
+// The theme that Loki editors will use by default.
+Loki.Editor.DEFAULT_THEME = 'light';
+
+// const: DEFAULT_CONTEXT
+// The context that Loki editors will use by default.
+Loki.Editor.DEFAULT_CONTEXT = 'visual';

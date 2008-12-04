@@ -172,5 +172,3 @@ Loki.builtinContexts.visual = Loki.Class.create(Loki.Context, {
 		}, this);
 	}
 });
-
-Loki.defaultContext = "visual";

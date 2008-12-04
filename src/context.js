@@ -53,7 +53,6 @@ Loki.Context = Loki.Class.create({
 });
 
 Loki.builtinContexts = {};
-Loki.defaultContext = null;
 
 #import "contexts/visual.js"
 #import "contexts/loading.js"
