@@ -1,5 +1,6 @@
-#include "context.js"
-#include "theme.js"
+#import "context.js"
+#import "theme.js"
+#import "cleanup.js"
 
 // Class: Loki.Editor
 // An in-browser HTML editor.
@@ -55,8 +56,17 @@ Loki.Editor = Loki.Class.create({
 	// All plugins loaded into the editor.
 	plugins: null,
 	
+	// var: ([Object]) filters
+	// Loki filters. (See <Loki.Cleanup>.)
+	filters: null,
+	
 	// var: (Loki.Theme) theme
 	// The editor's theme.
+	theme: null,
+	
+	// var: (Object) settings
+	// Editor settings, as given to the constructor.
+	settings: null,
 	
 	// Constructor: Editor
 	// Creates a new instance of the Loki editor, replacing a textarea on the
@@ -76,6 +86,9 @@ Loki.Editor = Loki.Class.create({
 		this.settings = settings;
 		
 		this.contexts = this._loadContexts();
+		
+		this.filters = Loki.Cleanup.filters.get(settings.filters || 'default');
+		this.filters = Loki.Object.values(this.filters);
 		
 		this.textarea = textarea;
 		this.ownerDocument = textarea.ownerDocument;
@@ -179,10 +192,12 @@ Loki.Editor = Loki.Class.create({
 	
 	// Method: getHTML
 	getHTML: function editor_get_html() {
-		var c = this.activeContext;
+		var c = this.activeContext, root;
 		if (c) {
 			if (c.getDocumentRoot) {
-				return this.generator.generate(c.getDocumentRoot().childNodes);
+				root = c.getDocumentRoot();
+				Loki.Cleanup.filter(this.filters, root, this.settings, false);
+				return this.generator.generate(root.childNodes);
 			} else if (c.getHTML) {
 				return c.getHTML();
 			}
@@ -198,6 +213,12 @@ Loki.Editor = Loki.Class.create({
 		} else {
 			this._savedHTML = html;
 		}
+	},
+	
+	// Method: addFilter
+	// Adds a cleanup filter.
+	addFilter: function editor_add_filter(filter) {
+		this.filters.push(filter);
 	},
 	
 	// Method: log
