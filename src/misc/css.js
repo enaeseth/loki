@@ -3,18 +3,28 @@
 Loki.Misc.CSS = {
 	// Function: parseSelector
 	// Parses a CSS selector. The parser only includes partial selector support.
+	// If you only need to parse a simple selector, try
+	// <Loki.Misc.CSS#parseSimpleSelector>.
+	//
+	// Parameters:
+	//     (String) selector - the selector to parse
+	//
+	// Returns:
+	//     (Array) - each parsed simple selector that made up _selector_
+	parseSelector: function parse_css_selector(selector) {
+		return base2.map(selector.split(/\s*,\s*/),
+			Loki.Misc.CSS.parseSimpleSelector, Loki.Misc.CSS);
+	},
+	
+	// Method: parseSimpleSelector
+	// Parses a simple CSS selector (one part of a ","-joined selector).
 	//
 	// Parameters:
 	//     (String) selector - the selector to parse
 	//
 	// Returns:
 	//     (Object) - the parsed selector
-	parseSelector: function parse_css_selector(selector) {
-		return base2.map(selector.split(/\s*,\s*/),
-			Loki.Misc.CSS._parseSimpleSelector, Loki.Misc.CSS);
-	},
-	
-	_parseSimpleSelector: function _parse_simple_css_selector(selector) {
+	parseSimpleSelector: function parse_simple_css_selector(selector) {
 		var parser = new Loki.Parser(selector);
 		var data = {
 			element: null,
