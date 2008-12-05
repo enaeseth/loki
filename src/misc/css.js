@@ -49,7 +49,6 @@ Loki.Misc.CSS = {
 					data.classes.push(part);
 			} else if (control == "[") {
 				part = parser.scanUntil("]");
-				console.debug(part);
 				match = /^([\w\-]+)\s*(?:([~\|\^\$\*]?=)\s*(.*))?$/.exec(part);
 				if (!match)
 					continue;
