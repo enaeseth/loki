@@ -10,3 +10,4 @@ Loki.UI = {
 #import "ui/wrapped_event.js"
 #import "ui/key_event.js"
 #import "ui/keybinding_manager.js"
+#import "ui/container.js"
