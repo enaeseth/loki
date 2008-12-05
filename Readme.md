@@ -5,9 +5,9 @@ Loki 3.0
 
 Copyright © 2006 Carleton College.
 
-1 North College Street
-Northfield, MN 55057-4001
-United States of America
+<address>1 North College Street  
+Northfield, MN 55057-4001  
+United States of America</address>
 
 About
 -----
