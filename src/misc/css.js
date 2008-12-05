@@ -16,7 +16,7 @@ Loki.Misc.CSS = {
 			Loki.Misc.CSS.parseSimpleSelector, Loki.Misc.CSS);
 	},
 	
-	// Method: parseSimpleSelector
+	// Function: parseSimpleSelector
 	// Parses a simple CSS selector (one part of a ","-joined selector).
 	//
 	// Parameters:
