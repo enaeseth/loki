@@ -33,7 +33,7 @@ Loki.UI.Container = Loki.Class.create(Loki.UI.Widget, {
 		if (this.element)
 			return this.element;
 		
-		this.element = this._createRoot();
+		this.element = this._createRoot(document);
 		
 		function get_selector(member) {
 			var sel = [];
