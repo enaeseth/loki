@@ -50,7 +50,12 @@ Loki.Parser = Loki.Class.create({
 			}
 			return null;
 		} else if (Loki.Object.isRegExp(sel)) {
-			throw new Error("not yet implemented");
+			var sub = this.string.substr(this.pos);
+			var match = sel.exec(sub);
+			if (!match)
+				return null;
+			this.pos += (match.index + match[0].length);
+			return (match.length == 1) ? match[0] : match;
 		} else {
 			throw new TypeError();
 		}
