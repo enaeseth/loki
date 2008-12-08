@@ -8,6 +8,8 @@ Copyright © 2006 Carleton College.
 About
 -----
 
+**Warning:** Loki 3 is still in development and is not ready for use. Its older sibling Loki 2 is stable and can be obtained from [Loki's Google Code project page][gc].
+
 Loki is a visual (WYSIWYG) HTML editor. Many such editors exist, but Loki is
 different: it encourages authors to produce semantic HTML. Here's how:
 
@@ -99,6 +101,7 @@ Loki is distributed under the terms of the GNU Lesser General Public License
 See license.txt for the full text of the license under which Loki is
 distributed.
 
+[gc]: http://loki-editor.googlecode.com/
 [group]: http://groups.google.com/group/loki-installers
 [install]: http://code.google.com/p/loki-editor/wiki/Installation
 [rake]: http://rake.rubyforge.org/
