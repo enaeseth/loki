@@ -22,13 +22,15 @@ Util.HTML_Generator = function HTMLGenerator(options) {
 Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 	var gen = this;
 	var pattern = (gen.escape_non_ascii)
-		? /[\x00-\x1F\x80-\uFFFF&<>]/g
-		: /[\x00-\x1F^<>]/g;
+		? (/[\x00-\x1F\x80-\uFFFF&<>"]/g)
+		: (/[\x00-\x1F^<>]/g);
 	
-	function clean_text(text) {
+	function clean_text(text, in_attribute) {
 		function html_escape(txt) {
 			var c = txt.charCodeAt(0);
 			if (c == 9 || c == 10 || c == 13)
+				return txt;
+			if (c == 34 && !in_attribute) // don't do " -> &quot; unless in attr
 				return txt;
 			var entity = Util.HTML_Generator.named_entities[c];
 			return (typeof(entity) == "string")
@@ -113,7 +115,7 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 			function append_attr(name, value) {
 				if (name.charAt(0) == "_")
 					return;
-				buffer.write(' ', name, '="', clean_text(value), '"');
+				buffer.write(' ', name, '="', clean_text(value, true), '"');
 			}
 		);
 		
@@ -383,7 +385,7 @@ Util.OOP.mixin(Util.HTML_Generator.Buffer.prototype, {
 });
 
 Util.HTML_Generator.named_entities = {
-	'38': 'amp', '60': 'lt', '62': 'gt', '127': '#127',
+	'34': 'quot', '38': 'amp', '60': 'lt', '62': 'gt', '127': '#127',
 	'160': 'nbsp', '161': 'iexcl', '162': 'cent', '163': 'pound', '164':
 	'curren', '165': 'yen', '166': 'brvbar', '167': 'sect', '168': 'uml', '169':
 	'copy', '170': 'ordf', '171': 'laquo', '172': 'not', '173': 'shy', '174':
