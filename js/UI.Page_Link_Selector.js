@@ -438,8 +438,9 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 					var el = select.element;
 					var option = el.options[el.selectedIndex];
 					var title;
+					var initial = dialog._sanitize_uri(dialog._initially_selected_item.uri);
 					
-					if (dialog._initially_selected_item.uri == option.value) {
+					if (initial == option.value) {
 						title = dialog._initially_selected_item.title;
 					} else {
 						title = option.text;
