@@ -444,6 +444,7 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 					} else {
 						title = option.text;
 					}
+					
 					dialog._update_link_title('rss', title);
 				}
 					
