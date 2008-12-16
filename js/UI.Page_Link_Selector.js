@@ -436,8 +436,15 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 				function item_changed()
 				{
 					var el = select.element;
-					dialog._update_link_title('rss',
-						el.options[el.selectedIndex].text);
+					var option = el.options[el.selectedIndex];
+					var title;
+					
+					if (dialog._initially_selected_item.uri == option.value) {
+						title = dialog._initially_selected_item.title;
+					} else {
+						title = option.text;
+					}
+					dialog._update_link_title('rss', title);
 				}
 					
 				Util.Event.add_event_listener(select.element, 'change',
