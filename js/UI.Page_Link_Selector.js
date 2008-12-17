@@ -297,6 +297,7 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 	var type = null;
 	var error = null;
 	var items = null;
+	var uris_to_items = null;
 	
 	this.load = function(new_type)
 	{
@@ -340,6 +341,7 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 				reader.add_event_listener('load', function(feed)
 				{
 					items = [];
+					uris_to_items = {};
 					
 					if (type.is_default) {
 						// XXX: this is kinda hackish
@@ -363,13 +365,17 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 					// might be doing fancy things (e.g. nesting).
 					
 					feed.items.each(function(item) {
-						items.push({
-							text: item.title,
-							value: dialog._sanitize_uri(item.link),
+						var uri = dialog._sanitize_uri(item.link);
+						var item = {
+							title: item.title,
+							text: item.selector_text || item.title,
+							value: uri,
 							selected: (initial_uri)
 								? Util.URI.equal(initial_uri, item.link)
 								: false
-						});
+						};
+						items.push(item);
+						uris_to_items[uri] = item;
 					});
 
 					machine.states.interactive.enter();
@@ -437,13 +443,14 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 				{
 					var el = select.element;
 					var option = el.options[el.selectedIndex];
+					var item = uris_to_items[option.value];
 					var title;
 					var initial = dialog._sanitize_uri(dialog._initially_selected_item.uri);
 					
 					if (initial == option.value) {
 						title = dialog._initially_selected_item.title;
 					} else {
-						title = option.text;
+						title = item.title;
 					}
 					
 					dialog._update_link_title('rss', title);
