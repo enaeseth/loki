@@ -486,18 +486,22 @@ Util.Element = {
 
 Util.Element._get_attribute_names = (function has_outer_html() {
 	var guinea_pig = document.createElement('P');
-	var parser;
-	var attrs;
+	var parser = null;
 	guinea_pig.className = "_foo";
 	
 	if (guinea_pig.outerHTML && (/_foo/.test(guinea_pig.outerHTML))) {
-		parser = new Util.HTML_Parser();
-		parser.add_listener('open', function tag_opened(name, attributes) {
-			attrs = Util.Object.names(attributes);
-			parser.halt();
-		});
 		return function _get_attribute_names_from_outer_html(el) {
 			var result;
+			var attrs;
+			
+			if (!parser) {
+				parser = new Util.HTML_Parser();
+				parser.add_listener('open', function tag_opened(n, attributes) {
+					attrs = Util.Object.names(attributes);
+					parser.halt();
+				});
+			}
+			
 			parser.parse(el.outerHTML);
 			result = attrs;
 			attrs = null;
