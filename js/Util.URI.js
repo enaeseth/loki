@@ -79,6 +79,16 @@ Util.URI.parse = function parse_uri(uri)
 }
 
 /**
+ * Checks to see if a URI is a URN (such as a mailto:) address.
+ */
+Util.URI.is_urn = function uri_is_urn(uri) {
+	if (typeof(uri) != 'object')
+		uri = Util.URI.parse(uri);
+	
+	return (uri.scheme && uri.path && !uri.authority);
+}
+
+/**
  * Parses a query fragment into its constituent variables.
  */
 Util.URI.parse_query = function parse_query(fragment)
