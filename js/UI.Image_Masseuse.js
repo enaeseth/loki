@@ -44,8 +44,9 @@ UI.Image_Masseuse = function()
 		if (src == null)
 			return;
 		
-		if (self._unsecured.test(src)) {
-			placeholder = img.cloneNode();
+		var my_url = self._loki.owner_window.location;
+		if (!self._unsecured.test(my_url) && self._unsecured.test(src)) {
+			placeholder = img.cloneNode(false);
 			
 			if (Util.URI.extract_domain(src) == self._loki.editor_domain()) {
 				new_src = Util.URI.strip_https_and_http(src);
