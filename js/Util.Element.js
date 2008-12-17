@@ -505,7 +505,7 @@ Util.Element._get_attribute_names = (function has_outer_html() {
 			parser.parse(el.outerHTML);
 			result = attrs;
 			attrs = null;
-			return attrs;
+			return result;
 		};
 	} else if (Util.Browser.Gecko) {
 		// It looks like at least Firefox 3 is giving us the attributes in
