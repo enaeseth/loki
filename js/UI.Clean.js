@@ -448,6 +448,10 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			description: "Normalize all image URI's",
 			test: Util.Node.curry_is_tag('IMG'),
 			action: function normalize_image_uri(img) {
+				if (Util.URI.is_urn(img)) {
+					// Don't normalize URN's (like data:).
+					return;
+				}
 				var norm = Util.URI.normalize(img.src);
 				norm.scheme = null;
 				img.src = Util.URI.build(norm);
