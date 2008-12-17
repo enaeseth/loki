@@ -91,16 +91,14 @@ Util.Element = {
 			return attrs;
 		}
 		
-		for (var i = 0; i < elem.attributes.length; i++) {
-			var a = elem.attributes[i];
-			if (!a.specified || a.nodeName in attrs)
-				continue;
-				
-			var v = (a.nodeValue.toString)
-				? a.nodeValue.toString()
-				: a.nodeValue;
+		var names = Util.Element._get_attribute_names(elem);
+		var i, name, v, length = names.length;
+		for (i = 0; i < length; i++) {
+			name = names[i];
+			v = elem.getAttribute(name);
+			v = (v.toString) ? v.toString() : v;
 			
-			switch (a.nodeName) {
+			switch (name) {
 				case 'class':
 				case 'className':
 					attrs[(no_translation) ? 'class' : 'className'] = v;
@@ -113,7 +111,7 @@ Util.Element = {
 					attrs.style = elem.style.cssText;
 					break;
 				default:
-					attrs[a.nodeName] = v;
+					attrs[name] = v;
 			}
 		}
 		
@@ -485,3 +483,53 @@ Util.Element = {
 		return buggy_ie_offset_top.result;
 	}
 };
+
+Util.Element._get_attribute_names = (function has_outer_html() {
+	var guinea_pig = document.createElement('P');
+	var parser;
+	var attrs;
+	guinea_pig.className = "_foo";
+	
+	if (guinea_pig.outerHTML && (/_foo/.test(guinea_pig.outerHTML))) {
+		parser = new Util.HTML_Parser();
+		parser.add_listener('open', function tag_opened(name, attributes) {
+			attrs = Util.Object.names(attributes);
+			parser.halt();
+		});
+		return function _get_attribute_names_from_outer_html(el) {
+			var result;
+			parser.parse(el.outerHTML);
+			result = attrs;
+			attrs = null;
+			return attrs;
+		};
+	} else if (Util.Browser.Gecko) {
+		// It looks like at least Firefox 3 is giving us the attributes in
+		// reversed declaration order, so we'll read them out backwards.
+		return function _get_attribute_names_reversed(el) {
+			var length = el.attributes.length;
+			var attributes = {};
+			var a;
+			for (var i = (length - 1); i >= 0; i--) {
+				a = el.attributes[i];
+				if (!a.specified || a.nodeName in attributes)
+					continue;
+				attributes[a.nodeName] = true;
+			}
+			return Util.Object.names(attributes);	
+		};
+	} else {
+		return function _get_attribute_names(el) {
+			var length = el.attributes.length;
+			var attributes = {};
+			var a;
+			for (var i = 0; i < length; i++) {
+				a = el.attributes[i];
+				if (!a.specified || a.nodeName in attributes)
+					continue;
+				attributes[a.nodeName] = true;
+			}
+			return Util.Object.names(attributes);	
+		};
+	}
+})();
