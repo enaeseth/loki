@@ -40,6 +40,7 @@ Util.HTML_Parser = function SAX_HTML_Parser()
 		var len = data.length;
 		
 		parsing = true;
+		halted = false;
 		do {
 			state = state();
 		} while (state && position < len && !halted);
