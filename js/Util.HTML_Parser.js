@@ -22,7 +22,7 @@ Util.HTML_Parser = function SAX_HTML_Parser()
 	
 	// -- Public Methods --
 	
-	this.add_listener = function(type, func)
+	this.add_listener = function add_html_parse_listener(type, func)
 	{
 		listeners[type.toLowerCase()].push(func);
 	}
@@ -30,7 +30,7 @@ Util.HTML_Parser = function SAX_HTML_Parser()
 	// consistency
 	this.add_event_listener = this.add_listener;
 	
-	this.parse = function(text)
+	this.parse = function parse_html(text)
 	{
 		data = text;
 		position = 0;
