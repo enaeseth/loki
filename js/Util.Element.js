@@ -487,12 +487,12 @@ Util.Element = {
 Util.Element._get_attribute_names = (function has_outer_html() {
 	var guinea_pig = document.createElement('P');
 	var parser = null;
+	var attrs;
 	guinea_pig.className = "_foo";
 	
 	if (guinea_pig.outerHTML && (/_foo/.test(guinea_pig.outerHTML))) {
 		return function _get_attribute_names_from_outer_html(el) {
 			var result;
-			var attrs;
 			
 			if (!parser) {
 				parser = new Util.HTML_Parser();
