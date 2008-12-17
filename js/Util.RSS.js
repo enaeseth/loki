@@ -6,7 +6,7 @@ Util.RSS = {
 }
 
 /**
- * @class A replacement for Util.RSS_Reader that doesn't suck quite so much.
+ * @class A RSS 2.0 feed reader.
  *
  * @constructor Creates a new RSS 2.0 feed reader for the given URL.
  * @param	url	The URL of the RSS feed. You may pass in a function returning the URI instead
