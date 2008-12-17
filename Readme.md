@@ -63,10 +63,6 @@ different: it encourages authors to produce semantic HTML. Here's how:
   change fonts or colors, and they certainly can't do far more horrible things
   like insert smilies. If you want such features out of the box, Loki is
   probably not for you.
-  
-But Loki is more than semantic, it's also extremely powerful, with a rich plugin
-system. All of Loki's core features are built with this system, so anything that
-we were able to do, you can do.
 
 Compatibility
 -------------
