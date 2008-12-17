@@ -728,17 +728,7 @@ UI.Page_Link_Dialog = function()
 	
 	this._set_link_title_input_value = function(value)
 	{
-		if (!value) {
-			this._link_title_input.value = '';
-			return;
-		}
-		
-		/* Strip any number of hyphens and spaces from beginning of title */
-		while(value.indexOf('-') == 0 || value.indexOf(' ') == 0)
-		{
-			value = value.substring(1);
-		}
-		this._link_title_input.value = value;
+		this._link_title_input.value = value || '';
 	}
 
 	/**
