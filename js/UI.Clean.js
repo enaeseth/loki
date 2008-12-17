@@ -460,6 +460,10 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				if (!link.href)
 					return;
 				var uri = Util.URI.parse(link.href);
+				if (Util.URI.is_urn(uri)) {
+					// Do nothing to URN's (like mailto: addresses).
+					return;
+				}
 				if (is_on_current_page(uri))
 					return;
 				var norm = Util.URI.normalize(link.href);
