@@ -46,41 +46,6 @@ UI.Link_Helper = function()
 	};
 
 	/**
-	 * Opens the mail link dialog.
-	 */
-	this.open_mail_link_dialog = function()
-	{
-		if ( !this._check_for_selected_text() )
-			return;
-
-		if ( this._mail_link_dialog == null )
-			this._mail_link_dialog = new UI.Mail_Link_Dialog();
-		this._mail_link_dialog.init({ base_uri : this._loki.settings.base_uri,
-						    		  submit_listener : this.insert_link,
-						    		  selected_item : this.get_selected_item() });
-		this._mail_link_dialog.open();
-	};
-
-	/**
-	 * Opens the appropriate link dialog depending on 
-	 * the context of the current selection.
-	 */
-	this.open_dialog_by_context = function()
-	{
-		var selected_item = this.get_selected_item();
-		if ( selected_item != null &&
-			 selected_item.uri != null &&
-			 selected_item.uri.match(new RegExp('mailto\:', 'i')) != null )
-		{
-			this.open_mail_link_dialog();
-		}
-		else
-		{
-			this.open_page_link_dialog();
-		}
-	};
-
-	/**
 	 * Returns info about the selected link, if any.
 	 */
 	this.get_selected_item = function()
