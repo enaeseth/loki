@@ -9,6 +9,8 @@
 Util.HTML_Parser = function SAX_HTML_Parser()
 {
 	var data = null;
+	var parsing = false;
+	var halted = false;
 	var position = 0;
 	var listeners = {
 		open: [],
@@ -37,9 +39,18 @@ Util.HTML_Parser = function SAX_HTML_Parser()
 		var state = starting_state;
 		var len = data.length;
 		
+		parsing = true;
 		do {
 			state = state();
-		} while (state && position < len);
+		} while (state && position < len && !halted);
+		parsing = halted = false;
+	}
+	
+	this.halt = function halt_html_parser()
+	{
+		if (!parsing)
+			return false;
+		return (halted = true);
 	}
 	
 	// -- Parsing Functions --
