@@ -19,7 +19,8 @@ UI.Clipboard_Helper = function ClipboardHelper()
 
 	this.cut = function clipboard_cut()
 	{
-		self.copy('Cut', 'X');
+		if (!self.copy('Cut', 'X'))
+			return;
 		var sel = Util.Selection.get_selection(self._loki.window);
 		var rng = Util.Range.create_range(sel);
 		Util.Range.delete_contents(rng);
@@ -36,7 +37,7 @@ UI.Clipboard_Helper = function ClipboardHelper()
 		
 		if (Util.Selection.is_collapsed(sel)) {
 			// If nothing is actually selected; do not overwrite the clipboard.
-			return;
+			return false;
 		}
 
 		// Unmassage and clean HTML
@@ -57,6 +58,7 @@ UI.Clipboard_Helper = function ClipboardHelper()
 		try {
 			if (UI.Clipboard_Helper._gecko) {
 				_gecko_copy(html, command || 'Copy', accel || 'C');
+				return false;
 			} else {
 				_ie_copy(html);
 			}
@@ -64,6 +66,7 @@ UI.Clipboard_Helper = function ClipboardHelper()
 			self._loki.focus();
 		}
 		
+		return true;
 	};
 
 	this.paste = function clipboard_paste()
@@ -110,22 +113,19 @@ UI.Clipboard_Helper = function ClipboardHelper()
 			message, 45);
 	}
 	
-	function _verify_gecko_clipboard(command, accel)
+	function _gecko_clipboard_error(command, accel)
 	{
 		var key;
 		if (!self._loki.owner_window.GeckoClipboard) {
 			key = ((Util.Browser.Mac) ? '⌘' : 'Ctrl-') + accel;
 			alert("In your browser, you must either choose " + command + " " +
 				"from the Edit menu, or press " + key + ".");
-			throw new Util.Unsupported_Error('programmatic clipboard access');
 		}
 	}
 
 	function _gecko_copy(html, command, accel)
 	{
-		_verify_gecko_clipboard(command, accel);
-		_show_gecko_privileges_warning();
-		self._loki.owner_window.GeckoClipboard.set(html);
+		_gecko_clipboard_error(command, accel);
 	};
 
 	function _ie_copy(html)
@@ -146,39 +146,7 @@ UI.Clipboard_Helper = function ClipboardHelper()
 
 	function _gecko_paste()
 	{
-		_verify_gecko_clipboard('Paste', 'V');
-		_show_gecko_privileges_warning();
-		var data = self._loki.owner_window.GeckoClipboard.get();
-		
-		var html = (data.type == 'text/html')
-			? data.value
-			: data.value.replace(/\r?\n/g, "<br />\n");
-
-		// Massage and clean HTML
-		var container = self._loki.document.createElement('DIV');
-		container.innerHTML = html;
-		// See UI.Clipboard_helper.copy() for the override rationale.
-		UI.Clean.clean(container, self._loki.settings, false, {
-			overrides: {DIV: Util.Block.BLOCK}
-		});
-		self._loki.massage_node_descendants(container);
-		html = container.innerHTML;
-
-		// Get selection and range
-		var sel = Util.Selection.get_selection(self._loki.window);
-		var rng = Util.Range.create_range(sel);
-
-		// Paste into temporary container
-		container = rng.startContainer.ownerDocument.createElement('DIV');
-		container.innerHTML = html;
-
-		// Copy into document fragment
-		var frag = rng.startContainer.ownerDocument.createDocumentFragment();
-		for ( var i = 0; i < container.childNodes.length; i++ )
-			frag.appendChild(container.childNodes[i].cloneNode(true));
-
-		// Paste the document fragment
-		Util.Selection.paste_node(sel, frag);
+		_gecko_clipboard_error('Paste', 'V');
 	};
 
 	function _ie_paste()
@@ -319,17 +287,7 @@ UI.Clipboard_Helper._setup = function setup_clipboard_helper() {
 	
 	if (UI.Clipboard_Helper._gecko) {
 		// Gecko
-		if (typeof(_gecko_clipboard_helper_src) == 'string') {
-			// PHP helper is providing this for us.
-			helper_src = _gecko_clipboard_helper_src;
-		} else if (base_uri) {
-			helper_src = 'jar:' +
-				make_uri('auxil/privileged.jar!/gecko_clipboard.html');
-		} else {
-			return;
-		}
-		
-		create_hidden_iframe(helper_src);
+		// Our clipboard support doesn't work there anymore. Dropping it.
 	} else {
 		// everyone else
 		if (typeof(UI__Clipboard_Helper_Editable_Iframe__src) == 'string') {
