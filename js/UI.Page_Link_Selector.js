@@ -450,7 +450,8 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 					if (initial == option.value) {
 						title = dialog._initially_selected_item.title;
 					} else {
-						title = item.title;
+						// "item" will not be set if we're on the current page
+						title = (item) ? item.title : option.text;
 					}
 					
 					dialog._update_link_title('rss', title);
