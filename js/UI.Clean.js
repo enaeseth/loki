@@ -225,18 +225,22 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	}
 	
 	var acceptable_css;
-	if (settings.allowable_inline_styles) {
+	if (typeof(settings.allowable_inline_styles) != 'undefined') {
 		if ('string' == typeof(settings.allowable_inline_styles)) {
-			acceptable_css = ({
+			var macros = {
 				'all': true,
 				'any': true,
 				'*': true,
 				'none': false
-			})[settings.allowable_inline_styles.toLowerCase()] || null;
-			
-			if (acceptable_css === null) {
-				acceptable_css = settings.allowable_inline_styles.split(/\s+/);
+			};
+			acceptable_css = settings.allowable_inline_styles.toLowerCase();
+			if (acceptable_css in macros) {
+				acceptable_css = macros[acceptable_css];
+			} else {
+				acceptable_css = acceptable_css.split(/\s+/);
 			}
+		} else if (null === settings.allowable_inline_styles) {
+			acceptable_css = UI.Clean.default_allowable_inline_styles;
 		} else {
 			acceptable_css = settings.allowable_inline_styles;
 		}
