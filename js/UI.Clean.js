@@ -284,7 +284,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			test : function(node) {
 				if (node.nodeType != Util.Node.COMMENT_NODE)
 					return false;
-				return ("!" in allowable_tags);
+				return !("!" in allowable_tags);
 			},
 			action : remove_node
 		},
