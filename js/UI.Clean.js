@@ -235,7 +235,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			})[settings.allowable_inline_styles.toLowerCase()] || null;
 			
 			if (acceptable_css === null) {
-				acceptable_css = acceptable_css.split(/\s+/);
+				acceptable_css = settings.allowable_inline_styles.split(/\s+/);
 			}
 		} else {
 			acceptable_css = settings.allowable_inline_styles;
