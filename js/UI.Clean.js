@@ -224,7 +224,34 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		allowable_tags = UI.Clean.default_allowable_tags.toSet();
 	}
 	
-	var acceptable_css = settings.allowable_inline_styles.toSet();
+	var acceptable_css;
+	if (settings.allowable_inline_styles) {
+		if ('string' == typeof(settings.allowable_inline_styles)) {
+			acceptable_css = ({
+				'all': true,
+				'any': true,
+				'*': true,
+				'none': false
+			})[settings.allowable_inline_styles.toLowerCase()] || null;
+			
+			if (acceptable_css === null) {
+				acceptable_css = acceptable_css.split(/\s+/);
+			}
+		}
+	} else {
+		acceptable_css = UI.Clean.default_allowable_inline_styles;
+	}
+	
+	if (typeof(acceptable_css.join) == 'function') { // it's an array!	
+		acceptable_css = get_css_pattern(acceptable_css);
+	}
+	
+	function get_css_pattern(names) {
+		names = names.map(Util.regexp_escape).map(function(name) {
+			return name.toLowerCase();
+		});
+		return new RegExp('^(' + names.join('|') + ')');
+	}
 		
 	function is_allowable_tag(node)
 	{
@@ -312,8 +339,15 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		},
 		{
 			description: 'Strip unwanted inline styles',
-			test: function(node) { return has_attributes(node, ['style']); },
+			test: function(node) {
+				return acceptable_css !== true && has_attributes(node, ['style']); 
+			},
 			action: function strip_unwanted_inline_styles(el) {
+				if (acceptable_css === false) {
+					el.removeAttribute('style');
+					return;
+				}
+				
 				var rule = /([\w-]+)\s*:\s*([^;]+)(?:;|$)/g;
 				var raw = el.style.cssText;
 				var accepted = [];
@@ -322,7 +356,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				
 				while (match = rule.exec(raw)) {
 					name = match[1].toLowerCase();
-					if (name in acceptable_css) {
+					if (acceptable_css.test(name)) {
 						accepted.push(match[0]);
 					}
 				}
@@ -655,6 +689,10 @@ UI.Clean.default_allowable_tags =
 	'SAMP', 'SCRIPT', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TABLE',
 	'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TR', 'TT', 'U', 'UL',
 	'VAR'];
+	
+UI.Clean.default_allowable_inline_styles =
+	['text-align', 'vertical-align', 'float', 'direction', 'display', 'clear',
+	'list-style'];
 
 UI.Clean.self_nesting_disallowed =
 	['ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'B', 'BR', 'BUTTON', 'CAPTION',

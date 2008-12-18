@@ -249,10 +249,6 @@ UI.Loki = function Loki()
 			_settings.base_uri = autodetect_base_uri();
 		}
 		
-		if (!_settings.allowable_inline_styles) {
-			_settings.allowable_inline_styles = default_allowed_styles();
-		}
-		
 		if (!_settings.html_generator || _settings.html_generator == 'default')
 			_settings.html_generator = 'browser';
 		else
@@ -330,14 +326,6 @@ UI.Loki = function Loki()
 			" Please set it explicitly.");
 	}
 	
-	function default_allowed_styles()
-	{
-		var builtin = ['text-align', 'vertical-align', 'float', 'direction',
-			'display', 'clear', 'list-style'];
-		
-		return builtin;
-	}
-
 	/**
 	 * Finishes initializing instance variables, but does so
 	 * asynchronously. All initing that requires _window or _document
