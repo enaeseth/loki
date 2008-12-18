@@ -97,5 +97,11 @@ var Util = {
 			}
 		}
 		return str;
+	},
+	
+	regexp_escape: function escape_string_for_regexp(str)
+	{
+		// credit: Prototype
+		return String(str).replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1');
 	}
 };
