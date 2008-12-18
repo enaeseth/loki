@@ -213,7 +213,7 @@ Util.URI.normalize = function normalize_uri(uri, base)
 		uri = Util.URI.parse(uri);
 	}
 	
-	if (!uri.scheme) {
+	if (!uri.scheme && uri.scheme != '') {
 		uri.scheme = base.scheme;
 	} else if (uri.scheme = 'https') {
 		if (uri.port == 443)

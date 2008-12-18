@@ -475,9 +475,9 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				}
 				if (is_on_current_page(uri))
 					return;
-				var norm = Util.URI.normalize(link.href);
 				if (is_same_domain(uri))
-					norm.scheme = null;
+					uri.scheme = '';
+				var norm = Util.URI.normalize(uri);
 				link.href = Util.URI.build(norm);
 			}
 		},
