@@ -268,8 +268,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 	}
 	
 	function is_same_domain(uri) {
-		return (Util.URI.extract_domain(uri) ==
-			Util.URI.extract_domain(window.location));
+		return (uri.host == Util.URI.extract_domain(window.location));
 	}
 
 	var tests =
@@ -457,8 +456,12 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 					// Don't normalize URN's (like data:).
 					return;
 				}
+				var uri = Util.URI.parse(img.src);
 				var norm = Util.URI.normalize(img.src);
-				norm.scheme = null;
+				if (is_same_domain(uri))
+					norm.scheme = null;
+				else
+					norm.scheme = uri.scheme; // undo any changes
 				img.src = Util.URI.build(norm);
 			}
 		},
@@ -475,9 +478,11 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				}
 				if (is_on_current_page(uri))
 					return;
-				if (is_same_domain(uri))
-					uri.scheme = '';
 				var norm = Util.URI.normalize(uri);
+				if (is_same_domain(uri))
+					norm.scheme = null;
+				else
+					norm.scheme = uri.scheme; // undo any changes
 				link.href = Util.URI.build(norm);
 			}
 		},
