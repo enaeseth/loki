@@ -403,24 +403,6 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			action: remove_node
 		},
 		{
-			description : 'Remove all classes that include Mso (from Word) or O (from Powerpoint) in them.',
-			test : is_element,
-			action : function strip_ms_office_classes(node)
-			{
-				var office_pattern = /^(Mso|O)/;
-				var classes = Util.Element.get_class_array(node);
-				var length = classes.length;
-				
-				for (var i = 0; i < length; i++) {
-					if (office_pattern.test(classes[i]))
-						classes.splice(i, 1); // remove the class
-				}
-				
-				if (classes.length != length)
-					Util.Element.set_class_array(node, classes);
-			}
-		},
-		{
 			description: 'Remove Microsoft Word section DIV\'s',
 			test: function is_ms_word_section_div(node) {
 				if (!has_tagname(node, ['DIV']))
@@ -437,6 +419,24 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				return true;
 			},
 			action: remove_tag
+		},
+		{
+			description : 'Remove Microsoft Office internal classes.',
+			test : is_element,
+			action : function strip_ms_office_classes(node)
+			{
+				var office_pattern = /^(Mso|O|Section\d+$)/;
+				var classes = Util.Element.get_class_array(node);
+				var length = classes.length;
+				
+				for (var i = 0; i < length; i++) {
+					if (office_pattern.test(classes[i]))
+						classes.splice(i, 1); // remove the class
+				}
+				
+				if (classes.length != length)
+					Util.Element.set_class_array(node, classes);
+			}
 		},
 		{
 			description : 'Remove unnecessary span elements',
