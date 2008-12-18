@@ -383,7 +383,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				
 				// Check for the paragraph to only contain non-breaking spaces
 				// or other whitespace characters.
-				var pattern = new RegExp("^[\s\xA0]+$", "");
+				var pattern = new RegExp("^[\\s\xA0]+$", "");
 				for (var i = 0; i < node.childNodes.length; i++) {
 					var child = node.childNodes[i];
 					if (child.nodeType == Util.Node.ELEMENT_NODE) {
