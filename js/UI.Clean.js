@@ -266,6 +266,11 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		
 		return false;
 	}
+	
+	function is_same_domain(uri) {
+		return (Util.URI.extract_domain(uri) ==
+			Util.URI.extract_domain(window.location));
+	}
 
 	var tests =
 	[
@@ -460,7 +465,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		{
 			description: "Normalize all link URI's",
 			test: Util.Node.curry_is_tag('A'),
-			action: function normalize_image_uri(link) {
+			action: function normalize_link_uri(link) {
 				if (!link.href)
 					return;
 				var uri = Util.URI.parse(link.href);
@@ -471,7 +476,8 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				if (is_on_current_page(uri))
 					return;
 				var norm = Util.URI.normalize(link.href);
-				norm.scheme = null;
+				if (is_same_domain(uri))
+					norm.scheme = null;
 				link.href = Util.URI.build(norm);
 			}
 		},
