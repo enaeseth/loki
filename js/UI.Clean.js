@@ -237,6 +237,8 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			if (acceptable_css === null) {
 				acceptable_css = acceptable_css.split(/\s+/);
 			}
+		} else {
+			acceptable_css = settings.allowable_inline_styles;
 		}
 	} else {
 		acceptable_css = UI.Clean.default_allowable_inline_styles;
