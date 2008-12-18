@@ -317,7 +317,7 @@ UI.Loki = function Loki()
 	function autodetect_base_uri()
 	{
 		var scripts = document.getElementsByTagName('SCRIPT');
-		var pattern = /\bloki\.js\b/;
+		var pattern = /\bloki\.js\b.*$/;
 		
 		for (var i = 0; i < scripts.length; i++) {
 			if (pattern.test(scripts[i].src)) {
