@@ -898,7 +898,18 @@ UI.Loki = function Loki()
 			});
 		}
 		
-		var message = ex.message || ex.toString();
+		var message;
+		if (ex.message) {
+			message = ex.message;
+		} else {
+			try {
+				message = ex.toString();
+			} catch (e) {
+				// Why not just test for toString? Because IE will throw an
+				// exception.
+				message = '(unable to get exception message)';
+			}
+		}
 		var stack = get_stack_trace(ex);
 		
 		if (stack) {

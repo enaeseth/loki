@@ -96,7 +96,12 @@ Util.Element = {
 		for (i = 0; i < length; i++) {
 			name = names[i];
 			v = elem.getAttribute(name);
-			v = (v.toString) ? v.toString() : v;
+			try {
+				v = v.toString();
+			} catch (e) {
+				// Why not just test for toString? Because IE will throw an
+				// exception.
+			}
 			
 			switch (name) {
 				case 'class':
