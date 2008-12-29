@@ -148,9 +148,6 @@ Util.URI.build = function build_uri_from_parsed(parsed)
 		uri += parsed.host;
 		if (parsed.port)
 			uri += ':' + parsed.port;
-	} else if (parsed.scheme) {
-		throw new Error('To build a URI with the scheme specified, the host ' +
-			'or authority must also be specified.');
 	}
 	
 	if (parsed.path)
@@ -222,7 +219,8 @@ Util.URI.normalize = function normalize_uri(uri, base)
 	
 	if (!uri.host)
 		uri.host = base.host;
-	uri.host = uri.host.toLowerCase();
+	if (typeof(uri.host) == 'string')
+		uri.host = uri.host.toLowerCase();
 	
 	if (uri.path.charAt(0) != '/' && uri.host == base.host) {
 		uri.path = base.path + uri.path;
