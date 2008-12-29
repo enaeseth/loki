@@ -1092,9 +1092,9 @@ UI.Loki = function Loki()
 				if (typeof(console) == 'object' && console.firebug) {
 					console.error('Failed to generate HTML:',
 						ex);
-					throw ex;
 				}
 				
+				throw ex;
 				return false;
 			}
 			
