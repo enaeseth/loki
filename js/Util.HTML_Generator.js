@@ -23,7 +23,7 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 	var gen = this;
 	var pattern = (gen.escape_non_ascii)
 		? (/[\x00-\x1F\x80-\uFFFF&<>"]/g)
-		: (/[\x00-\x1F^<>]/g);
+		: (/[\x00-\x1F&<>"]/g);
 	
 	function clean_text(text, in_attribute) {
 		function html_escape(txt) {
@@ -38,7 +38,7 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 				: '&#' + c + ';'
 		}
 		
-		return text.replace(pattern, html_escape);
+		return (text) ? text.replace(pattern, html_escape) : '';
 	}
 	
 	function is_whitespace_irrelevant(node) {
