@@ -91,7 +91,9 @@ def main():
 				if filename[0] == '.':
 					return False
 				if not source_build:
-					if filename in ('js', 'tools'):
+					if filename == 'tools':
+						return False
+					elif filename == 'js' and os.path.basename(base) != 'tests':
 						return False
 					elif filename == 'tests' and not options.distribute_tests:
 						return False
