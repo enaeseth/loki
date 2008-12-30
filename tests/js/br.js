@@ -4,6 +4,7 @@ fixture.add('br.insert', 'Inserting a line break in text', function() {
 	this.setHTML('<p>textjuice</p>').show();
 	this.selectInElement('p', 4);
 	this.pushButton('BR');
+	this.log(this.getHTML());
 	
 	this.assertEqual(1, this.elementCount('p'), 'Should be one paragraph');
 	this.assertEqual(1, this.elementCount('p > br'),
