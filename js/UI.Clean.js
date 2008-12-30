@@ -363,7 +363,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 				while (match = rule.exec(raw)) {
 					name = match[1].toLowerCase();
 					if (acceptable_css.test(name)) {
-						accepted.push(match[0]);
+						accepted.push(name + ": " + match[2] + ";");
 					}
 				}
 				
