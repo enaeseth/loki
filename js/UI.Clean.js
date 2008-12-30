@@ -354,7 +354,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 					return;
 				}
 				
-				var rule = /([\w-]+)\s*:\s*([^;]+)(?:;|$)/g;
+				var rule = /([\w\-]+)\s*:\s*([^;]+)(?:;|$)/g;
 				var raw = el.style.cssText;
 				var accepted = [];
 				var match;
