@@ -24,19 +24,22 @@ def main():
 	parser.add_option('-p', '--path', dest='path',
 		help='the path to the Loki source directory', metavar='PATH',
 		default=os.getenv('LOKI'))
-	parser.add_option('--with-dist', dest='dist_build', action='store_true',
+	parser.add_option('-d', '--with-dist', dest='dist_build', action='store_true',
 		help='build a distribution tarball (default: true)')
-	parser.add_option('--with-source', dest='source_build', action='store_true',
-		help='build a source tarball (default: false)')
-	parser.add_option('--js-only', dest='js_only', action='store_true',
+	parser.add_option('-s', '--with-source', dest='source_build',
+		action='store_true', help='build a source tarball (default: false)')
+	parser.add_option('-j', '--js-only', dest='js_only', action='store_true',
 		help='instead of building tarballs, outputs a compiled loki.js file ' +
 		'to standard output')
-	parser.add_option('--without-dist', dest='dist_build', action='store_false')
-	parser.add_option('--without-source', dest='dist_build',
+	parser.add_option('--distribute-tests', dest='distribute_tests',
+	  action='store_true', help='include tests with in distribution tarball')
+	parser.add_option('-D', '--without-dist', dest='dist_build',
+		action='store_false')
+	parser.add_option('-S', '--without-source', dest='dist_build',
 		action='store_false')
 	
 	parser.set_defaults(path=os.getenv('LOKI'), dist_build=True,
-		source_build=False, js_only=False)
+		source_build=False, js_only=False, distribute_tests=False)
 	
 	options, args = parser.parse_args()
 	
@@ -87,8 +90,11 @@ def main():
 			def acceptable(filename):
 				if filename[0] == '.':
 					return False
-				if not source_build and filename in ('js', 'tools'):
-					return False
+				if not source_build:
+					if filename in ('js', 'tools'):
+						return False
+					elif filename == 'tests' and not options.distribute_tests:
+						return False
 				if ball_pattern.match(filename):
 					return False
 				if compiled_py_pattern.search(filename):
