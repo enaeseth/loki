@@ -189,7 +189,7 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 			
 		buffer.set_flag('preformatted');
 		make_inline_element(buffer, element);
-		buffer.new_line(true);
+		buffer.end_line(true);
 		buffer.clear_flag('preformatted');
 	}
 	
