@@ -213,7 +213,7 @@ clean.add('strip_styles.defaults', 'Certain styles should be permitted by defaul
 	
 	var p = this.findElement('p');
 	this.assertEqual('center', p.style.textAlign);
-	this.assertEqual('right', p.style.cssFloat);
+	this.assertEqual('right', p.style.cssFloat || p.style.styleFloat);
 	this.assertEqual('ltr', p.style.direction);
 	this.assertEqual('block', p.style.display);
 	this.assertEqual('both', p.style.clear);
