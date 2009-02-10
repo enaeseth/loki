@@ -121,7 +121,7 @@ UI.Table_Masseuse = function TableMasseuse()
 		if (head.getElementsByTagName("TR").length == 0) {
 			// See if the first row of the table is actually a header row.
 			var candidate = get_first_row();
-			if (is_header_row(candidate)) {
+			if (candidate && is_header_row(candidate)) {
 				promote_row(candidate, 'head');
 			} else {
 				head_valid = false; // don't worry about the lack of header
