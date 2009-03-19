@@ -6,51 +6,15 @@ UI.List_Helper = function ListHelper()
 {
 	Util.OOP.inherits(this, UI.Helper);
 	
-	function run_with_proper_selection(fn) {
-    	var sel = Util.Selection.get_selection(this._loki.window);
-		var range = Util.Range.create_range(sel);
-		var get_ancestor = Util.Range.get_nearest_ancestor_element_by_tag_name;
-		var bookmark;
-		
-		function select_item() {
-            var item = get_ancestor(range, 'LI');
-            if (!item) {
-                // hopefully this will never happen, but let's be defensive
-                throw new Error('Cannot perform a list indent when selection ' +
-                    'is not within a list item.');
-            }
-            
-            Util.Range.select_node_contents(range, item);
-            range.collapse(true /* (to start) */);
-    	}
-		
-		// We want to put the selection directly on the list item before running
-		// the command, because running indent commands when we're inside a
-		// paragraph or a table has a different meaning.
-		bookmark = Util.Selection.bookmark(this._loki.window, sel, range);
-		select_item(sel, range);
-		
-		fn.call(this);
-		
-		// Restore the original selection
-		Util.Scheduler.defer(function restore_selection() {
-		    bookmark.restore();
-		});
-	}
-	
 	this.indent = function indent_list()
 	{
-	    run_with_proper_selection.call(this, function() {
-	        this._loki.exec_command('Indent');
-	        this._loki.document.normalize();
-	    });
+        this._loki.exec_command('Indent');
+        this._loki.document.normalize();
 	};
 	
 	this.outdent = function outdent_list()
 	{
-	    run_with_proper_selection.call(this, function() {
-	        this._loki.exec_command('Outdent');
-	    });
+        this._loki.exec_command('Outdent');
 	};
 	
 	this.get_ancestor_list = function get_ancestor_list_of_selected_range()
