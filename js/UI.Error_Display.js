@@ -12,20 +12,22 @@ UI.Error_Display = function(message_container)
 	
 	this.display = null;
 	
-	function create(message, retry)
+	function create(message, retry, retry_text)
 	{
 		if (!retry)
-			var retry = null;
+		    retry = null;
+		else if (!retry_text)
+		    retry_text = 'Retry';
 		
-		var children = [message];
+		var link;
 		if (retry) {
-			var link = dh.create_element('a',
+			link = dh.create_element('a',
 				{
 					href: '#',
 					className: 'retry',
 					style: {display: 'block'}
 				},
-				['Retry']);
+				[retry_text]);
 			
 			Util.Event.add_event_listener(link, 'click', function(e) {
 				if (!e)
@@ -39,10 +41,12 @@ UI.Error_Display = function(message_container)
 					return Util.Event.prevent_default(e);
 				}
 			});
-			children.push(link);
 		}
 
-		self.display = dh.create_element('p', {className: 'error'}, children);
+		self.display = dh.create_element('p', {className: 'error'});
+		self.display.innerHTML = message;
+		if (link)
+		    self.display.appendChild(link);
 		message_container.appendChild(self.display);
 	}
 	
@@ -53,7 +57,7 @@ UI.Error_Display = function(message_container)
 		this.display = null;
 	}
 	
-	this.show = function(message, retry)
+	this.show = function(message, retry, retry_text)
 	{
 		if (!retry)
 			var retry = null;
@@ -61,7 +65,7 @@ UI.Error_Display = function(message_container)
 		if (this.display)
 			remove.call(this);
 		
-		create.call(this, message, retry);
+		create.call(this, message, retry, retry_text);
 	}
 	
 	this.clear = function()
