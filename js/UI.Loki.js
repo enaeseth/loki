@@ -938,53 +938,87 @@ UI.Loki = function Loki()
 		var mod_key = (Util.Browser.Mac ? 'meta' : 'ctrl') + 'Key';
 		var mod_key_pressed = null;
 		
-		function move_ahead_of_nbsp() {
+		function move_past_nbsp(direction) {
 		    var sel = Util.Selection.get_selection(self.window);
     		var range = Util.Range.create_range(sel);
     		
     		if (!Util.Range.is_collapsed(range))
-    		    return;
+    		    return false;
     		
     		var bounds = Util.Range.get_boundaries(range);
     		var node, pos, must_move = false, value;
     		
     		if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
-    		    if (bounds.start.offset > 0) {
-    		        node = bounds.start.container;
-    		        pos = bounds.start.offset - 1;
+    		    node = bounds.start.container;
+    		    value = node.nodeValue;
+    		    if ((direction < 0 && bounds.start.offset > 0) || (direction > 0 && bounds.end.offset < value.length)) {
+    		        pos = bounds.start.offset;
+    		        if (direction < 0)
+    		            pos--;
     		        if (node.nodeValue.charCodeAt(pos) != 160)
-    		            return;
+    		            return false;
     		        else
     		            must_move = true;
     		    }
     		}
     		
-    		node = bounds.start.container;
-    		while (!must_move) {
-    		    node = node.previousSibling;
-    		    if (!node)
-    		        return;
-    		    if (node.nodeType != Util.Node.TEXT_NODE)
-    		        return;
-    		    value = node.nodeValue;
-    		    if (value.length == 0) {
-    		        // try a previous node
-    		        continue;
+    		if (!must_move) {
+    		    if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
+    		        node = bounds.start.container;
+    		        node = (direction < 0) ? node.previousSibling : node.nextSibling;
+    		    } else {
+    		        node = bounds.start.container.childNodes[bounds.start.offset]
     		    }
+        		if (!node)
+        		    return false;
+        		    
+        		while (true) {
+        		    if (!node)
+        		        return false;
+        		    if (node.nodeType != Util.Node.TEXT_NODE)
+        		        return false;
+        		    value = node.nodeValue;
+        		    if (value.length == 0) {
+        		        // try the neighboring node
+        		        node = (direction < 0) ?
+            		        node.previousSibling :
+            		        node.nextSibling;
+        		        continue;
+        		    }
     		    
-    		    pos = value.length - 1;
-    		    if (value.charCodeAt(pos) != 160)
-    		        return;
+        		    pos = (direction < 0) ? value.length - 1 : 0;
+        		    if (value.charCodeAt(pos) != 160)
+        		        return false;
+        		    break;
+    		    }
+    		}
+    		
+    		if (direction > 0 && node.nodeType == Util.Node.TEXT_NODE) {
+    		    node = Util.Node.next_element_sibling(node.parentNode);
+    		    pos = 0;
     		}
     		
     		range = Util.Document.create_range(self.document);
     		Util.Range.set_start(range, node, pos);
     		range.collapse(true /* to start */);
     		Util.Selection.select_range(sel, range);
+    		return true;
 		}
 		
-		Util.Event.add_event_listener(_document, 'mouseup', move_ahead_of_nbsp);
-		Util.Event.add_event_listener(_document, 'keyup', move_ahead_of_nbsp);
+		Util.Event.add_event_listener(_document, 'mouseup', function() {
+		    move_past_nbsp(-1);
+		});
+		Util.Event.add_event_listener(_document, 'keyup', function(ev) {
+		    if (ev.keyCode == 37)
+		        move_past_nbsp(-1);
+		});
+		Util.Event.add_event_listener(_document, 'keydown', function(ev) {
+		    if (ev.keyCode == 39) {
+		        if (move_past_nbsp(1)) {
+		            return Util.Event.prevent_default(ev);
+		        }
+		    }
+		});
 
 		var paragraph_helper = (new UI.Paragraph_Helper).init(self);
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
