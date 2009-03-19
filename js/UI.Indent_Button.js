@@ -24,6 +24,7 @@ UI.Indent_Button = function()
 		
 		var list = this.helper.get_ancestor_list();
 		var li = this.helper.get_list_item();
+		var sib;
 		
 		if (list) {
 			// Don't indent first element in a list, if it is not in a nested list.
@@ -31,7 +32,9 @@ UI.Indent_Button = function()
 			// the UL/OL with a BLOCKQUOTE tag. I.e. <ul><li>as|df</li></ul>
 			// --> <blockquote><ul><li>as|df</li></ul></blockquote>
 			
-			if (li.previousSibling || this.helper.get_more_distant_list(list)) {
+			sib = Util.Node.get_nearest_non_whitespace_sibling_node(li,
+			    Util.Node.PREVIOUS);
+			if (sib || this.helper.get_more_distant_list(list)) {
 				this._loki.exec_command('Indent');
 				this._loki.document.normalize();
 			} else {
