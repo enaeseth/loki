@@ -8,7 +8,7 @@ var Crucible = {
 
 
 
-	version: "0.2a1",
+	version: "0.2a2",
 	
 	
 
@@ -23,7 +23,8 @@ var Crucible = {
 	
 	settings: {
 		runner_class: 'TableRunner',
-		autorun: true
+		autorun: true,
+		filters: null
 	},
 	
 	add: function crucible_add(id, name, body) {
@@ -78,6 +79,40 @@ var Crucible = {
 		}
 	},
 	
+	_readQuerySettings: function crucible_read_settings_from_query_params() {
+	    var query = window.location.search;
+	    if (!query)
+	        return;
+	    
+	    query = query.replace(/^\?/, '').split('&');
+	    
+	    Crucible.forEach(query, function process_setting(setting) {
+	        var name, value, word_value, int_value;
+	        var equals = setting.indexOf('=');
+	        
+	        if (!(1 + equals))  {
+	            name = setting;
+	            value = true;
+	        } else {
+	            name = setting.substr(0, equals);
+	            value = setting.substr(equals + 1);
+	            word_value = value.toLowerCase();
+	            
+	            if (name == "filters") {
+	                value = value.split(/\s*,\s*/);
+	            } else if (word_value == "true" || word_value == "yes") {
+	                value = true;
+	            } else if (word_value == "false" || word_value == "no") {
+	                value = false;
+	            } else if (!isNaN(int_value = parseInt(value))) {
+	                value = int_value;
+	            }
+	        }
+	        
+	        this.settings[name] = value;
+	    }, Crucible);
+	},
+	
 	_createRunner: function crucible_create_runner() {
 		var Runner = Crucible[Crucible.settings.runner_class];
 		Crucible.defaultRunner = new Runner(Crucible.product || null,
@@ -90,7 +125,7 @@ var Crucible = {
 	},
 	
 	run: function crucible_run() {
-		Crucible.defaultRunner.run();
+		Crucible.defaultRunner.run(Crucible.settings.filters);
 	},
 	
 	
@@ -275,11 +310,16 @@ var Crucible = {
 
 	constantFunction: function(value) {
 		return value;
+	},
+	
+	escapeRegexp: function(text) {
+	    return String(text).replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1');
 	}
 };
 
 Crucible.observeEvent(window, 'load', function _crucible_window_loaded() {
 	Crucible._windowReady = true;
+	Crucible._readQuerySettings();
 	if (Crucible._doneAdding) {
 		Crucible._createRunner();
 	}
@@ -375,12 +415,18 @@ Crucible.Failure = function Failure(test, message) {
 Crucible.Failure.HTML = /<\/?(\w+:)?\w:[^>]*>/g;
 
 Crucible.ExpectationFailure =
-	function ExpectationFailure(test, expected, actual) 
+	function ExpectationFailure(test, expected, actual, message) 
 {
 	var err;
 	var expected_r = Crucible.Tools.inspect(expected);
 	var actual_r = Crucible.Tools.inspect(actual);
-	var message = 'Expected <code>' + expected_r + '</code> but actually' +
+	
+	if (message) {
+	    message = message.replace(/[?!.:;,]$/, '') + '; expected ';
+	} else {
+	    message += 'Expected ';
+	}
+	message += '<code>' + expected_r + '</code> but actually' +
 		' got <code>' + actual_r + '</code>.';
 	
 	err = new Crucible.Failure(test, message);
@@ -765,14 +811,14 @@ Crucible.Assertions = {
 	assertEqual: function assert_equal(expected, actual, message) {
 		if (!Crucible.equal(expected, actual)) {
 			throw new Crucible.ExpectationFailure(this._test || null, expected,
-				actual);
+				actual, message || null);
 		}
 	},
 	
 	assertSame: function assert_same(expected, actual, message) {
 		if (expected !== actual) {
 			throw new Crucible.ExpectationFailure(this._test || null, expected,
-				actual);
+				actual, message || null);
 		}
 	},
 	
@@ -1234,12 +1280,12 @@ Crucible.Runner = Crucible.Class.create({
 	
 	// Method: run
 	// Runs the tests.
-	run: function run_tests() {
+	run: function run_tests(filters) {
 		if (this.running) {
 			throw new Error('Already running!');
 		}
 		
-		this.queue = this.tests.slice(0); // clone
+		this.queue = this._filter(this.tests, filters);
 		this.queue.reverse();
 		this.running = true;
 		
@@ -1249,6 +1295,35 @@ Crucible.Runner = Crucible.Class.create({
 	
 	log: function runner_log() {
 		this.events.log.call(arguments);
+	},
+	
+	_filter: function _runner_apply_filters(tests, filters) {
+	    var filtered, filter_regexp_parts, filter;
+	    
+	    function glob_to_regexp(glob) {
+	        // Temporarily convert the glob "*" character to something that's
+	        // not a special regular expression character.
+	        glob = glob.replace('*', '__WILDCARD__');
+	        glob = Crucible.escapeRegexp(glob);
+	        return '(?:' + glob.replace('__WILDCARD__', '.*') + ')';
+	    }
+	    
+	    if (!filters) {
+	        return tests.slice(0); // slice makes a shallow clone of the list
+	    } else {
+	        filter_regexp_parts = [];
+	        Crucible.forEach(filters, function compile_filter(filter) {
+	            filter_regexp_parts.push(glob_to_regexp(filter));
+	        });
+	        filter = new RegExp('^' + filter_regexp_parts.join('|') + '$', 'i');
+	        
+	        filtered = [];
+	        Crucible.forEach(tests, function filter_test(test) {
+	            if (filter.test(test.id))
+	                filtered.push(test);
+	        }, this);
+	        return filtered;
+	    }
 	},
 	
 	_runTest: function _runner_run_test() {
@@ -1324,7 +1399,7 @@ Crucible.TableRunner = Crucible.Class.create(Crucible.Runner, {
 		this.startButton = build('div', {id: 'crucible_start'},
 			'Start Testing');
 		Crucible.observeEvent(this.startButton, 'click', function() {
-			runner.run();
+			Crucible.run();
 		});
 		this.root.appendChild(this.startButton);
 		

@@ -97,6 +97,11 @@ div#crucible_results #crucible_start {
   cursor: pointer;
 }
 
+div#crucible_results #crucible_start:hover {
+    background-color: #C8F7A4;
+    color: #111;
+}
+
 div#crucible_results table.tests {
   margin: 0;
   padding: 0;
