@@ -238,14 +238,7 @@ Util.Selection.is_collapsed = function selection_is_collapsed(sel)
 			throw e;
 	}
 	
-	if ( rng.text != null )
-		return rng.text == '';
-	else if ( rng.length != null )
-		return rng.length == 0;
-	else if ( rng.collapsed != null )
-		return rng.collapsed;
-	else
-		throw("Util.Selection.is_selection_collapsed: Couldn't determine whether selection is collapsed.");
+	return Util.Range.is_collapsed(rng);
 };
 
 /**

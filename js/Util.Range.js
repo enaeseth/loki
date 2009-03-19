@@ -77,6 +77,22 @@ Util.Range.create_range = function create_range_from_selection(sel)
 	}
 };
 
+Util.Range.is_collapsed = function is_range_collapsed(rng) {
+    var undefined;
+    
+    if (rng.text !== undefined && rng.text !== null)
+        return rng.text == '';
+    else if (rng.length !== undefined && rng.length !== null)
+        return rng.length <= 0;
+    else if (rng.collapsed !== undefined && rng.collapsed !== null)
+        return rng.collapsed;
+    else if (rng.startContainer && rng.endOffset)
+        return (rng.startContainer == rng.endContainer &&
+            rng.startOffset == rng.endOffset);
+    else
+        throw new Util.Unsupported_Error('checking if a range is collapsed');
+};
+
 /**
  * Gets the ancestor node which surrounds the given range.
  * XXX: probably better usually to use get_start_container, to
