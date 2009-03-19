@@ -84,6 +84,8 @@ UI.Page_Link_Dialog = function()
 		this._append_submit_and_cancel_chunk();
 		this._append_remove_link_chunk();
 		
+		this._sanity_error_displays = null;
+		
 		this._sites_error_display = (this._use_rss)
 			? new UI.Error_Display(this._doc.getElementById('sites_pane'))
 			: null;
@@ -446,97 +448,123 @@ UI.Page_Link_Dialog = function()
 	 */
 	this._internal_submit_listener = function()
 	{
-		// Get URI
-		
+	    var self = this;
 		var tab_name = this._tabset.get_name_of_selected_tab();
+		
+		if (!this._sanity_error_displays) {
+		    this._sanity_error_displays = {};
+		}
+		
+		function get_error_display() {
+		    if (!self._sanity_error_displays[tab_name]) {
+		        self._sanity_error_displays[tab_name] = new UI.Error_Display(
+		            self._tabset.get_tabpanel_elem(tab_name));
+		    }
+		    
+		    return self._sanity_error_displays[tab_name];
+		}
 		
 		if (!this._initially_selected_item.uri) {
 			UI.Page_Link_Dialog._default_tab = tab_name;
 		}
+		
+		function do_submission() {
+		    // Call external event listener
+    		self._external_submit_listener({
+    		    uri: uri,
+    		    new_window: self._new_window_checkbox.checked,
+    		    title: self._link_title_input.value
+    		});
 
-		var uri;
-		if ( tab_name == 'rss' )
-		{
-			uri = this.item_selector.get_uri();
+    		// Close dialog window
+    		self._dialog_window.window.close();
+		}
+
+		var uri, match, display_uri, answer;
+		var errdisp = get_error_display();
+		if (tab_name == 'rss') {
+		    uri = this.item_selector.get_uri();
 			if (!uri) {
 				this._dialog_window.window.alert('Please select a page to be linked to.');
 				return false;
 			}
-		}
-		else if ( tab_name == 'custom' )
-		{
-			var uri = this._custom_input.value;
-			if ( uri.search( new RegExp('\@', '') ) > -1 && 
-				 uri.search( new RegExp('\/', '') ) == -1 && // e.g. http://c.edu/fmail?to=me@c.edu would work
-				 // We might as well let them create links to 
-				 // email addresses from here if they know how:
-				 uri.search( new RegExp('^mailto:') ) == -1 )
-			{
-				var answer = confirm("You've asked to create a link to a custom page, but <<" + uri + ">> looks like an email address. If you want to create a link to an email address, you should press \"Cancel\" here and use the \"" + this._EMAIL_TAB_STR + "\" tab instead. \n\nAre you sure you want to continue anyway?");
-				if ( !answer )
-					return;
+		} else if (tab_name == 'custom') {
+		    uri = this._custom_input.value;
+		    
+		    // Check for an email address here.
+		    if (!(/^mailto:/).test(uri) && (/@/).test(uri) && !(/\//).test(uri)) {
+		        errdisp.show("If you want to link to an email address, you " +
+		            "should use the \"" + this._EMAIL_TAB_STR + "\" tab " +
+		            "instead.", do_submission,
+		            "This is not a link to an email address.");
+		        return;
+		    }
+		    
+		    // Check for a link to the local system.
+		    if ((/^file:/).test(uri) || (/[A-Za-z]:\\/).test(uri)) {
+		        errdisp.show("That link points to a file on your computer. " +
+		            "It will not work if it is clicked on from any other " +
+		            "computer. You should upload the file to the Web first. " +
+		            "(If you need help doing that, contact your site " +
+		            "administrator.)", do_submission, "Continue anyway.");
+		        return;
+		    }
+		    
+		    // Check for weird-protocol links.
+		    match = /^(\w+):/.exec(uri);
+		    if (match && !(/^https?:/.test(uri))) {
+		        errdisp.show("You're creating a link with the <strong>" +
+		            match[1].toLowerCase() + "</strong> protocol, which is " +
+		            "not HTTP. Web browsers may not be able to open this " +
+		            "link directly. Only do this if you understand the " +
+		            "implications of using that protocol.", do_submission, 
+		            "I understand the implications; continue anyway.");
+		        return;
+		    }
+		    
+		    // Check for an empty link.
+		    if (uri.replace(/^\w+:(?:\/\/)?(?:www\.?)?/, '').length <= 0) {
+		        errdisp.show("You haven't entered anything to link to.",
+		            do_submission, "Continue anyway.");
+		        return;
+		    }
+		    
+		    // Check for a cross-domain link with no protocol.
+		    if (!(/^#/).test(uri) && !(/^\w+:/).test(uri) && (/^[^\/]+\.[A-Za-z]+/).test(uri)) {
+		        if (uri.length > 20) {
+		            display_uri = uri.substr(0, 20) + '&hellip;';
+		        } else {
+		            display_uri = uri;
+		        }
+		        errdisp.show("Did you mean to link to link to "
+		            +"<strong>http://</strong>" + display_uri + '? If you ' +
+		            'did, please change the address above.',
+		            do_submission, "No, I didn't. Continue.");
+		        return;
+		    }
+		} else if (tab_name == 'email') {
+			uri = this._email_input.value;
+			if (!(/@/).test(uri) || ((/^\w+:/).test(uri) && !(/^mailto:/).test(uri)) || (/^www\./).test(uri)) {
+			    if (uri.length > 20) {
+		            display_uri = uri.substr(0, 20) + '&hellip;';
+		        } else {
+		            display_uri = uri;
+		        }
+			    errdisp.show("You've asked to link to an email address, " +
+			        "but " + uri + " doesn't look like one (maybe it's a Web " +
+			        "page?). Are you sure you want to continue?",
+			        do_submission, "Yes, continue anyway.");
+			    return;
+			    
+			    if (!(/^mailto:/).test(uri))
+			        uri = "mailto:" + uri;
 			}
-			else if ( uri.search( new RegExp('^file:') ) > -1 ||
-			          uri.search( new RegExp('^[A-Za-z]:') ) > -1 )
-			{
-				var answer = confirm("It appears that you've tried to create a link to a file on your specific computer. This will not work anywhere but your own computer--probably not what you want. \n\nAre you sure you want to continue anyway?");
-				if ( !answer )
-					return;
-			}
-			else if ( uri.search( new RegExp('^https?:') ) == -1 && 
-					  uri.search( new RegExp('^#') ) == -1 )
-			{
-				if ( uri.search( new RegExp('^www') ) > -1 ||
-				     uri.search( new RegExp('^apps') ) > -1 )
-				{
-					uri = 'http://' + uri;
-				}
-				// Since links to pages on the same server/protocol are okay
-				// without specifying protocol:
-				else if ( uri.search( new RegExp('^[./]') ) == -1 ) 
-				{
-					if ( uri.search( new RegExp('^[A-Za-z]+://') ) == -1 )
-					{
-						var answer = confirm("It appears that you're trying to link to a page without specifying a protocol like HTTP. You probably want to press \"Cancel\" here, and add an \"http://\" to the beginning of your link. \n\nAre you sure you want to continue anyway?");
-						if ( !answer )
-							return;
-					}
-					else
-					{
-						var answer = confirm("It appears that you're trying to link to a page using a protocol other than HTTP. You shouldn't try this unless you know what you're doing. \n\nAre you sure you want to continue anyway?");
-						if ( !answer )
-							return;
-					}
-				}
-			}
+		} else {
+			throw new Error('Bizarre error: unknown tab "' + tab_name + '".');
 		}
-		else if (tab_name == 'email')
-		{
-			var uri = this._email_input.value;
-			if ( uri.search( new RegExp('\@', '') ) == -1 ||
-			     uri.search( new RegExp('^https?:') ) > -1 ||
-			     uri.search( new RegExp('^www[.]') ) > -1 )
-			{
-				var answer = confirm("You've asked to create a link to an email address, but <<" + uri + ">> doesn't look like an email address. Are you sure you want to continue?");
-				if ( answer == false )
-					return;
-			}
-
-			if ( uri.search( new RegExp('^mailto:', 'i') ) == -1 )
-				uri = 'mailto:' + uri;
-		}
-		else
-		{
-			throw new Error('Unknown tab "' + tab_name + '".');
-		}
-
-		// Call external event listener
-		this._external_submit_listener({uri : uri, 
-										new_window : this._new_window_checkbox.checked, 
-										title : this._link_title_input.value});
-
-		// Close dialog window
-		this._dialog_window.window.close();
+		
+		// We made it to the end! Let's go through with it.
+		do_submission();
 	};
 	
 	this._determine_tab = function determine_tab(use_rss)
