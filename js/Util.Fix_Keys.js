@@ -149,7 +149,7 @@ Util.Fix_Keys.fix_delete_and_backspace = function(e, win)
 	}
 	
 	function is_named_anchor(element) {
-	    return (element.tagName == 'A' && element.name &&
+	    return (element && element.tagName == 'A' && element.name &&
 	        !Util.Node.get_last_non_whitespace_child_node(element));
 	}
 	
