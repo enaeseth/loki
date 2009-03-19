@@ -23,7 +23,7 @@ UI.Outdent_Button = function()
 			this.helper = (new UI.List_Helper).init(this._loki);
 			
 		if (this.helper.get_ancestor_list()) {
-			this._loki.exec_command('Outdent');
+			this.helper.outdent();
 		} else {
 			this.helper.nag_about_indent_use();
 		}

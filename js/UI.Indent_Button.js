@@ -35,8 +35,7 @@ UI.Indent_Button = function()
 			sib = Util.Node.get_nearest_non_whitespace_sibling_node(li,
 			    Util.Node.PREVIOUS);
 			if (sib || this.helper.get_more_distant_list(list)) {
-				this._loki.exec_command('Indent');
-				this._loki.document.normalize();
+				this.helper.indent();
 			} else {
 				UI.Messenger.display_once('indent_first_li',
 					"The first item in a list cannot be indented.");
