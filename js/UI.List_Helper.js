@@ -13,7 +13,7 @@ UI.List_Helper = function ListHelper()
 		
 		return Util.Range.get_nearest_ancestor_element_by_tag_name(range, 'UL')
 			|| Util.Range.get_nearest_ancestor_element_by_tag_name(range, 'OL');
-	}
+	};
 	
 	this.get_list_item = function get_list_item_for_selected_range()
 	{
@@ -21,13 +21,13 @@ UI.List_Helper = function ListHelper()
 		var range = Util.Range.create_range(sel);
 		
 		return Util.Range.get_nearest_ancestor_element_by_tag_name(range, 'LI');
-	}
+	};
 	
 	this.get_more_distant_list = function get_list_ancestor_of_list(list)
 	{
 		return Util.Node.get_nearest_ancestor_element_by_tag_name(list, 'UL')
 			|| Util.Node.get_nearest_ancestor_element_by_tag_name(list, 'OL');
-	}
+	};
 	
 	this.nag_about_indent_use = function nag_about_indent_use()
 	{
@@ -35,5 +35,5 @@ UI.List_Helper = function ListHelper()
 			'The indent and unindent buttons can only be used to indent and' +
 			' outdent list items; in particular, it cannot be used to indent' +
 			' paragraphs.');
-	}
+	};
 }
