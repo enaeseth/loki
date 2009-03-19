@@ -429,13 +429,15 @@ clean.add('images.dimensions.disabled', 'Shouldn\'t strip width and height attri
 
 clean.add('brs.end_of_blocks', "Should remove BR elements that are blocks' last children", function() {
 	this.setHTML('<p>Foo<br id="a" />Bar\n<br id="b" /><br id="c" /> \n</p>' +
-		'<p>Bar<br id="d" /></p><p><span class="quux">Baz<br id="e" /></span></p>');
+		'<p>Bar<br id="d" /></p><p><span class="quux">Baz<br id="e" /></span></p>' +
+		'<ul><li>List Item</li><li>Other list item<br id="f" /></li></ul>');
 	this.show();
 	
-	this.assertEqual(2, this.elementCount('br'), "There should be 2 surviving BR's");
 	this.assertEqual(1, this.elementCount('br#a'), "#a should survive");
 	this.assertEqual(0, this.elementCount('br#b'), "#b should not survive");
 	this.assertEqual(0, this.elementCount('br#c'), "#c should not survive");
 	this.assertEqual(0, this.elementCount('br#d'), "#d should not survive");
 	this.assertEqual(1, this.elementCount('br#e'), "#e should survive");
+	this.assertEqual(0, this.elementCount('br#f'), "#f should not survive");
+	this.assertEqual(2, this.elementCount('br'), "There should be 2 surviving BR's");
 });
