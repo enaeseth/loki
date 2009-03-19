@@ -44,7 +44,25 @@ UI.Anchor_Masseuse = function()
 	{
 		var fakes = node.getElementsByTagName(needs_unmassaging.tag);
 		var i, fake;
+		
+		// Remove anchors that have had their placeholder images deleted.
+		var anchors = node.getElementsByTagName(needs_massaging.tag);
+		var anchor;
+		var placeholder_map = {}, id;
+		
+		for (i = 0; i < fakes.length; i++) {
+		    id = fakes[i].getAttribute('loki:anchor_id');
+		    if (id)
+		        placeholder_map[id] = fakes[i];
+		}
+		
+		for (i = anchors.length - 1; i >= 0; i--) {
+			anchor = anchors[i];
+			if (needs_massaging(anchor) && !placeholder_map[anchor.id])
+				anchor.parentNode.removeChild(anchor);
+		}
 
+        // Unmassage the placeholders that still exist.
 		for (i = fakes.length - 1; i >= 0; i--) {
 			fake = fakes[i];
 			if (needs_unmassaging(fake))
