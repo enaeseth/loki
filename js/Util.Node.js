@@ -409,7 +409,7 @@ Util.Node.get_window = function find_window_of_node(node)
 	return null;
 }
 
-Util.Node.non_whitespace_regexp = /[^\f\n\r\t\v]/gi;
+Util.Node.non_whitespace_regexp = /[^\f\n\r\t\v ]/gi;
 Util.Node.is_non_whitespace_text_node = function(node)
 {
 	// [^\f\n\r\t\v] should be the same as \S, but at least on
