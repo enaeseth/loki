@@ -937,6 +937,54 @@ UI.Loki = function Loki()
 		var paste_keyup = false; // a keyup event listener has been registered
 		var mod_key = (Util.Browser.Mac ? 'meta' : 'ctrl') + 'Key';
 		var mod_key_pressed = null;
+		
+		function move_ahead_of_nbsp() {
+		    var sel = Util.Selection.get_selection(self.window);
+    		var range = Util.Range.create_range(sel);
+    		
+    		if (!Util.Range.is_collapsed(range))
+    		    return;
+    		
+    		var bounds = Util.Range.get_boundaries(range);
+    		var node, pos, must_move = false, value;
+    		
+    		if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
+    		    if (bounds.start.offset > 0) {
+    		        node = bounds.start.container;
+    		        pos = bounds.start.offset - 1;
+    		        if (node.nodeValue.charCodeAt(pos) != 160)
+    		            return;
+    		        else
+    		            must_move = true;
+    		    }
+    		}
+    		
+    		node = bounds.start.container;
+    		while (!must_move) {
+    		    node = node.previousSibling;
+    		    if (!node)
+    		        return;
+    		    if (node.nodeType != Util.Node.TEXT_NODE)
+    		        return;
+    		    value = node.nodeValue;
+    		    if (value.length == 0) {
+    		        // try a previous node
+    		        continue;
+    		    }
+    		    
+    		    pos = value.length - 1;
+    		    if (value.charCodeAt(pos) != 160)
+    		        return;
+    		}
+    		
+    		range = Util.Document.create_range(self.document);
+    		Util.Range.set_start(range, node, pos);
+    		range.collapse(true /* to start */);
+    		Util.Selection.select_range(sel, range);
+		}
+		
+		Util.Event.add_event_listener(_document, 'mouseup', move_ahead_of_nbsp);
+		Util.Event.add_event_listener(_document, 'keyup', move_ahead_of_nbsp);
 
 		var paragraph_helper = (new UI.Paragraph_Helper).init(self);
 		Util.Event.add_event_listener(_document, 'keypress', function(event)
