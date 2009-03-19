@@ -273,7 +273,7 @@ Util.Selection.bookmark = function create_selection_bookmark(window, sel, rng)
 		rng = Util.Range.create_range(sel);
 	}
 	
-	var doc = Util.Selection.get_document(sel, range);
+	var doc = Util.Selection.get_document(sel, rng);
 	var dim = Util.Document.get_dimensions(doc);
 	var elem;
 	var i;
@@ -291,11 +291,11 @@ Util.Selection.bookmark = function create_selection_bookmark(window, sel, rng)
 	
 	// Try the native Windows IE text range implementation. This branch was not
 	// in the original TinyMCE code.
-	if (range.getBookmark) {
+	if (rng.getBookmark) {
 		try {
-			var mark_id = range.getBookmark();
+			var mark_id = rng.getBookmark();
 			return {
-				range: range,
+				range: rng,
 				id: mark_id,
 				
 				restore: function restore_native_ie_bookmark()
