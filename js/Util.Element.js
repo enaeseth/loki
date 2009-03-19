@@ -57,10 +57,15 @@ Util.Element = {
 	 */
 	is_block_level: function is_block_level_element(window, elem)
 	{
-		var s = Util.Element.get_computed_style(window, elem);
+		var s;
 		
 		try {
-			return s.display == 'block';
+		    s = Util.Element.get_computed_style(window, elem);
+		    if (s.display == 'inline' || s.display == 'none')
+		        return false;
+		    // Assume that everything else ('block', 'table-cell', 'list-item',
+		    // etc.) is a block.
+			return true;
 		} catch (e) {
 			var ex = new Error('Unable to get the computed style for ' +
 				Util.Node.get_debug_string(elem) + '.');
