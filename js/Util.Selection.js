@@ -273,7 +273,7 @@ Util.Selection.bookmark = function create_selection_bookmark(window, sel, rng)
 		rng = Util.Range.create_range(sel);
 	}
 	
-	var doc = Util.Selection.get_document(selection, range);
+	var doc = Util.Selection.get_document(sel, range);
 	var dim = Util.Document.get_dimensions(doc);
 	var elem;
 	var i;
