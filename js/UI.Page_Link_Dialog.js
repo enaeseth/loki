@@ -479,9 +479,14 @@ UI.Page_Link_Dialog = function()
     		// Close dialog window
     		self._dialog_window.window.close();
 		}
+		
+		function capitalize(s) {
+		    return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
+		}
 
-		var uri, match, display_uri, answer;
+		var uri, match, display_uri, actions;
 		var errdisp = get_error_display();
+		var verb = (!this._initially_selected_item.uri) ? 'insert' : 'save';
 		if (tab_name == 'rss') {
 		    uri = this.item_selector.get_uri();
 			if (!uri) {
@@ -493,10 +498,19 @@ UI.Page_Link_Dialog = function()
 		    
 		    // Check for an email address here.
 		    if (!(/^mailto:/).test(uri) && (/@/).test(uri) && !(/\//).test(uri)) {
+		        function fix_email() {
+		            self._email_input.value = uri;
+		            self._tabset.select_tab('email');
+		            errdisp.clear();
+		        }
+		        
+		        actions = [
+		            ["Take me to the right place for an email address.", fix_email],
+		            ["No, " + verb + " the link as-is.", do_submission]
+		        ];
 		        errdisp.show("If you want to link to an email address, you " +
 		            "should use the \"" + this._EMAIL_TAB_STR + "\" tab " +
-		            "instead.", do_submission,
-		            "This is not a link to an email address.");
+		            "instead.", actions);
 		        return;
 		    }
 		    
@@ -506,26 +520,31 @@ UI.Page_Link_Dialog = function()
 		            "It will not work if it is clicked on from any other " +
 		            "computer. You should upload the file to the Web first. " +
 		            "(If you need help doing that, contact your site " +
-		            "administrator.)", do_submission, "Continue anyway.");
+		            "administrator.)", [[
+		                "Ignore this warning and link to the local file.",
+		                    do_submission
+		            ]]);
 		        return;
 		    }
 		    
 		    // Check for weird-protocol links.
 		    match = /^(\w+):/.exec(uri);
-		    if (match && !(/^https?:/.test(uri))) {
-		        errdisp.show("You're creating a link with the <strong>" +
-		            match[1].toLowerCase() + "</strong> protocol, which is " +
-		            "not HTTP. Web browsers may not be able to open this " +
-		            "link directly. Only do this if you understand the " +
-		            "implications of using that protocol.", do_submission, 
-		            "I understand the implications; continue anyway.");
+		    if (match && !(/^(?:https?|mailto|ftp):/.test(uri))) {
+		        actions = [[
+		            "I understand; " + verb + " the link anyway.", do_submission
+		        ]];
+		        errdisp.show("This link uses the the <strong>" +
+		            match[1].toLowerCase() + "</strong> protocol. Web " +
+		            "browsers may not be able to open this link directly.",
+		            actions);
 		        return;
 		    }
 		    
 		    // Check for an empty link.
 		    if (uri.replace(/^\w+:(?:\/\/)?(?:www\.?)?/, '').length <= 0) {
 		        errdisp.show("You haven't entered anything to link to.",
-		            do_submission, "Continue anyway.");
+		            [["Ignore this warning and " + verb + " the link anyway.",
+		                do_submission]]);
 		        return;
 		    }
 		    
@@ -536,10 +555,21 @@ UI.Page_Link_Dialog = function()
 		        } else {
 		            display_uri = uri;
 		        }
-		        errdisp.show("Did you mean to link to link to "
-		            +"<strong>http://</strong>" + display_uri + '? If you ' +
-		            'did, please change the address above.',
-		            do_submission, "No, I didn't. Continue.");
+		        
+		        function add_scheme() {
+		            self._custom_input.value = 'http://' + uri;
+		            errdisp.clear();
+		        }
+		        
+		        actions = [
+		            ["Fix it.", add_scheme],
+		            [capitalize(verb) + " the link as-is.",
+		                do_submission]
+		        ];
+		        errdisp.show("Did you mean to link to link to the Web site "
+		            + "<strong>http://</strong>" + display_uri + '? If you ' +
+		            'did, the link won\'t work without the http:// at the ' +
+		            'beginning.', actions);
 		        return;
 		    }
 		} else if (tab_name == 'email') {
@@ -550,15 +580,25 @@ UI.Page_Link_Dialog = function()
 		        } else {
 		            display_uri = uri;
 		        }
+		        
+		        function fix_non_email() {
+		            self._custom_input.value = uri;
+		            self._tabset.select_tab('custom');
+		            errdisp.clear();
+		        }
+		        
+		        actions = [
+		            ["Take me to the right place for a Web page link.", fix_non_email],
+		            ["No, " + verb + " the link as-is.", do_submission]
+		        ];
 			    errdisp.show("You've asked to link to an email address, " +
 			        "but " + uri + " doesn't look like one (maybe it's a Web " +
-			        "page?). Are you sure you want to continue?",
-			        do_submission, "Yes, continue anyway.");
+			        "page?). Are you sure you want to continue?", actions);
 			    return;
-			    
-			    if (!(/^mailto:/).test(uri))
-			        uri = "mailto:" + uri;
 			}
+			
+			if (!(/^mailto:/).test(uri))
+		        uri = "mailto:" + uri;
 		} else {
 			throw new Error('Bizarre error: unknown tab "' + tab_name + '".');
 		}

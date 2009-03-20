@@ -12,41 +12,44 @@ UI.Error_Display = function(message_container)
 	
 	this.display = null;
 	
-	function create(message, retry, retry_text)
+	function create(message, options)
 	{
-		if (!retry)
-		    retry = null;
-		else if (!retry_text)
-		    retry_text = 'Retry';
+		if ('function' == typeof(options)) {
+		    options = [['Retry.', options]];
+		}
 		
-		var link;
-		if (retry) {
-			link = dh.create_element('a',
-				{
-					href: '#',
-					className: 'retry',
-					style: {display: 'block'}
-				},
-				[retry_text]);
+		self.display = dh.create_element('p', {className: 'error'});
+		self.display.innerHTML = message;
+		
+		function add_action(text, action) {
+		    var link = dh.create_element('a', {
+				href: '#',
+				className: 'action',
+			});
+			link.innerHTML = text;
 			
 			Util.Event.add_event_listener(link, 'click', function(e) {
 				if (!e)
 					var e = window.event;
 
 				try {
-					retry();
+					action();
 				} catch (e) {
-					self.show('Failed to retry: ' + (e.message || e), retry);
+					self.show('That didn\'t work: ' + (e.message || e), action);
 				} finally {
 					return Util.Event.prevent_default(e);
 				}
 			});
+			
+			self.display.appendChild(link);
 		}
-
-		self.display = dh.create_element('p', {className: 'error'});
-		self.display.innerHTML = message;
-		if (link)
-		    self.display.appendChild(link);
+		
+		if (options) {
+    		options.each(function (action) {
+    		   add_action(action[0], action[1]); 
+    		});
+    	}
+		
 		message_container.appendChild(self.display);
 	}
 	
