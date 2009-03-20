@@ -948,6 +948,17 @@ UI.Loki = function Loki()
     		var bounds = Util.Range.get_boundaries(range);
     		var node, pos, must_move = false, value;
     		
+    		function is_at_edge() {
+    		    if (pos <= 1)
+    		        return true;
+    		    
+    		    if (node.nodeType == Util.Node.TEXT_NODE) {
+    		        return (pos >= node.nodeValue.length - 1);
+    		    } else {
+    		        return (pos >= node.childNodes.length - 1);
+    		    }
+    		}
+    		
     		if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
     		    node = bounds.start.container;
     		    value = node.nodeValue;
@@ -955,7 +966,7 @@ UI.Loki = function Loki()
     		        pos = bounds.start.offset;
     		        if (direction < 0)
     		            pos--;
-    		        if (node.nodeValue.charCodeAt(pos) != 160)
+    		        if (node.nodeValue.charCodeAt(pos) != 160 || !is_at_edge())
     		            return false;
     		        else
     		            must_move = true;
@@ -987,7 +998,7 @@ UI.Loki = function Loki()
         		    }
     		    
         		    pos = (direction < 0) ? value.length - 1 : 0;
-        		    if (value.charCodeAt(pos) != 160)
+        		    if (value.charCodeAt(pos) != 160 || !is_at_edge())
         		        return false;
         		    break;
     		    }
@@ -995,13 +1006,19 @@ UI.Loki = function Loki()
     		
     		if (direction > 0 && node.nodeType == Util.Node.TEXT_NODE) {
     		    node = Util.Node.next_element_sibling(node.parentNode);
+    		    if (!node)
+    		        return false;
     		    pos = 0;
     		}
     		
     		range = Util.Document.create_range(self.document);
-    		Util.Range.set_start(range, node, pos);
-    		range.collapse(true /* to start */);
-    		Util.Selection.select_range(sel, range);
+    		try {
+        		Util.Range.set_start(range, node, pos);
+        		range.collapse(true /* to start */);
+        		Util.Selection.select_range(sel, range);
+        	} catch (e) {
+        	    return false;
+        	}
     		return true;
 		}
 		
