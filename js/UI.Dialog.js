@@ -232,9 +232,7 @@ UI.Dialog = function()
 	 */
 	this._append_submit_and_cancel_chunk = function(submit_text, cancel_text)
 	{
-		var self = this; // some sort of scope rule I'm not aware of is keeping
-		                 // create_button from having direct access to the
-		                 // Dialog's "this". closures to the rescue! -Eric
+		var self = this;
 		
 		function create_button(text, click_listener) {
 			var b = self._udoc.create_element('BUTTON', {type: 'button'}, [text]);
