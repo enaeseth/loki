@@ -11,7 +11,7 @@ Loki.Plugin.create("browser_commands", {
 	
 	processDependents: function process_browser_command_dependents(deps) {
 		base2.forEach(deps, function(plugin) {
-			plugin.wrapToggleCommand = this.wrapToggleCommand;
+			plugin.commands = this;
 		}, this);
 	},
 	

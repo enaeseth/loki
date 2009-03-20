@@ -16,7 +16,9 @@ Loki.Plugin.create("bold", {
 		var selection = this.editor.selection;
 		
 		if (initial) {
-			this.wrapToggleCommand("bold");
+			// this.commands is a reference to the browser_commands plugin,
+			// which was added by it because we said we depended on it.
+			this.commands.wrapToggleCommand("bold");
 			//iw.extendSelection("bold", "b, strong", "strong");
 		
 			function invoke_bold() {
