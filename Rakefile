@@ -84,7 +84,7 @@ namespace :plugins do
       File.directory?(path) && File.basename(path) != 'strings'
     end
     misc.each do |path|
-      t.enhance [wholesale(File.join('plugins', plugin, File.basename(path)))]
+      t.enhance wholesale(File.join('plugins', plugin, File.basename(path)))
     end
     
     Rake::Task["^plugins"].enhance ["plugins:#{plugin}"]
@@ -151,8 +151,7 @@ namespace :themes do
     
     if File.directory?(File.join(theme.path, 'res'))
       res = File.join('themes', theme.name, 'res')
-      wholesale res
-      t.enhance [res]
+      t.enhance wholesale(res)
     end
     
     Rake::Task["^themes"].enhance ["themes:#{theme.name}"]

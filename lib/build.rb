@@ -155,9 +155,9 @@ def wholesale(folder)
     CLEAN.include path unless File.directory?(path)
   end
   
-  child_dirs.each {|d| wholesale File.join(folder, d)}
+  deps = [dest_root]
   
-  task folder do |t|
+  file dest_root do |t|
     t.add_description folder
     mkdir? Loki::Paths.instance.build
     mkdir? dest_root
@@ -167,14 +167,22 @@ def wholesale(folder)
     
     src.each do |f|
       path = File.join(src_root, f)
+      dest_path = File.join(dest_root, f)
       unless File.directory?(path)
-        dest_path = File.join(dest_root, f)
         file(dest_path => [path]) do
           cp path, dest_path
         end.invoke
       else
-        Rake::Task[File.join(folder, f)].invoke
+        Rake::Task[dest_path].invoke
       end
     end
   end
+  
+  child_dirs.each do |d|
+    child = File.join(folder, d)
+    deps += wholesale(child)
+    Rake::Task[Loki::Paths.instance.build(child)].enhance [dest_root]
+  end
+  
+  return deps
 end
