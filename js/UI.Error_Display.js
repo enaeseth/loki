@@ -24,7 +24,7 @@ UI.Error_Display = function(message_container)
 		function add_action(text, action) {
 		    var link = dh.create_element('a', {
 				href: '#',
-				className: 'action',
+				className: 'action'
 			});
 			link.innerHTML = text;
 			
