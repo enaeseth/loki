@@ -414,6 +414,9 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 			
 				var pattern = /^Section\d+$/;
 				var classes = Util.Element.get_class_array(node);
+				if (!classes.length) {
+				    return false;
+				}
 				
 				for (var i = 0; i < classes.length; i++) {
 					if (!pattern.test(classes[i]))
