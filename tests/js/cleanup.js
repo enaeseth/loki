@@ -318,6 +318,14 @@ office.add('strip_sections', 'Should remove Microsoft Word section DIV\'s', func
 		'p#foo should come right before div.hmm');
 });
 
+clean.add('permit_bare_divs', "DIV elements with no classes should be permitted (#174)", function() {
+    this.setHTML('<div><div class="foo"><p id="foo">Foo!</p></div>' +
+        '<div><p id="bar">Bar!</p></div>').show();
+    
+    this.assertEqual(3, this.elementCount('div'), "There shold be 3 DIV's");
+    this.assertEqual('DIV', this.findElement('div.foo').parentNode.tagName);
+});
+
 clean.add('pointless_spans', 'Should strip pointless SPAN elements', function() {
 	this.setHTML('<p><span>Foo</span> <span class="bar">Bar</span>' +
 		' <span style="direction: ltr;">Baz</span></p>');
