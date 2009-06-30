@@ -512,21 +512,14 @@ UI.Loki = function Loki()
 	 */
 	var _create_iframe = function()
 	{
-		// EN: why wrap it in a table?
-		_iframe_wrapper = _owner_document.createElement('TABLE');
-		var tbody = _owner_document.createElement('TBODY');
-		var tr = _owner_document.createElement('TR');
-		var td = _owner_document.createElement('TD');
-		tr.appendChild(td);
-		tbody.appendChild(tr);
-		_iframe_wrapper.appendChild(tbody);
+		_iframe_wrapper = _owner_document.createElement('DIV');
 		Util.Element.add_class(_iframe_wrapper, 'iframe_wrapper');
 
 		_iframe = _owner_document.createElement('IFRAME');
 		_iframe.src = 'javascript:""';
 		_iframe.frameBorder = '0'; // otherwise, IE puts an extra border around the iframe that css cannot erase
 
-		td.appendChild(_iframe);
+		_iframe_wrapper.appendChild(_iframe);
 
 		// Take styles from textarea
 		var h = _textarea.clientHeight;
