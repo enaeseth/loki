@@ -9,9 +9,9 @@
  * <pre>
  * var dialog = new UI.Image_Dialog;   <br />
  * dialog.init({ data_source : '/fillmorn/feed.rss',   <br />
- *               submit_listener : this._insert_image,  <br />
- *               selected_item : { link : '/global_stock/images/1234.jpg' }   <br />
- * });   <br />
+ *               submit_listener : this._insert_image,	<br />
+ *               selected_item : { link : '/global_stock/images/1234.jpg' }	  <br />
+ * });	 <br />
  * dialog.display();
  * </pre>
  */
@@ -31,15 +31,15 @@ UI.Dialog = function()
 	/**
 	 * Initializes the dialog.
 	 *
-	 * @param	params	object containing the following named paramaters:
+	 * @param   params  object containing the following named parameters:
 	 *                  <ul>
 	 *                  <li>data_source - the RSS feed from which to read this file</li>
 	 *                  <li>submit_listener - the function which will be called when
-	 *					the dialog's submit button is pressed</li>
+	 *                  the dialog's submit button is pressed</li>
 	 *                  <li>selected_item - an object with the same properties as
 	 *                  the object passed by this._internal_submit_handler (q.v.) to
 	 *                  submit_handler (i.e., this._external_submit_handler). Used e.g. to
-	 *					determine which if any image is initially selected.</li>
+	 *                  determine which if any image is initially selected.</li>
 	 *                  </ul>
 	 */
 	this.init = function init_dialog(params)
@@ -55,32 +55,34 @@ UI.Dialog = function()
 
 	this.open = function open_dialog()
 	{
+		var self = this;
+		
 		function populate_dialog() {
-			if (this._dialog_window._dialog_populated)
+			if (self._dialog_window._dialog_populated)
 				return;
 			
-			this._dialog_window._dialog_populated = true;
+			self._dialog_window._dialog_populated = true;
 			
-			this._doc = this._dialog_window.window.document;
-			this._dialog_window.document = this._doc;
-			this._udoc = new Util.Document(this._doc);
+			self._doc = self._dialog_window.window.document;
+			self._dialog_window.document = self._doc;
+			self._udoc = new Util.Document(self._doc);
 			
-			this._root =
-				this._doc.body.appendChild(this._doc.createElement('DIV'));
+			self._root =
+				self._doc.body.appendChild(self._doc.createElement('DIV'));
 			
 			// Work around an IE display glitch: don't render until the document
 			// has been built.
 			if (Util.Browser.IE)
-				this._doc.body.style.display = 'none';
+				self._doc.body.style.display = 'none';
 			try {
-				this._dialog_window.body = this._doc.body;
-				this._set_title();
-				this._append_style_sheets();
-				this._add_dialog_listeners();
-				this._append_main_chunk();
-				this._apply_initially_selected_item();
+				self._dialog_window.body = self._doc.body;
+				self._set_title();
+				self._append_style_sheets();
+				self._add_dialog_listeners();
+				self._append_main_chunk();
+				self._apply_initially_selected_item();
 			} finally {
-				this._doc.body.style.display = '';
+				self._doc.body.style.display = '';
 			}
 		}
 		
@@ -100,9 +102,9 @@ UI.Dialog = function()
 			
 			if (!window_opened) // popup blocker
 				return false;
-			
+			_loki_enqueue_dialog(this._dialog_window.window, populate_dialog);
 			Util.Event.observe(this._dialog_window.window, 'load',
-				populate_dialog.bind(this));
+				populate_dialog);
 		}
 	};
 	
@@ -264,7 +266,7 @@ UI.Dialog = function()
 	 *
 	 * @param	horizontal	(boolean) Sometimes we don't want to resize horizontally 
 	 *						to the content, because since the content is not fixed-width, 
-	 * 						it will expand to take up the whole screen, which is ugly. So
+	 *						it will expand to take up the whole screen, which is ugly. So
 	 *						false here disables horiz resize.
 	 * @param	vertical	(boolean) same thing
 	 *						
@@ -284,17 +286,17 @@ UI.Dialog = function()
 		var win = this._dialog_window.window;
 		var doc = this._dialog_window.document;
 
-		if (win.sizeToContent)  // Gecko
+		if (win.sizeToContent)	// Gecko
 		{
 			var w = win.outerWidth;
 			var h = win.outerHeight;
 
-            //win.resizeBy(win.innerWidth * 2, win.innerHeight * 2);
-			//win.sizeToContent();  
-			//win.sizeToContent();  
+			//win.resizeBy(win.innerWidth * 2, win.innerHeight * 2);
+			//win.sizeToContent();	
+			//win.sizeToContent();	
 			//win.resizeBy(win.innerWidth + 10, win.innerHeight + 10);
 			win.resizeBy(doc.documentElement.clientWidth + 10 + (win.outerWidth - win.innerWidth) - win.outerWidth, 
-					     doc.documentElement.clientHeight + 20 + (win.outerHeight - win.innerHeight) - win.outerHeight);
+						 doc.documentElement.clientHeight + 20 + (win.outerHeight - win.innerHeight) - win.outerHeight);
 			//win.resizeBy(this._root.clientWidth + 10 - win.outerWidth, 
 			//			 this._root.clientHeight + 10 - win.outerHeight);
 			//win.resizeBy(win.innerWidth + 10 - win.outerWidth, 
@@ -364,4 +366,22 @@ UI.Dialog = function()
 		// Close dialog window
 		this._dialog_window.window.close();
 	};
+};
+
+var _loki_dialog_queue = [];
+
+function _loki_enqueue_dialog(dialog_window, onload) {
+	_loki_dialog_queue.push({window: dialog_window, onload: onload});
+}
+
+window._loki_dialog_postback = function(dialog_window) {
+	var i, callback;
+	
+	for (i = 0; i < _loki_dialog_queue.length; i++) {
+		if (_loki_dialog_queue[i].window === dialog_window) {
+			callback = _loki_dialog_queue[i].onload;
+			_loki_dialog_queue.splice(i, 1);
+			callback();
+		}
+	}
 };
