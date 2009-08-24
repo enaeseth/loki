@@ -116,7 +116,9 @@ UI.Anchor_Masseuse = function()
 		}
 		
 		expected_id = placeholder.getAttribute('loki:anchor_id');
-		actual_id = placeholder.nextSibling.id;
+		actual_id = (placeholder.nextSibling) ?
+		    placeholder.nextSibling.id :
+		    null;
 		self.remove_fake_id(anchor);
 		if (actual_id == expected_id) {
 			// Relative position has not changed. Simple.
