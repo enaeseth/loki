@@ -536,7 +536,11 @@ Util.Node.is_leftmost_descendent = function(node, ref)
  */
 Util.Node.insert_after = function(new_node, ref_node)
 {
-	ref_node.parentNode.insertBefore(new_node, ref_node.nextSibling);
+	var parent = ref_node.parentNode;
+	if (ref_node.nextSibling)
+		parent.insertBefore(new_node, ref_node.nextSibling);
+	else
+		parent.appendChild(new_node);
 };
 
 /**
