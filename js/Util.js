@@ -80,7 +80,7 @@ var Util = {
 	{
 		for (var i = 0; i < arguments.length; i++) {
 			var o = arguments[i];
-			if (typeof(o) != 'object' || typeof(o.length) != 'number')
+			if (!o || typeof(o.length) != 'number')
 				return false;
 		}
 		
