@@ -563,13 +563,13 @@ Util.Range.insert_node = function insert_node_in_range(rng, node)
 {
 	var bounds;
 	var point;
+	var target;
 	
 	if (rng.insertNode) {
 		// W3C range
 		rng.insertNode(node);
 	} else {
 		// Internet Explorer range
-		
 		bounds = Util.Range.get_boundaries(rng);
 		
 		if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
@@ -579,12 +579,20 @@ Util.Range.insert_node = function insert_node_in_range(rng, node)
 			point = bounds.start.container.nextSibling;
 			
 			// Now the node can be inserted between the two text nodes.
-			bounds.start.container.parentNode.insertBefore(node, point);
+			target = bounds.start.container.parentNode;
 		} else {
 			point = (bounds.start.container.hasChildNodes())
 				? bounds.start.container.childNodes[bounds.start.offset]
 				: null;
-			bounds.start.container.insertBefore(node, point);
+			target = bounds.start.container;
+		}
+		
+		// Don't remove this split; insertBefore SHOULD work with a null
+		// second argument, but IE8 doesn't accept it.
+		if (point) {
+			target.insertBefore(node, point);
+		} else {
+			target.appendChild(node);
 		}
 	}
 };
