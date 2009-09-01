@@ -174,7 +174,7 @@ clean.add('strip_styles.disallowed', 'Only disallowed inline styles should be st
 	this.log(this.getHTML());
 	
 	var p = this.findElement('p');
-	this.assert(/^url\((["']|)\/bg.png\1\)$/.exec(p.style.backgroundImage),
+	this.assert(/^url\((["']|).*\/bg.png\1\)$/.exec(p.style.backgroundImage),
 		"Paragraph should have /bg.png as a background image");
 	this.assertFalse(p.style.letterSpacing,
 		"Paragraph should not have letter-spacing set.");
