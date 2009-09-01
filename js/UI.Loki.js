@@ -221,7 +221,7 @@ UI.Loki = function Loki()
 	this.init = function init_loki(textarea, settings)
 	{
 		// Incompatible browser check.
-		if (!(Util.Browser.IE || Util.Browser.Gecko)) {
+		if (!(Util.Browser.IE || Util.Browser.Gecko || Util.Browser.WebKit)) {
 			throw new Error('The Loki HTML editor does not currently support ' +
 				'your browser.');
 		} else if (!textarea) {
@@ -230,6 +230,12 @@ UI.Loki = function Loki()
 			throw new Error('Cannot initialize Loki because the textarea ' +
 				Util.Node.get_debug_string(textarea) + ' does not belong to ' +
 				'a form.');
+		}
+		
+		if (settings.options && Util.Browser.WebKit) {
+			// WebKit doesn't implement underlining in a way that works for us,
+			// and our clipboard support is currently IE only.
+			settings.options += ' -underline -clipboard';
 		}
 		
 		_settings = (settings) ? Util.Object.clone(settings) : {};
@@ -1181,7 +1187,7 @@ UI.Loki = function Loki()
 					"\n\nTechnical details:\n" +
 					self.describe_error(ex));
 				
-				if (typeof(console) == 'object' && console.firebug) {
+				if (typeof(console) == 'object' && 'error' in console) {
 					console.error('Failed to generate HTML:',
 						ex);
 				}
@@ -1335,7 +1341,7 @@ UI.Loki = function Loki()
 			try {
 				menuitems = _menugroups[i].get_contextual_menuitems();
 			} catch (e) {
-				if (typeof(console) == 'object' && console.firebug) {
+				if (typeof(console) == 'object' && 'warn' in console) {
 					console.warn('Failed to add menugroup', i, '.', e);
 				}
 			}
