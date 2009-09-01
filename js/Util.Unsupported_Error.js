@@ -6,7 +6,8 @@
  */
 Util.Unsupported_Error = function UnsupportedError(call)
 {
-	Util.OOP.inherits(this, Error, 'No known implementation of ' + call +
+	var error = new Error('No known implementation of ' + call +
 		' is available from this browser.');
-	this.name = 'Util.Unsupported_Error';
+	error.name = 'Util.Unsupported_Error';
+	return error;
 }
