@@ -19,7 +19,24 @@ Util.OOP.mixin = function(target, source)
 	}
 	
 	return target;
-}
+};
+
+/**
+ * Extend the prototype of a class with the properties in `source`.
+ * @param	{object}	target	The class whose prototype will be updated
+ * @param	{object}	source	The object providing the properties
+ * @type object
+ * @return target
+ */
+Util.OOP.extend = function(target, source)
+{
+	var names = Util.Object.names(source);
+	for (var i = 0; i < names.length; i++) {
+		target.prototype[names[i]] = source[names[i]];
+	}
+	
+	return target;
+};
 
 /**
  * Sets up inheritance from parent to child. To use:
