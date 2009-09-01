@@ -398,6 +398,7 @@ UI.Loki = function Loki()
 
 			// Make the document editable
 			_make_document_editable();
+			self.env = new UI.Editing_Environment(self);
 
 			// Add certain event listeners to the document and elsewhere
 			_add_double_click_listeners();
