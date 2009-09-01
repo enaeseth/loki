@@ -25,6 +25,14 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 		? (/[\x00-\x1F\x80-\uFFFF&<>"]/g)
 		: (/[\x00-\x1F&<>"]/g);
 	
+	function is_relevant(node) {
+		if (!node)
+			return false;
+		return (node.nodeType == Util.Node.ELEMENT_NODE || 
+			node.nodeType == Util.Node.TEXT_NODE &&
+			/\S/.test(node.nodeValue));
+	}
+	
 	function clean_text(text, in_attribute) {
 		function html_escape(txt) {
 			var c = txt.charCodeAt(0);
@@ -48,12 +56,13 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 		
 		if (parent_is_block) {
 			if (node == node.parentNode.firstChild)
-				results[0] == true;
+				results[0] = true;
 			if (node == node.parentNode.lastChild)
-				results[1] == true;
+				results[1] = true;
 			
-			if (results[0] && results[1])
+			if (results[0] && results[1]) {
 				return results;
+			}
 		}
 		
 		if (node.previousSibling && Util.Block.is_block(node.previousSibling))
@@ -147,6 +156,17 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 		make_close_tag(buffer, element);
 	}
 	
+	function is_indented_block(element) {
+		if (!Util.Block.is_block(element))
+			return false;
+		
+		function is_block(node) {
+			return Util.Block.is_block(node);
+		}
+		
+		return (Util.Node.find_children(element, is_block).length > 0);
+	}
+	
 	function make_block_element(buffer, element) {
 		if (!Util.Node.is_element(element))
 			throw new TypeError();
@@ -160,15 +180,13 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 			buffer.end_line();
 		}
 		
-		var block_children = Util.Node.find_children(element, function(node) {
-			return Util.Block.is_block(node);
-		}).length > 0;
+		var block_children = is_indented_block(element);
 		var child_buffer;
 		
+		buffer.end_line(true);
 		make_open_tag(buffer, element);
 		
 		if (block_children) {
-			//buffer.end_line(true);
 			child_buffer = buffer.spawn();
 			make_nodes(child_buffer, element.childNodes);
 			child_buffer.close();
@@ -197,6 +215,12 @@ Util.HTML_Generator.prototype.generate = function generate_html(nodes) {
 		if (!Util.Node.is_element(element)) {
 			throw new TypeError("Tried to make a non-element as an element: " +
 				element);
+		}
+		
+		if (is_relevant(element.previousSibling) && is_indented_block(element)) {
+			if (!buffer.flagged('after_indented_block')) {
+				buffer.end_line();
+			}
 		}
 			
 		if (Util.Node.is_tag(element, 'PRE'))
