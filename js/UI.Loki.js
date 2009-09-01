@@ -932,102 +932,102 @@ UI.Loki = function Loki()
 		var mod_key_pressed = null;
 		
 		function move_past_nbsp(direction) {
-		    var sel = Util.Selection.get_selection(self.window);
-    		var range = Util.Range.create_range(sel);
-    		
-    		if (!Util.Range.is_collapsed(range))
-    		    return false;
-    		
-    		var bounds = Util.Range.get_boundaries(range);
-    		var node, pos, must_move = false, value;
-    		
-    		function is_at_edge() {
-    		    if (pos <= 1)
-    		        return true;
-    		    
-    		    if (node.nodeType == Util.Node.TEXT_NODE) {
-    		        return (pos >= node.nodeValue.length - 1);
-    		    } else {
-    		        return (pos >= node.childNodes.length - 1);
-    		    }
-    		}
-    		
-    		if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
-    		    node = bounds.start.container;
-    		    value = node.nodeValue;
-    		    if ((direction < 0 && bounds.start.offset > 0) || (direction > 0 && bounds.end.offset < value.length)) {
-    		        pos = bounds.start.offset;
-    		        if (direction < 0)
-    		            pos--;
-    		        if (node.nodeValue.charCodeAt(pos) != 160 || !is_at_edge())
-    		            return false;
-    		        else
-    		            must_move = true;
-    		    }
-    		}
-    		
-    		if (!must_move) {
-    		    if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
-    		        node = bounds.start.container;
-    		        node = (direction < 0) ? node.previousSibling : node.nextSibling;
-    		    } else {
-    		        node = bounds.start.container.childNodes[bounds.start.offset]
-    		    }
-        		if (!node)
-        		    return false;
-        		    
-        		while (true) {
-        		    if (!node)
-        		        return false;
-        		    if (node.nodeType != Util.Node.TEXT_NODE)
-        		        return false;
-        		    value = node.nodeValue;
-        		    if (value.length == 0) {
-        		        // try the neighboring node
-        		        node = (direction < 0) ?
-            		        node.previousSibling :
-            		        node.nextSibling;
-        		        continue;
-        		    }
-    		    
-        		    pos = (direction < 0) ? value.length - 1 : 0;
-        		    if (value.charCodeAt(pos) != 160 || !is_at_edge())
-        		        return false;
-        		    break;
-    		    }
-    		}
-    		
-    		if (direction > 0 && node.nodeType == Util.Node.TEXT_NODE) {
-    		    node = Util.Node.next_element_sibling(node.parentNode);
-    		    if (!node)
-    		        return false;
-    		    pos = 0;
-    		}
-    		
-    		range = Util.Document.create_range(self.document);
-    		try {
-        		Util.Range.set_start(range, node, pos);
-        		range.collapse(true /* to start */);
-        		Util.Selection.select_range(sel, range);
-        	} catch (e) {
-        	    return false;
-        	}
-    		return true;
+			var sel = Util.Selection.get_selection(self.window);
+			var range = Util.Range.create_range(sel);
+			
+			if (!Util.Range.is_collapsed(range))
+				return false;
+			
+			var bounds = Util.Range.get_boundaries(range);
+			var node, pos, must_move = false, value;
+			
+			function is_at_edge() {
+				if (pos <= 1)
+					return true;
+				
+				if (node.nodeType == Util.Node.TEXT_NODE) {
+					return (pos >= node.nodeValue.length - 1);
+				} else {
+					return (pos >= node.childNodes.length - 1);
+				}
+			}
+			
+			if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
+				node = bounds.start.container;
+				value = node.nodeValue;
+				if ((direction < 0 && bounds.start.offset > 0) || (direction > 0 && bounds.end.offset < value.length)) {
+					pos = bounds.start.offset;
+					if (direction < 0)
+						pos--;
+					if (node.nodeValue.charCodeAt(pos) != 160 || !is_at_edge())
+						return false;
+					else
+						must_move = true;
+				}
+			}
+			
+			if (!must_move) {
+				if (bounds.start.container.nodeType == Util.Node.TEXT_NODE) {
+					node = bounds.start.container;
+					node = (direction < 0) ? node.previousSibling : node.nextSibling;
+				} else {
+					node = bounds.start.container.childNodes[bounds.start.offset]
+				}
+				if (!node)
+					return false;
+					
+				while (true) {
+					if (!node)
+						return false;
+					if (node.nodeType != Util.Node.TEXT_NODE)
+						return false;
+					value = node.nodeValue;
+					if (value.length == 0) {
+						// try the neighboring node
+						node = (direction < 0) ?
+							node.previousSibling :
+							node.nextSibling;
+						continue;
+					}
+				
+					pos = (direction < 0) ? value.length - 1 : 0;
+					if (value.charCodeAt(pos) != 160 || !is_at_edge())
+						return false;
+					break;
+				}
+			}
+			
+			if (direction > 0 && node.nodeType == Util.Node.TEXT_NODE) {
+				node = Util.Node.next_element_sibling(node.parentNode);
+				if (!node)
+					return false;
+				pos = 0;
+			}
+			
+			range = Util.Document.create_range(self.document);
+			try {
+				Util.Range.set_start(range, node, pos);
+				range.collapse(true /* to start */);
+				Util.Selection.select_range(sel, range);
+			} catch (e) {
+				return false;
+			}
+			return true;
 		}
 		
 		Util.Event.add_event_listener(_document, 'mouseup', function() {
-		    move_past_nbsp(-1);
+			move_past_nbsp(-1);
 		});
 		Util.Event.add_event_listener(_document, 'keyup', function(ev) {
-		    if (ev.keyCode == 37)
-		        move_past_nbsp(-1);
+			if (ev.keyCode == 37)
+				move_past_nbsp(-1);
 		});
 		Util.Event.add_event_listener(_document, 'keydown', function(ev) {
-		    if (ev.keyCode == 39) {
-		        if (move_past_nbsp(1)) {
-		            return Util.Event.prevent_default(ev);
-		        }
-		    }
+			if (ev.keyCode == 39) {
+				if (move_past_nbsp(1)) {
+					return Util.Event.prevent_default(ev);
+				}
+			}
 		});
 
 		var paragraph_helper = (new UI.Paragraph_Helper).init(self);
@@ -1401,7 +1401,7 @@ UI.Loki = function Loki()
 		// behind the editor's containing window.
 		//_window.focus();
 		var value = _document.queryCommandValue(command);
-
+		
 		if ( command == 'FormatBlock' )
 		{
 			var mappings = 
@@ -1418,11 +1418,39 @@ UI.Loki = function Loki()
 				'Preformatted' : 'pre',
 				'Address' : 'address'
 			};
-			if ( mappings[value] != null )
+			
+			if (value === false) {
+				// WebKit doesn't appear to implement querying FormatBlock,
+				// so we'll do it ourselves.
+				var ancestry = get_selection_ancestry();
+				value = ancestry.find(function(value) {
+					var key;
+					for (key in mappings) {
+						if (mappings[key] == value)
+							 return true;
+					}
+				});
+			} else if (value in mappings) {
 				value = mappings[value];
+			}
 		}
-
+		
 		return value;
+	}
+	
+	function get_selection_ancestry() {
+		var sel = Util.Selection.get_selection(self.window);
+		var range = Util.Range.create_range(sel);
+		var ancestor = Util.Range.get_common_ancestor(range);
+		
+		var ancestry = [];
+		var node;
+		for (node = ancestor; node; node = node.parentNode) {
+			if (node.nodeType == Util.Node.ELEMENT_NODE)
+				ancestry.push(node.nodeName.toLowerCase());
+		}
+		
+		return ancestry;
 	}
 
 	/**
