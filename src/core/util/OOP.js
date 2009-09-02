@@ -5,13 +5,13 @@
 Util.OOP = {};
 
 /**
- * "Mixes in" an object's properties.
+ * Applies every property in "source" to "target".
  * @param	{object}	target	The object into which things will be mixed
  * @param	{object}	source	The object providing the properties
  * @type object
  * @return target
  */
-Util.OOP.mixin = function(target, source)
+Util.OOP.extend = function(target, source)
 {
 	var names = Util.Object.names(source);
 	for (var i = 0; i < names.length; i++) {
@@ -28,7 +28,7 @@ Util.OOP.mixin = function(target, source)
  * @type object
  * @return target
  */
-Util.OOP.extend = function(target, source)
+Util.OOP.mixin = function(target, source)
 {
 	var names = Util.Object.names(source);
 	for (var i = 0; i < names.length; i++) {
@@ -80,7 +80,7 @@ Util.OOP.inherits = function(child, parent)
 		eval('parent_prototype = new parent(' + arg_list.join(', ') + ')')
 	}
 	
-	Util.OOP.mixin(child, parent_prototype);
+	Util.OOP.extend(child, parent_prototype);
 	child.superclass = parent_prototype;
 };
 

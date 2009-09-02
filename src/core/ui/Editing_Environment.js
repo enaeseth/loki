@@ -34,7 +34,7 @@ UI.Editing_Environment = function EditingEnvironment(editor) {
 	Util.Event.observe(editor.window, 'focus', update_selection);
 };
 
-Util.OOP.extend(UI.Editing_Environment, {
+Util.OOP.mixin(UI.Editing_Environment, {
 	get_selection: function env_get_selection() {
 		return this._selection;
 	},

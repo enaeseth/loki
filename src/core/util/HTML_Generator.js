@@ -288,7 +288,7 @@ Util.HTML_Generator.Buffer = function Buffer(parent, indent_text)
 		parent.active_child = this;
 }
 
-Util.OOP.mixin(Util.HTML_Generator.Buffer.prototype, {
+Util.OOP.mixin(Util.HTML_Generator.Buffer, {
 	flags: null,
 	
 	_verify_open: function _verify_buffer_is_open() {
