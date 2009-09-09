@@ -280,7 +280,7 @@ class Loki2
 			?>
 			<script type="text/javascript">
 				var _gecko_clipboard_helper_src = '<?php echo $priv_jar ?>';
-				UI__Clipboard_Helper_Editable_Iframe__src = '<?php echo $this->_asset_protocol . $this->_asset_host . $this->_asset_path; ?>auxil/loki_blank.html';
+				UI__Clipboard_Helper_Editable_Iframe__src = '<?php echo $this->_asset_protocol . $this->_asset_host . $this->_asset_path; ?>static/html/loki_blank.html';
 			</script>
 			<?php
 

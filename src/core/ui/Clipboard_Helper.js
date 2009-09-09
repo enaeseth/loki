@@ -294,7 +294,7 @@ UI.Clipboard_Helper._setup = function setup_clipboard_helper() {
 			// PHP helper is providing this for us.
 			helper_src = UI__Clipboard_Helper_Editable_Iframe__src;
 		} else if (base_uri) {
-			helper_src = make_uri('auxil/loki_blank.html');
+			helper_src = make_uri('static/html/loki_blank.html');
 		} else {
 			return;
 		}

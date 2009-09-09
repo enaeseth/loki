@@ -94,7 +94,7 @@ UI.Dialog = function()
 		} else {
 			this._dialog_window = new Util.Window;
 			var window_opened = this._dialog_window.open(
-				this._base_uri + 'auxil/loki_dialog.html',
+				this._base_uri + 'static/html/loki_dialog.html',
 				'_blank', 'status=1,scrollbars=1,toolbars=1,resizable,width=' +
 					this._dialog_window_width + ',height=' + 
 					this._dialog_window_height + ',dependent=yes,dialog=yes'
