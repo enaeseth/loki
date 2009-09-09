@@ -153,7 +153,8 @@ Util.OOP.mixin(UI.Editing_Environment, {
 		};
 		
 		command_set.toggle = function toggle_simple_command() {
-			return this.editor.document.execCommand(command, false, undefined);
+			this.env.exec_command(command);
+			this.editor.focus();
 		};
 	},
 	
@@ -173,6 +174,7 @@ Util.OOP.mixin(UI.Editing_Environment, {
 		command_set.toggle = function toggle_block() {
 			var value = (this.active()) ? '<p>' : tag_value;
 			this.env.exec_command('FormatBlock', value);
+			this.editor.focus();
 		};
 	}
 });
