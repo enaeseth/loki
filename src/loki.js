@@ -179,7 +179,7 @@ var Loki = {
 };
 
 (function loki_wait_for_load() {
-	var done = Loki._finish_conversions.bind(Loki);
+	var done = Util.Function.bind(Loki._finish_conversions, Loki);
 	Util.Event.observe(document, 'DOMContentLoaded', done);
 	Util.Event.observe(window, 'load', done);
 })();
