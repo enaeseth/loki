@@ -7,44 +7,37 @@
  * inconvenient to edit with fake elements that are convenient 
  * to edit. For extending only.
  */
-UI.Masseuse = function()
-{
-	this._loki;
+UI.Masseuse = function() {
+	this._loki = null;
 
 	/**
 	 * Massages the given node's descendants, replacing any elements inconvenient 
 	 * to edit with convenient ones.
 	 */
-	this.massage_node_descendants = function(node)
-	{
-	};
+	this.massage_node_descendants = function(node) {};
 	
 	/**
 	 * Unmassages the given node's descendants, replacing any convenient but fake
 	 * elements with real ones.
 	 */
-	this.unmassage_node_descendants = function(node)
-	{
-	};
+	this.unmassage_node_descendants = function(node) {};
 
 	/**
 	 * For convenience.
 	 */
-	this.massage_body = function()
-	{
+	this.massage_body = function massage_document_body() {
 		this.massage_node_descendants(this._loki.document);
 	};
 
 	/**
 	 * For convenience.
 	 */
-	this.unmassage_body = function()
-	{
+	this.unmassage_body = function unmassage_document_body() {
 		this.unmassage_node_descendants(this._loki.document);
 	};
 };
 
-UI.Masseuse.prototype.init = function(loki)
+UI.Masseuse.prototype.init = function init_masseuse(loki)
 {
 	this._loki = loki;
 	return this;
