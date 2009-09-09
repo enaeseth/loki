@@ -140,6 +140,52 @@ var Loki = {
 	},
 	
 	/**
+	 * Registered Loki components.
+	 * @type Util.Chooser
+	 */
+	components: new Util.Chooser(),
+	
+	/**
+	 * Registers a new component with Loki.
+	 * @param {string} names
+	 * @param {string} sets
+	 * @param {UI.Component|function} implementation
+	 */
+	add_component: function add_loki_component(names, sets, implementation) {
+		var sep = /\s+|\s*,\s*/;
+		if (typeof(names) == 'string')
+			names = names.split(sep);
+		if (typeof(sets) == 'string')
+			sets = sets.split(sep);
+		
+		var true_name = names.shift();
+		
+		if (!true_name) {
+			throw new Error('Cannot register a component with no name.');
+		}
+		
+		if ('buttons' in implementation && 'masseuses' in implementation) {
+			// `implementation` is a UI.Component object; do nothing
+		} else if (typeof(implementation) == 'function') {
+			// `implementation` is a function that returns the component
+			implementation = implementation();
+			if (!implementation) {
+				throw new Error('The implementation function for component "' +
+					true_name + '" did not return anything.');
+			}
+		}
+		
+		Loki.components.add(true_name, implementation);
+		Util.Array.for_each(names, function(aliased_name) {
+			Loki.components.alias(true_name, aliased_name);
+		});
+		
+		Util.Array.for_each(sets, function(set_name) {
+			Loki.components.put_set(set_name, [true_name]);
+		});
+	},
+	
+	/**
 	 * The Loki version.
 	 * @type string
 	 */
