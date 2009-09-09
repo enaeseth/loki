@@ -18,4 +18,58 @@ UI.Button = function()
 		this._loki = loki;
 		return this;
 	};
+	
+	this.create = function create_button_element(document) {
+		var self = this;
+		var doc = new Util.Document(document);
+		var button = doc.create_element('a', {href: '#'});
+		var img;
+		
+		function class_adder(class_name) {
+			return function() {
+				Util.Element.add_class(button, class_name);
+			};
+		}
+		function class_remover(class_name) {
+			return function() {
+				Util.Element.remove_class(button, class_name);
+			};
+		}
+		
+		Util.Event.observe(button, 'mouseover', class_adder('hover'));
+		Util.Event.observe(button, 'mouseout', class_remover('hover'));
+		Util.Event.observe(button, 'mousedown', class_adder('active'));
+		Util.Event.observe(button, 'mouseup', class_remover('active'));
+		
+		Util.Event.observe(button, 'click', function button_clicked() {
+			self.click_listener();
+		});
+
+		var base = this._loki.settings.base_uri;
+		var img_src = base + 'images/toolbar/' + this.image;
+
+		// Apply PNG fix.
+		if (Util.Browser.IE && /MSIE 6/.test(navigator.userAgent)) {
+			button.title = this.title;
+			img_src = Util.URI.build(Util.URI.normalize(img_src));
+			img = doc.create_element('span', {
+				className: 'loki_filtered_button',
+				style: {
+					filter: "progid:" +
+						"DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+					    img_src + "', sizingMethod='image')"
+				}
+			});
+		} else {
+			img = doc.create_element('img', {
+				src: img_src,
+				title: this.title,
+				style: {border: 'none'}
+			});
+		}
+		img.setAttribute('unselectable', 'on')
+		
+		button.appendChild(img);
+		return button;
+	};
 };
