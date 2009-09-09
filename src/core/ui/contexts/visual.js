@@ -81,6 +81,12 @@ Util.OOP.mixin(UI.VisualContext, {
 		return this.frame.contentWindow.document.body.innerHTML;
 	},
 	
+	focus: function vc_focus() {
+		if (this.body && this.body.setActive)
+			this.body.setActive();
+		this.window.focus();
+	},
+	
 	enter: function enter_visual_context(root, completion_callback) {
 		UI.Context.prototype.enter.call(this, root);
 		
