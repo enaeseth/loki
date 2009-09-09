@@ -100,6 +100,4 @@ var UI = {};
 //= require "ui/Table_Menugroup.js"
 //= require "ui/UL_Button.js"
 //= require "ui/UL_OL_Masseuse.js"
-//= require "ui/Underline_Button.js"
-//= require "ui/Underline_Keybinding.js"
 //= require "ui/Loki.js"
