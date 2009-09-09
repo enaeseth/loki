@@ -361,7 +361,7 @@ UI.Loki = function Loki()
 	 */
 	var _append_owner_document_style_sheets = function()
 	{
-		Util.Document.append_style_sheet(_owner_document, _settings.base_uri + 'css/Loki.css');
+		Util.Document.append_style_sheet(_owner_document, _settings.base_uri + 'static/css/owner.css');
 	};
 
 	/**
@@ -371,7 +371,7 @@ UI.Loki = function Loki()
 	{
 		var add = Util.Document.append_style_sheet.curry(_document);
 		
-		add((_settings.base_uri || '') + 'css/Loki_Document.css');
+		add((_settings.base_uri || '') + 'static/css/document.css');
 		
 		(_settings.document_style_sheets || []).each(function (sheet) {
 			add(sheet);

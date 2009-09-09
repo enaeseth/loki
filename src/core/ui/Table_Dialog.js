@@ -28,8 +28,7 @@ UI.Table_Dialog = function()
 	this._append_style_sheets = function()
 	{
 		this.superclass._append_style_sheets.call(this);
-		//Util.Document.append_style_sheet(this._dialog_window.document, this._base_uri + 'css/cssSelector.css');
-		Util.Document.append_style_sheet(this._dialog_window.document, this._base_uri + 'css/Table_Dialog.css');
+		Util.Document.append_style_sheet(this._dialog_window.document, this._base_uri + 'static/css/components/table/dialog.css');
 	};
 
 	this._populate_main = function()

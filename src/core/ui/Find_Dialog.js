@@ -29,7 +29,7 @@ UI.Find_Dialog = function()
 	this._append_style_sheets = function()
 	{
 		this.superclass._append_style_sheets.call(this);
-		Util.Document.append_style_sheet(this._dialog_window.document, this._base_uri + 'css/Find_Dialog.css');
+		Util.Document.append_style_sheet(this._dialog_window.document, this._base_uri + 'static/css/components/find/dialog.css');
 	};
 
 	this._populate_main = function()

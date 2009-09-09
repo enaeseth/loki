@@ -69,16 +69,16 @@ UI.Menu = function()
 			var menu_chunk = _get_chunk(popup.document);
 			var popup_body = popup.document.body;
 			Util.Element.add_class(popup_body, 'loki');
-			Util.Document.append_style_sheet(popup.document, _loki.settings.base_uri + 'css/Loki.css');
+			Util.Document.append_style_sheet(popup.document, _loki.settings.base_uri + 'static/css/owner.css');
 			popup_body.appendChild(menu_chunk);
 
 			// Get width and height of the menu
 			//
 			// We use this hack (first appending a copy of the menu directly in the document,
 			// and getting its width and height from there rather than from the copy of
-			// the menu appended to the popup) because we append the "Loki.css" style sheet to 
+			// the menu appended to the popup) because we append the "owner.css" style sheet to 
 			// the popup, but that may not have loaded by the time we want to find the width 
-			// and height (even though it will probably be stored in the cache). Since "Loki.css"
+			// and height (even though it will probably be stored in the cache). Since "owner.css"
 			// has already been loaded for the main editor window, we can reliably get the dimensions
 			// there.
 			//
