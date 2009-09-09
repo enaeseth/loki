@@ -153,7 +153,7 @@ Util.OOP.mixin(UI.Editing_Environment, {
 		};
 		
 		command_set.toggle = function toggle_simple_command() {
-			return this.editor.document.exec(command, false, undefined);
+			return this.editor.document.execCommand(command, false, undefined);
 		};
 	},
 	
