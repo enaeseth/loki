@@ -28,6 +28,7 @@ var UI = {};
 //= require "ui/Clipboard_Helper.js"
 //= require "ui/Clipboard_Menugroup.js"
 //= require "ui/Component.js"
+//= require "ui/Context.js"
 //= require "ui/Copy_Button.js"
 //= require "ui/Copy_Keybinding.js"
 //= require "ui/Cut_Button.js"

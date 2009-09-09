@@ -465,7 +465,7 @@ UI.Clean.clean = function(root, settings, live, block_settings)
 		// Axe form elements?
 		{
 			description : "Remove U unless there's an appropriate option set.",
-			test : function(node) { return !settings.options.underline && has_tagname(node, ['U']); },
+			test : function(node) { return !settings.components.underline && has_tagname(node, ['U']); },
 			action : remove_tag
 		},
 		{

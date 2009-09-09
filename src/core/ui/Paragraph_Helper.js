@@ -24,7 +24,7 @@ UI.Paragraph_Helper = function()
 
 		if ( this.needs_paragraphifying(container) )
 		{
-			this._loki.toggle_block('p');
+			this._loki.env.exec_command('FormatBlock', '<p>');
 		}
 	};
 };
