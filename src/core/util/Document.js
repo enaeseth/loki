@@ -156,32 +156,26 @@ Util.Document.create_element = function(doc, name, attrs, children)
  */
 Util.Document.make_editable = function make_editable(doc)
 {
-	try {
-		// Internet Explorer
+	if (Util.Browser.IE) {
 		doc.body.contentEditable = true;
-		// If the document isn't editable, this will throw an
-		// error. If the document is editable, this is perfectly
-		// harmless.
-		doc.queryCommandState('Bold');
-	} catch (e) {
-		// Gecko (et al?)
 		try {
-			// Turn on design mode.  N.B.: designMode has to be
-			// set after the iframe_elem's src is set (or its
-			// document is closed). ... Otherwise the designMode
-			// attribute will be reset to "off", and things like
-			// execCommand won't work (though, due to Mozilla bug
-			// #198155, the iframe's new document will be
-			// editable)
-			doc.designMode = 'on';
+			// If the document isn't editable, this will throw an
+			// error. If the document is editable, this is perfectly
+			// harmless.
+			doc.queryCommandState('Bold');
+		} catch (e) {
+			throw new Util.Unsupported_Error('rich-text editing');
+		}
+	} else {
+		// Gecko (et al?)
+		doc.designMode = 'on';
+		try {
+			// Turn on design mode. Make sure this is only set after the
+			// frame's src is set or its document is closed.
 			doc.execCommand('undo', false, null);
-			
-			try {
-				doc.execCommand('useCSS', false, true);
-			} catch (no_use_css) {}
-		} catch (f) {
-			throw new Error('Unable to make the document editable. ' +
-				'(' + e + '); (' + f + ')');
+			doc.execCommand('useCSS', false, true);
+		} catch (e) {
+			throw new Util.Unsupported_Error('rich-text editing');
 		}
 	}
 }
