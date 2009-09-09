@@ -140,6 +140,7 @@ var Util = {
 //= require "util/Request.js"
 //= require "util/Select.js"
 //= require "util/Selection.js"
+//= require "util/Selector.js"
 //= require "util/State_Machine.js"
 //= require "util/Tabset.js"
 //= require "util/URI.js"
