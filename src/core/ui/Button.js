@@ -41,8 +41,9 @@ UI.Button = function()
 		Util.Event.observe(button, 'mousedown', class_adder('active'));
 		Util.Event.observe(button, 'mouseup', class_remover('active'));
 		
-		Util.Event.observe(button, 'click', function button_clicked() {
+		Util.Event.observe(button, 'click', function button_clicked(ev) {
 			self.click_listener();
+			return Util.Event.prevent_default(ev);
 		});
 
 		var base = this._loki.settings.base_uri;
