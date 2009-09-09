@@ -12,7 +12,7 @@ UI.Activity = function(base, document, kind, text) {
 		{
 			var container = helper.create_element('SPAN', {
 				className: 'progress_small'
-			}, [helper.create_element('IMG', {src: base + 'images/loading/small.gif'})]);
+			}, [helper.create_element('IMG', {src: base + 'static/images/loading/small.gif'})]);
 			
 			if (text)
 				container.appendChild(document.createTextNode(' ' + text));
@@ -24,7 +24,7 @@ UI.Activity = function(base, document, kind, text) {
 		{
 			var container = helper.create_element('SPAN', {
 				className: 'progress_arrows'
-			}, [helper.create_element('IMG', {src: base + 'images/loading/arrows.gif'})]);
+			}, [helper.create_element('IMG', {src: base + 'static/images/loading/arrows.gif'})]);
 			
 			if (text)
 				container.appendChild(document.createTextNode(' ' + text));
@@ -35,7 +35,7 @@ UI.Activity = function(base, document, kind, text) {
 		large: function()
 		{
 			var image = helper.create_element('IMG', {
-				src: base + 'images/loading/large.gif'
+				src: base + 'static/images/loading/large.gif'
 			});
 			var container = helper.create_element('DIV', {
 				className: 'progress_large'
@@ -51,7 +51,7 @@ UI.Activity = function(base, document, kind, text) {
 		bar: function()
 		{
 			return helper.create_element('IMG', {
-				src: base + 'images/loading/bar.gif'
+				src: base + 'static/images/loading/bar.gif'
 			});
 		},
 		

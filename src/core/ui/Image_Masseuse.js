@@ -52,7 +52,7 @@ UI.Image_Masseuse = function()
 				new_src = Util.URI.strip_https_and_http(src);
 			} else if (self._loki.settings.sanitize_unsecured) {
 				new_src = self._loki.settings.base_uri +
-					'images/insecure_image.gif';
+					'static/images/insecure_image.gif';
 				placeholder.setAttribute('loki:src', img.src);
 				placeholder.setAttribute('loki:fake', 'true');
 			} else {

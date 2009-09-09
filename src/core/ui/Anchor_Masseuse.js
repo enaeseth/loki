@@ -79,7 +79,7 @@ UI.Anchor_Masseuse = function()
 		placeholder = Util.Document.create_element(doc, 'img', {
 			className: 'loki__named_anchor',
 			title: '#' + anchor.name,
-			src: self._loki.settings.base_uri + 'images/nav/anchor.gif',
+			src: self._loki.settings.base_uri + 'static/images/nav/anchor.gif',
 			style: {width: 12, height: 12},
 			'loki:fake': true,
 			'loki:anchor_id': anchor_id

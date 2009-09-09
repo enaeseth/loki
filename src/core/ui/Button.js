@@ -46,7 +46,7 @@ UI.Button = function()
 		});
 
 		var base = this._loki.settings.base_uri;
-		var img_src = base + 'images/toolbar/' + this.image;
+		var img_src = base + 'static/images/toolbar/' + this.image;
 
 		// Apply PNG fix.
 		if (Util.Browser.IE && /MSIE 6/.test(navigator.userAgent)) {
