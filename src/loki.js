@@ -155,7 +155,7 @@ var Loki = {
 		var sep = /\s+|\s*,\s*/;
 		if (typeof(names) == 'string')
 			names = names.split(sep);
-		if (typeof(sets) == 'string')
+		if (sets && typeof(sets) == 'string')
 			sets = sets.split(sep);
 		
 		var true_name = names.shift();
@@ -180,9 +180,11 @@ var Loki = {
 			Loki.components.alias(true_name, aliased_name);
 		});
 		
-		Util.Array.for_each(sets, function(set_name) {
-			Loki.components.put_set(set_name, [true_name]);
-		});
+		if (sets) {
+			Util.Array.for_each(sets, function(set_name) {
+				Loki.components.put_set(set_name, [true_name]);
+			});
+		}
 	},
 	
 	/**
