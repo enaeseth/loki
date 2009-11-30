@@ -171,9 +171,18 @@ Util.Selection.select_node = function(sel, node)
  */
 Util.Selection.select_node_contents = function(sel, node)
 {
-	var rng = Util.Range.create_range(sel);
-	Util.Range.select_node_contents(rng, node);
-	Util.Selection.select_range(sel, rng);
+	var range;
+	try {
+		range = Util.Range.create_range(sel);
+	} catch (e) {
+		if (e.name == 'Util.Unsupported_Error' && /collapsed/.test(e.message))
+			range = Util.Document.create_range(node.ownerDocument);
+		else
+			throw e;
+	}
+	
+	Util.Range.select_node_contents(range, node);
+	Util.Selection.select_range(sel, range);
 };
 
 /**
