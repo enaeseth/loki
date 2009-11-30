@@ -92,6 +92,7 @@ Util.Window.prototype.open = function(uri, window_name, window_options, force_sy
 							'<div id="util_window_error">You tried to reload a dialog page that exists only ephemerally. Please close the dialog and open it again.</div>' +
 							// for debugging; turn off when live (make sure to get the event listener below, too):
 							//'<div><a id="util_window_alert" href="#" onclick="return false;">View virtual source</a></div><hr />' + // the event which pops up the source is added below
+							'<script type="text/javascript">if (window.opener) window.opener._loki_dialog_postback(window);</script>' +
 							'</body></html>');
 		this.document.close();
 

@@ -369,19 +369,38 @@ UI.Dialog = function()
 };
 
 var _loki_dialog_queue = [];
+var _loki_unmatched_dialogs = [];
 
 function _loki_enqueue_dialog(dialog_window, onload) {
+	var i;
+	
+	for (i = 0; i < _loki_unmatched_dialogs.length; i++) {
+		if (_loki_unmatched_dialogs[i] === dialog_window) {
+			_loki_unmatched_dialogs.splice(i, 1);
+			onload();
+			return;
+		}
+	}
+	
 	_loki_dialog_queue.push({window: dialog_window, onload: onload});
 }
 
 window._loki_dialog_postback = function(dialog_window) {
-	var i, callback;
+	var i, callback, called = false;
 	
 	for (i = 0; i < _loki_dialog_queue.length; i++) {
 		if (_loki_dialog_queue[i].window === dialog_window) {
 			callback = _loki_dialog_queue[i].onload;
 			_loki_dialog_queue.splice(i, 1);
-			callback();
+			
+			if (!called) {
+				callback();
+				called = true;
+			}
 		}
+	}
+	
+	if (!called) {
+		_loki_unmatched_dialogs.push(dialog_window);
 	}
 };
