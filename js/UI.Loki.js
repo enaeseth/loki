@@ -1567,8 +1567,8 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 		buttons: [UI.Blockquote_Button]
 	});
 	this.add('lists', {
-		buttons: [UI.OL_Button, UI.UL_Button, UI.Indent_Button, UI.Outdent_Button],
-		masseuses: [UI.UL_OL_Masseuse]
+		// masseuses: [UI.UL_OL_Masseuse],
+		buttons: [UI.OL_Button, UI.UL_Button, UI.Indent_Button, UI.Outdent_Button]
 	});
 	this.add('find', {
 		buttons: [UI.Find_Button],
