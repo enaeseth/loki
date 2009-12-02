@@ -75,7 +75,7 @@ Util.OOP.mixin(UI.Component, {
 	},
 	
 	add_menugroup: function component_add_menugroup(group_class) {
-		this.buttons.push(group_class);
+		this.menugroups.push(group_class);
 	},
 	
 	add_keybinding: function component_add_keybinding(binding_class) {
