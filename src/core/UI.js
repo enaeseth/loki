@@ -82,7 +82,6 @@ var UI = {};
 //= require "ui/Paragraph_Helper.js"
 //= require "ui/Paste_Button.js"
 //= require "ui/Paste_Keybinding.js"
-//= require "ui/Pre_Button.js"
 //= require "ui/Raw_Source_Button.js"
 //= require "ui/Right_Align_Button.js"
 //= require "ui/Right_Align_Keybinding.js"
