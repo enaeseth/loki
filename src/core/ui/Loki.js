@@ -300,6 +300,9 @@ UI.Loki = function Loki()
 
 				// Add keybindings
 				_add_keybindings();
+				
+				// Set up menu groups
+				_init_menugroups();
 			}
 			
 			_current_context_name = new_context;
