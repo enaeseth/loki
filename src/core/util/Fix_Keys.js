@@ -65,7 +65,7 @@ Util.Fix_Keys.fix_delete_and_backspace = function(e, win)
 	function is_empty_block(node)
 	{
 		return (Util.Node.is_block_level_element(node) && 
-			Util.Node.is_basically_empty(node));
+			Util.Element.is_basically_empty(node));
 	}
 	
 	function is_unmergable(node)
