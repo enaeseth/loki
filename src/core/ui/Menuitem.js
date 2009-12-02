@@ -76,3 +76,14 @@ UI.Menuitem = function()
 		return disabled;
 	}
 };
+
+/**
+ * Convenience method for creating a UI.Menuitem.
+ */
+UI.Menuitem.create = function create_menu_item(label, listener, disabled) {
+	return (new UI.Menuitem).init({
+		label: label,
+		listener: listener,
+		disabled: disabled
+	});
+};
