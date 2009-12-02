@@ -58,6 +58,7 @@ Util.OOP.mixin(UI.Component, {
 	
 	add_button: function component_add_button(button_class) {
 		this.buttons.push(button_class);
+		return this;
 	},
 	
 	create_button: function component_create_button(image, title, listener) {
@@ -72,14 +73,17 @@ Util.OOP.mixin(UI.Component, {
 		}
 		
 		this.add_button(GeneratedButton);
+		return GeneratedButton;
 	},
 	
 	add_menugroup: function component_add_menugroup(group_class) {
 		this.menugroups.push(group_class);
+		return this;
 	},
 	
 	add_keybinding: function component_add_keybinding(binding_class) {
 		this.keybindings.push(binding_class);
+		return this;
 	},
 	
 	create_keybinding: function component_create_keybinding(test, action) {
@@ -96,10 +100,12 @@ Util.OOP.mixin(UI.Component, {
 		}
 		
 		this.add_keybinding(GeneratedKeybinding);
+		return GeneratedKeybinding;
 	},
 	
 	add_masseuse: function component_add_masseuse(masseuse_class) {
 		this.masseuses.push(masseuse_class);
+		return this;
 	},
 	
 	create_masseuse: function component_make_masseuse(in_sel, out_sel, impl) {
