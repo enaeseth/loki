@@ -81,6 +81,19 @@ Util.OOP.mixin(UI.Component, {
 		return this;
 	},
 	
+	create_menugroup: function component_create_menugroup(item_getter) {
+		function GeneratedMenugroup() {
+			Util.OOP.inherits(this, UI.Menugroup);
+			
+			this.get_contextual_menuitems = function call_item_getter() {
+				return item_getter.call(this, this._loki);
+			}
+		}
+		
+		this.add_menugroup(GeneratedMenugroup);
+		return GeneratedMenugroup;
+	},
+	
 	add_keybinding: function component_add_keybinding(binding_class) {
 		this.keybindings.push(binding_class);
 		return this;
