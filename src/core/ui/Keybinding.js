@@ -7,7 +7,6 @@
  */
 UI.Keybinding = function()
 {
-	this.test; // function
 	this.action; // function
 
 	this.init = function(loki)
@@ -54,7 +53,15 @@ UI.Keybinding.compile_test = function compile_keybinding_test(test_string) {
 		}).join(') && (') + ')';
 	}).join(' || ');
 
-	return eval('(function _test_key_event(e) { return ' + test + '; })');
+	// IE8 seems to require that we assign the function to a variable inside
+	// the eval(), as opposed to just doing something like:
+	//   return eval('(function ...)');
+	var tester;
+	eval('tester = function _test_key_event(e) { return ' + test + '; };');
+	if (typeof(tester) != 'function') {
+		throw new Error('Failed to compile keybinding test function.');
+	}
+	return tester;
 };
 
 /**
