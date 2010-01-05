@@ -41,10 +41,26 @@ haml_rules.each do |source_ext, dest_ext, compiler|
 end
 
 Dir[File.join(STATIC_DIR, '**', '*.{html,css,png,gif,jpg}')].each do |src_path|
-  dest_path = src_path.sub(STATIC_DIR, STATIC_BUILD_DIR)
-  file dest_path => [src_path] do
+  unless %w(document.css owner.css).include?(File.basename(src_path))
+    dest_path = src_path.sub(STATIC_DIR, STATIC_BUILD_DIR)
+    file dest_path => [src_path] do
+      FileUtils.mkpath(File.dirname(dest_path))
+      File.copy(src_path, dest_path)
+    end
+    Rake::Task[:build].enhance([dest_path])
+  end
+end
+
+%w(document.css owner.css).each do |filename|
+  dest_path = File.join(STATIC_BUILD_DIR, 'css', filename)
+  sources = ([File.join(STATIC_DIR, 'css', filename)] +
+    Dir[File.join(SRC_DIR, 'components', '**', filename)])
+  
+  file dest_path => sources do
     FileUtils.mkpath(File.dirname(dest_path))
-    File.copy(src_path, dest_path)
+    File.open(dest_path, 'w') do |dest|
+      sources.each { |src_path| dest.write(File.read(src_path)) }
+    end
   end
   Rake::Task[:build].enhance([dest_path])
 end
