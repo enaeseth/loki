@@ -75,5 +75,5 @@ Util.OOP.mixin(UI.Context, {
 	exit: function context_exit(root) {
 		while (root.lastChild)
 			root.removeChild(root.lastChild);
-	},
+	}
 });
