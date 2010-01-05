@@ -121,8 +121,8 @@ Util.Event.remove_event_listener = function(node, type, listener)
  */
 Util.Event.matches_keycode = function matches_keycode(e, key_code)
 {
-	if (['keydown', 'keyup'].contains(e.type) && e.keyCode == keycode) {
-		return true;
+	if (e.type == 'keydown' || e.type == 'keyup') {
+		return (e.keyCode == key_code);
 	} else if (e.type == 'keypress') {
 		var code = (e.charCode)
 			? e.charCode
