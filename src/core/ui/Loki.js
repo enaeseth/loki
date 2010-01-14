@@ -122,6 +122,10 @@ UI.Loki = function Loki()
 		}
 	};
 	
+	this.enumerate_masseuses = function enumerate_masseuses(fn) {
+		Util.Array.for_each(_masseuses, fn);
+	};
+	
 	/**
 	 * Sets focus to the editing window.
 	 * @return {void}

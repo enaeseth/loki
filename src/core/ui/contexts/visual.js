@@ -52,14 +52,14 @@ Util.OOP.mixin(UI.VisualContext, {
 		var document = this.frame.contentWindow.document;
 		var body = document.body;
 		
-		this.editor.enumerate_components('masseuses', function(masseuse) {
+		this.editor.enumerate_masseuses(function(masseuse) {
 			masseuse.unmassage_node_descendants(body);
 		});
 		UI.Clean.clean(body, this.editor.settings);
 		
 		var html = this.editor.serialize_node_children(body);
 		
-		this.editor.enumerate_components('masseuses', function(masseuse) {
+		this.editor.enumerate_masseuses(function(masseuse) {
 			masseuse.massage_node_descendants(body);
 		});
 		
