@@ -291,8 +291,10 @@ UI.Loki = function Loki()
 				self.iframe = _iframe = context.frame;
 			if (context.window)
 				self.window = _window = context.window;
-			if (context.document)
+			if (context.document) {
 				self.document = _document = context.document;
+				_append_document_style_sheets(context.document);
+			}
 			if (context.body)
 				self.body = _body = context.body;
 			
@@ -385,9 +387,9 @@ UI.Loki = function Loki()
 	/**
 	 * Append style sheets to format the innards of the loki iframe
 	 */
-	var _append_document_style_sheets = function()
+	var _append_document_style_sheets = function(doc)
 	{
-		var add = Util.Document.append_style_sheet.curry(_document);
+		var add = Util.Document.append_style_sheet.curry(doc);
 		
 		add((_settings.base_uri || '') + 'static/css/document.css');
 		
