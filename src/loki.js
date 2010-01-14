@@ -1,7 +1,7 @@
 /*
  * Loki: a JavaScript WYSIWYG HTML editor with a focus on semantic markup.
  *
- * Copyright © 2006-2009 Carleton College.
+ * Copyright © 2006-2010 Carleton College.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
