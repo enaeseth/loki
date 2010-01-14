@@ -29,7 +29,8 @@ UI.Editing_Environment = function EditingEnvironment(editor) {
 		}
 	}
 	
-	Util.Event.observe(body, 'mouseup', update_selection);
+	Util.Event.observe(editor.owner_document.body, 'mouseup',
+		update_selection);
 	Util.Event.observe(editor.window, 'keyup', update_selection);
 	Util.Event.observe(editor.window, 'focus', update_selection);
 };
