@@ -95,6 +95,7 @@ var UI = {};
 //= require "ui/Table_Helper.js"
 //= require "ui/Table_Masseuse.js"
 //= require "ui/Table_Menugroup.js"
+//= require "ui/Transformer.js"
 //= require "ui/UL_Button.js"
 //= require "ui/UL_OL_Masseuse.js"
 //= require "ui/Loki.js"

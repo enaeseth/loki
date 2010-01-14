@@ -8,6 +8,7 @@
 UI.Editing_Environment = function EditingEnvironment(editor) {
 	this.editor = editor;
 	this._sets = {};
+	this.transform = new UI.Transformer(this);
 	
 	var body = editor.body;
 	var self = this;
