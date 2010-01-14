@@ -23,11 +23,11 @@ UI.Delete_Element_Keybinding = function()
 			this._anchor_helper.remove_anchor();
 			return false;
 		}
-		else if ( this._hr_helper.is_selected() )
-		{
-			this._hr_helper.remove_hr();
-			return false;
-		}
+		// else if ( this._hr_helper.is_selected() )
+		// {
+		// 	this._hr_helper.remove_hr();
+		// 	return false;
+		// }
 		else if ( this._table_helper.is_table_selected() && 
 				  !this._table_helper.is_cell_selected() && 
 				  confirm('Really remove table? WARNING: This cannot be undone.') )
@@ -59,7 +59,7 @@ UI.Delete_Element_Keybinding = function()
 		this.superclass.init.call(this, loki);
 		this._image_helper = (new UI.Image_Helper).init(this._loki);
 		this._anchor_helper = (new UI.Anchor_Helper).init(this._loki);
-		this._hr_helper = (new UI.HR_Helper).init(this._loki);
+		// this._hr_helper = (new UI.HR_Helper).init(this._loki);
 		this._table_helper = (new UI.Table_Helper).init(this._loki);
 		return this;
 	};

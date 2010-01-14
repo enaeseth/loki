@@ -45,7 +45,6 @@ var UI = {};
 //= require "ui/Find_Keybinding.js"
 //= require "ui/HR_Button.js"
 //= require "ui/HR_Helper.js"
-//= require "ui/HR_Masseuse.js"
 //= require "ui/Helper.js"
 //= require "ui/Highlight_Button.js"
 //= require "ui/Highlight_Menugroup.js"
