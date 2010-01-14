@@ -117,6 +117,14 @@ Util.OOP.mixin(UI.Component, {
 	},
 	
 	add_masseuse: function component_add_masseuse(masseuse_class) {
+		if (typeof(masseuse_class) != 'function') {
+			function GeneratedMasseuse() {}
+			GeneratedMasseuse.prototype = new UI.Masseuse();
+			
+			Util.OOP.mixin(GeneratedMasseuse, masseuse_class);
+			masseuse_class = GeneratedMasseuse;
+		}
+		
 		this.masseuses.push(masseuse_class);
 		return this;
 	},
