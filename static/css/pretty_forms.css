@@ -36,7 +36,7 @@ form.generated ul.form_section li p.elaboration {
 form.generated ul.form_section li .elaborated {
 }
 
-form.generated li input,form.generated li textarea,form.generated li select {
+form.generated li input, form.generated li textarea, form.generated li select {
 	color: #202020;
 	font-family: Helvetica, Arial, sans-serif;
 	font-size: 110%;
