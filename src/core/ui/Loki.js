@@ -35,12 +35,19 @@ UI.Loki = function Loki()
 	var _editor_domain;
 	var _current_context_name;
 	var _saved_html;
+	var _html_generator;
 
 	var self = this;
 	var undefined;
 
 	this.serialize_node_children = function get_node_inner_html(node) {
-		return node.innerHTML;
+		if (_html_generator) {
+			if (node.nodeName == 'BODY')
+				node = node.childNodes;
+			return _html_generator.generate(node);
+		} else {
+			return node.innerHTML;
+		}
 	};
 
 	/**
@@ -193,6 +200,10 @@ UI.Loki = function Loki()
 		
 		if (!_settings.base_uri) {
 			_settings.base_uri = autodetect_base_uri();
+		}
+		
+		if (_settings.html_generator == 'loki') {
+			_html_generator = new Util.HTML_Generator({indent_text: '    '});
 		}
 		
 		UI.Clipboard_Helper._setup(_settings.base_uri);
