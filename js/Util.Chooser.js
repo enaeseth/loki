@@ -47,7 +47,7 @@ Util.Chooser = function Chooser()
 					self.sets[name].each(function (name) {
 						name = dealias(self.aliases, name);
 						if (name in self.sets)
-							Util.OOP.mixin(working, self.get(name));
+							Util.OOP.extend(working, self.get(name));
 						else
 							working[name] = self.items[name];
 					});
