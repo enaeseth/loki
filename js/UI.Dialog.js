@@ -92,16 +92,23 @@ UI.Dialog = function()
 		if (already_open) {
 			this._dialog_window.window.focus();
 		} else {
-			this._dialog_window = new Util.Window;
-			var window_opened = this._dialog_window.open(
-				this._base_uri + 'auxil/loki_dialog.html',
-				'_blank', 'status=1,scrollbars=1,toolbars=1,resizable,width=' +
+			var dialog_uri = this._base_uri + 'auxil/loki_dialog.html';
+			var dialog_window = Util.Window.open(dialog_uri, {
+				name: '_blank',
+				display: 'status=1,scrollbars=1,toolbars=1,resizable,width=' +
 					this._dialog_window_width + ',height=' + 
 					this._dialog_window_height + ',dependent=yes,dialog=yes'
-			);
+			});
 			
-			if (!window_opened) // popup blocker
+			if (!dialog_window) // popup blocker
 				return false;
+			
+			this._dialog_window = {
+				window: dialog_window,
+				document: dialog_window.document,
+				body: dialog_window.document.body
+			};
+			
 			_loki_enqueue_dialog(this._dialog_window.window, populate_dialog);
 			Util.Event.observe(this._dialog_window.window, 'load',
 				populate_dialog);
