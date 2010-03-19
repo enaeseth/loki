@@ -103,7 +103,7 @@ UI.Page_Link_Dialog = function()
 
 	this._append_tabset = function()
 	{
-		this._tabset = new Util.Tabset({document : this._dialog_window.document});		
+		this._tabset = new Util.Tabset(this._dialog_window.document);
 		if ( this._use_rss )
 			this._tabset.add_tab('rss', this._RSS_TAB_STR);
 		this._tabset.add_tab('custom', this._CUSTOM_TAB_STR);

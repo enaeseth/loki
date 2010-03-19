@@ -64,7 +64,7 @@ UI.Image_Dialog = function()
 
 	this._append_tabset = function()
 	{
-		this._tabset = new Util.Tabset({document : this._dialog_window.document});		
+		this._tabset = new Util.Tabset(this._dialog_window.document);
 		if ( this._use_rss )
 			this._tabset.add_tab('listbox', 'existing image');
 		this._tabset.add_tab('custom', 'image at web address');

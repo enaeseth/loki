@@ -1,172 +1,169 @@
 /**
- * Creates a chunk containing a tabset.
- * @constructor
+ * Creates a tabset: a tabbed container of panels.
  *
- * @param	params	an object with the following properties:
- *                  <ul>
- *                  <li>document - the DOM document object which will own the created DOM elements</li>
- *                  <li>id - (optional) the id of the DOM tabset element</li>
- *                  </ul>
+ * The "document" parameter should be the document on which the tabset's
+ * elements will be created. Tabset also accepts the following options:
+ *   - id:  the desired ID of the root tabset element [default: (no ID)]
  *
- * @class Represents a tabset.
+ * Code that is using a Tabset can be notified about changes to the selected
+ * tab by passing a function to the "add_select_listener" method.
  */
-Util.Tabset = function(params)
-{
-	var self = this;
-	this.document = params.document;
-	this.id = params.id;
+Util.Tabset = function Tabset(document, options) {
+	this.document = document;
+	this._d = new Util.Document(this.document);
+	
+	options = options || {};
+	
+	this._tabs = {};
+	this._selected_tab = null;
+	this._select_listeners = [];
+	
+	this.root = this.tabset_elem = this._d.create_element('div', {
+		className: 'tabset'
+	});
+	if (options.id)
+		this.root.id = options.id;
+	
+	var tabs_chunk = this._d.create_element('div', {className: 'tabs_chunk'});
+	this._tab_list = tabs_chunk.appendChild(this._d.create_element('ul'));
+	
+	this._panel_container = this._d.create_element('div',
+		{className: 'tabpanels_chunk'});
+	
+	this.root.appendChild(tabs_chunk);
+	this.root.appendChild(this._panel_container);
+};
 
-	var _tabs = {}; // each member of tabs should have a tab_elem and a tabpanel_elem 
-	var _name_of_selected_tab;
-	var _select_listeners = [];
-
-	// Create tabset element
-	this.tabset_elem = this.document.createElement('DIV');
-	Util.Element.add_class(this.tabset_elem, 'tabset');
-	if ( this.id != null )
-		this.tabset_elem.setAttribute('id', this.id);
-
-	// Create tabs container
-	var _tabs_chunk = this.document.createElement('DIV');
-	Util.Element.add_class(_tabs_chunk, 'tabs_chunk');
-
-	// Create and append force_clear_for_ie element
-	var _force_clear_for_ie_elem = this.document.createElement('DIV');
-	Util.Element.add_class(_force_clear_for_ie_elem, 'force_clear_for_ie');
-	_tabs_chunk.appendChild(_force_clear_for_ie_elem);
-
-	// Create and append tabs ul
-	var _tabs_ul = this.document.createElement('UL');
-	_tabs_chunk.appendChild(_tabs_ul);
-
-	// Create tabpanels container
-	var _tabpanels_chunk = this.document.createElement('DIV');
-	Util.Element.add_class(_tabpanels_chunk, 'tabpanels_chunk');
-
-	// Append containers to tabset
-	this.tabset_elem.appendChild(_tabs_chunk);
-	this.tabset_elem.appendChild(_tabpanels_chunk);
-
-
-	// Methods
-
+// Tabset methods:
+Util.OOP.mixin(Util.Tabset, {
 	/**
-	 * Adds a tab to the tabset.
+	 * Adds a new tab to the tabset.
 	 *
-	 * @param	name	the new tab's name
-	 * @param	label	the new tab's label
+	 * The "name" of the tab is the handle by which Tabset user code identifies
+	 * tabs, and the "label" is the readable text used on the clickable tab
+	 * element.
+	 *
+	 * Returns the tab object. Callers are free to add their own properties
+	 * to this object; they will persist.
 	 */
-	this.add_tab = function(name, label)
-	{
-		// Make entry in list of tabs
-		_tabs[name] = {};
-		var t = _tabs[name];
-
-		// Create tab element ...
-		t.tab_elem = this.document.createElement('LI');
-		t.tab_elem.id = t.tab_id = name + '_tab';
-		Util.Element.add_class(t.tab_elem, 'tab_chunk');
-
-		// ... and its anchor ...
-		var anchor_elem = this.document.createElement('A');
-		anchor_elem.href = 'javascript:void(0);';
-		t.tab_elem.appendChild(anchor_elem);
-
-		// ... and its label ...
-		var label_node = this.document.createTextNode(label);
-		anchor_elem.appendChild(label_node);
-
-		// ... with event listeners
-		Util.Event.add_event_listener(anchor_elem, 'click', function() { self.select_tab(name); });
-		Util.Event.add_event_listener(t.tab_elem, 'mouseover', function() { Util.Element.add_class(t.tab_elem, 'hover'); });
-		Util.Event.add_event_listener(t.tab_elem, 'mouseout', function() { Util.Element.remove_class(t.tab_elem, 'hover'); });
-
-		// Create tabpanel element
-		t.tabpanel_elem = this.document.createElement('DIV');
-		t.tabpanel_elem.id = t.tabpanel_id = name + '_tabpanel';
-		Util.Element.add_class(t.tabpanel_elem, 'tabpanel_chunk');
-
-		// Append tab and tabpanel elements
-		_tabs_ul.appendChild(t.tab_elem);
-		_tabpanels_chunk.appendChild(t.tabpanel_elem);
-
-		// If this is the first tab to be added, select it
-		// by default
-		if ( _name_of_selected_tab == null )
-		{
+	add_tab: function add_tab_to_tabset(name, label) {
+		if (name in this._tabs) {
+			throw new Error('A tab with name "' + name + '" has already ' +
+				'been added to this tabset.');
+		}
+		
+		var tab = {
+			name: name,
+			label: label,
+			selector: this._d.create_element('li', {
+				id: name + '_tab',
+				className: 'tab_chunk'
+			}, [this._d.create_element('a', {href: '#'}, [label])]),
+			panel: this._d.create_element('div', {
+				id: name + '_tabpanel',
+				className: 'tabpanel_chunk'
+			})
+		};
+		
+		Util.Event.observe(tab.selector.firstChild, 'click', function() {
+			this.select_tab(name);
+		}, this);
+		
+		this._tab_list.appendChild(tab.selector);
+		this._panel_container.appendChild(tab.panel);
+		this._tabs[name] = tab;
+		
+		// If this is the first tab to be created, select it.
+		if (!this._selected_tab) {
 			this.select_tab(name);
 		}
-		// Otherwise, re-select the selected tab, in order
-		// to refresh the the display
-		else
-		{
-			this.select_tab(this.get_name_of_selected_tab());
-		}
-	};
-
+		
+		return tab;
+	},
+	
 	/**
-	 * Gets the element of the tabpanel whose
-	 * name is given. Then children can be 
-	 * appended there.
+	 * Returns the tab object that has the given "name".
 	 *
-	 * @param	name	the tabpanel's name
+	 * If there is no such tab, an exception will be raised.
 	 */
-	this.get_tabpanel_elem = function(name)
-	{
-		if ( _tabs[name] == null )
-			throw('Util.Tabset.get_tabpanel_elem: no such name.');
-
-		return _tabs[name].tabpanel_elem;
-	};
-
+	get_tab: function get_tab(name) {
+		if (!(name in this._tabs))
+			 throw new Error('No such tab: "' + name + '".');
+		return this._tabs[name];
+	},
+	
 	/**
-	 * Selects the tab whose name is given.
+	 * Returns the currently selected tab object.
 	 *
-	 * @param	name	the tabpanel's name
+	 * If no tab is currently selected (this should only happen if no tabs have
+	 * been added), returns null.
 	 */
-	this.select_tab = function(name)
-	{
-		if ( _tabs[name] == null )
-			throw('Util.Tabset.select_tab: no such name.');
-
-		var old_name = _name_of_selected_tab;
-
-		// Hide all tabs and tabpanels
-		for ( var i in _tabs )
-		{
-			Util.Element.remove_class(_tabs[i].tab_elem, 'selected');
-			Util.Element.remove_class(_tabs[i].tabpanel_elem, 'selected');
-		}
-
-		// Show selected tab and tabpanel
-		Util.Element.add_class(_tabs[name].tab_elem, 'selected');
-		Util.Element.add_class(_tabs[name].tabpanel_elem, 'selected');
-
-		// Remember name
-		_name_of_selected_tab = name;
-
-		// Fire listeners
-		for ( var i = 0; i < _select_listeners.length; i++ )
-			_select_listeners[i](old_name, _name_of_selected_tab);
-	};
-
+	get_selected_tab: function get_selected_tab() {
+		return this._selected_tab;
+	},
+	
 	/**
-	 * Gets the name of the currently selected tab. 
+	 * Returns the name of the currently selected tab.
+	 *
+	 * If no tab is currently selected (this should only happen if no tabs have
+	 * been added), returns undefined.
 	 */
-	this.get_name_of_selected_tab = function()
-	{
-		if ( _name_of_selected_tab == null )
-			throw('Util.Tabset.get_name_of_selected_tab: no tab selected.');
-
-		return _name_of_selected_tab;
-	};
-
+	get_name_of_selected_tab: function get_name_of_selected_tab() {
+		return (this._selected_tab) ? this._selected_tab.name : undefined;
+	},
+	
 	/**
-	 * Adds a listener to be fired whenever a different tab is selected. 
-	 * Each listener will receive old_name and new_name as arguments.
+	 * Returns the panel element associated with the tab with the given "name".
+	 *
+	 * If there is no such tab, an exception will be raised.
 	 */
-	this.add_select_listener = function(listener)
-	{
-		_select_listeners.push(listener);
-	};
-};
+	get_tabpanel_elem: function get_tab_panel_element(name) {
+		return this.get_tab(name).panel;
+	},
+	
+	/**
+	 * Selects the tab with the given "name".
+	 *
+	 * If there is no such tab, an exception will be raised.
+	 *
+	 * Calling this method will cause all of the tabset's select listeners
+	 * to fire.
+	 */
+	select_tab: function select_tab(name) {
+		if (!(name in this._tabs))
+			 throw new Error('No such tab: "' + name + '".');
+		
+		var previous_tab = this._selected_tab ?
+			this._selected_tab.name : undefined;
+		
+		Util.Object.enumerate(this._tabs, function (name, tab) {
+			Util.Element.remove_class(tab.selector, 'selected');
+			Util.Element.remove_class(tab.panel, 'selected');
+		});
+		
+		this._selected_tab = this._tabs[name];
+		
+		Util.Element.add_class(this._selected_tab.selector, 'selected');
+		Util.Element.add_class(this._selected_tab.panel, 'selected');
+		
+		// Inform the selection listeners
+		Util.Array.for_each(this._select_listeners, function(listener) {
+			listener(previous_tab, name);
+		});
+	},
+	
+	/**
+	 * Adds a tab selection listener function.
+	 *
+	 * Whenever a new tab is selected (either programatically or in response to
+	 * user input), each listener function will be called with two arguments:
+	 * the name of the previously-selected tab (or "undefined" if there was no
+	 * previous selection), and the name of the newly-selected tab.
+	 *
+	 * Listener functions do not get the opportunity to cancel the new
+	 * selection.
+	 */
+	add_select_listener: function add_tab_selection_listener(listener) {
+		this._select_listeners.push(listener);
+	}
+});
