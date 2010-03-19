@@ -165,7 +165,7 @@ Util.OOP = {
 			// using eval() is the best way known to get all correct behavior,
 			// so think twice about changing this (admittedly ugly) code
 			var arg_list = [];
-			for (i = 0; i < arguments.length; i++) {
+			for (i = 2; i < arguments.length; i++) {
 				arg_list.push('arguments[' + i + ']');
 			}
 			
@@ -174,6 +174,5 @@ Util.OOP = {
 		
 		Util.OOP.extend(child, parent_prototype);
 		child.superclass = parent_prototype;
-		child.__superClass__ = parent_prototype; // CoffeeScript convention
 	}
 };
