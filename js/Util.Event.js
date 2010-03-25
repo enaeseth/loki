@@ -9,9 +9,7 @@
  * function are in the DOM2+ standards defined in non-core modules,
  * i.e.
  */
-Util.Event = function()
-{
-};
+Util.Event = {};
 
 /**
  * Creates a wrapper around a function that ensures it will always be called
@@ -21,11 +19,10 @@ Util.Event = function()
  */
 Util.Event.listener = function(func)
 {	
-	return function()
-	{
+	return function() {
 		return func(arguments[0] || window.event);
 	};
-}
+};
 
 /**
  * Adds an event listener to a node. 
@@ -158,52 +155,6 @@ Util.Event.get_coordinates = function get_coordinates(event)
 	return {x: x, y: y};
 };
 
-/**
- * Calls the listeners which have been "attached" to the
- * event.currentTarget using add_event_listener. This function is
- * intended for use primarily by add_event_listener.
- *
- * @param	event	the event object, to pass to the listeners
- */
-Util.Event.call_wrapped_listeners = function(event)
-{
-	var node = event.currentTarget;
-	var type = event.type;
-	var listener, extra_args;
-
-	for ( var i = 0; i < node.Event__listeners[type].length; i++ )
-	{
-		listener = node.Event__listeners[type][i]['listener'];
-		extra_args = node.Event__listeners[type][i]['extra_args'];
-
-		listener(event, extra_args);
-	}
-};
-
-/**
- * Constructor for a mimic'd DOM Event object, primarly for use in the
- * IE version of Util.Event.add_event_listener. Properties which are
- * initialized below to null are in the W3C spec but haven't yet
- * needed to be implemented in this mimic'd object.
- *
- * @param	currentTarget	the document node which is the target of the event
- * @param	type			the type of the event, e.g. 'click'
- */
-Util.Event.IE_DOM_Event = function(currentTarget, type)
-{
-	this.type = type;
-// 	this.target = window.event.srcElement; // doesn't work if the event's target belongs to another window than the one referenced by "window", e.g. a popup window
-	this.currentTarget = currentTarget;
-	this.eventPhase = null;
-	this.bubbles = null;
-	this.cancelable = null;
-	this.timeStamp = null;
-	this.initEvent = null;
-	this.initEvent = function(eventTypeArg, canBubbleArg, cancelableArg) { return null; };
-	this.preventDefault = function() { window.event.returnValue = false; };
-	this.stopPropogation = function() { window.event.cancelBubble = true; };
-};
-
 Util.Event.prevent_default = function prevent_event_default(event) {
 	if (typeof(event.preventDefault) == 'function') {
 		event.preventDefault();
@@ -221,7 +172,7 @@ Util.Event.prevent_default = function prevent_event_default(event) {
 Util.Event.get_target = function get_event_target(e)
 {
 	var targ;
-	//if (!e) var e = window.event;
+	
 	if (e.target) targ = e.target;
 	else if (e.srcElement) targ = e.srcElement;
 	if (targ.nodeType == 3) // defeat Safari bug
