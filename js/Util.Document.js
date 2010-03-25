@@ -310,39 +310,3 @@ Util.Document.get_dimensions = function get_document_dimensions(doc)
 		}
 	};
 }
-
-/**
- * Returns an array (not a DOM NodeList!) of elements that match the given
- * namespace URI and local name.
- *
- * XXX Doesn't work
- */
-Util.Document.get_elements_by_tag_name_ns = function(doc, ns_uri, tagname)
-{
-	var elems = new Array();
-	try // W3C
-	{
-		var all = doc.getElementsByTagNameNS(ns_uri, tagname);
-		messagebox('doc' ,doc);
-		messagebox('all', all);
-		for ( var i = 0; i < all.length; i++ )
-			elems.push(all[i]);
-	}
-	catch(e)
-	{
-		try // IE
-		{
-			var all = doc.getElementsByTagName(tagname);
-			for ( var i = 0; i < all.length; i++ )
-			{
-				if ( all[i].tagUrn == ns_uri )
-					elems.push(all[i]);
-			}
-		}
-		catch(f)
-		{
-			throw('Neither the W3C nor the IE way of getting the element by namespace worked. When the W3C way was tried, an error with the following message was thrown: ' + e.message + '. When the IE way was tried, an error with the following message was thrown: ' + f.message + '.');
-		}
-	}
-	return elems;
-};
