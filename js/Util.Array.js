@@ -259,7 +259,7 @@ Util.Array.Methods = {
 		}
 		
 		return !!array.find(function(element) {
-			return item == element;
+			return item === element;
 		});
 	},
 	
