@@ -619,7 +619,7 @@ UI.Page_Link_Selector.Item_Selector = function(dialog, wrapper)
 								
 								on_interactive: function(request)
 								{
-									if (!request.successful() || !is_html_type())
+									if (!request.succeeded() || !is_html_type())
 										nothing_found();
 								},
 								
