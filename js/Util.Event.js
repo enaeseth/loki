@@ -82,12 +82,12 @@ Util.Event.observe = function observe_event(target, type, listener, context) {
 		}
 	} else if (target.attachEvent) {
 		target.attachEvent('on' + type, function ie_event_listener_proxy() {
-			listener.call(context, (arguments[0] || window.event));
+			listener.call(context || window, (arguments[0] || window.event));
 		});
 	} else {
 		throw new Util.Unsupported_Error('modern event handling');
 	}
-}
+};
 
 /**
  * Removes an event listener from a node. Doesn't work at present.
