@@ -87,7 +87,7 @@ Util.OOP.mixin(UI.Dialog_Window, {
 			display.width = this._initial_width;
 			display.height = this._initial_height;
 			
-			this._populated = false;
+			this._constructed = false;
 			this.window = Util.Window.open(this._dialog_uri,
 				{display: display});
 			if (!this.window) {
