@@ -309,4 +309,66 @@ Util.Document.get_dimensions = function get_document_dimensions(doc)
 			top: doc.documentElement.scrollTop || doc.body.scrollTop
 		}
 	};
-}
+};
+
+/**
+ * Builds one or more HTML elements.
+ *
+ * Pass in the HTML you want to add to a particular document, and this function
+ * will construct a <div> element on that document and set its innerHTML to be
+ * the value of the "html" argument.
+ *
+ * If the temporary <div> only has one child node, that node is returned.
+ * Otherwise, a document fragment is created, and all the children of the <div>
+ * are moved to the fragment. In either case, you can append the result to
+ * another element by simply calling `appendChild()`.
+ *
+ * Because the HTML is added to a <div>, this function can only be used to
+ * build elements that can properly appear as children of a <div>. In
+ * particular, <option>, <legend>, and any table element besides <table> cannot
+ * appear at the top level of the HTML.
+ *
+ * You can optionally pass in an object as the "extract" parameter. This object
+ * can be used to easily extract nested elements that you create with this
+ * function. This object maps names to CSS selectors. An element that matches
+ * the selector will be added to the "dest" object under the associated name.
+ *
+ * For example, if you build the following HTML:
+ *
+ *     <div>Hello <span class="a">world</span>. <p id="fun">Wahoo!</p></div>
+ *
+ * and pass this object as "extract":
+ *
+ *     {planet: '.a', exclamation: '#fun'}
+ *
+ * then the "dest" object will contain a property named "planet" that points
+ * to the span, and one named "exclamation" that points to the paragraph.
+ */
+Util.Document.build = function build_elements(doc, html, extract, dest) {
+	var temp = doc.createElement('DIV');
+	
+	temp.innerHTML = html;
+	
+	if (extract && dest) {
+		Util.Object.enumerate(extract, function(key, selector) {
+			var matches = Util.Selector.query_all(temp, selector);
+			
+			if (matches.length == 0) {
+				dest[key] = null;
+			} else if (matches.length == 1) {
+				dest[key] = matches[0];
+			} else {
+				dest[key] = matches
+			}
+		});
+	}
+	
+	if (temp.childNodes.length == 1) {
+		return temp.childNodes[0];
+	} else {
+		var fragment = doc.createDocumentFragment();
+		while (temp.firstChild)
+			fragment.appendChild(temp.firstChild);
+		return fragment;
+	}
+};
