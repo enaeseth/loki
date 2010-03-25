@@ -204,26 +204,13 @@ Util.Event.IE_DOM_Event = function(currentTarget, type)
 	this.stopPropogation = function() { window.event.cancelBubble = true; };
 };
 
-Util.Event.prevent_default = function(event)
-{
-	try // W3C
-	{
+Util.Event.prevent_default = function prevent_event_default(event) {
+	if (typeof(event.preventDefault) == 'function') {
 		event.preventDefault();
+	} else {
+		event.returnValue = false;
 	}
-	catch(e)
-	{
-		try // IE
-		{
-			event.returnValue = false;
-			//event.cancelBubble = true;
-		}
-		catch(f)
-		{
-			throw('Util.Event.prevent_default: Neither the W3C nor the IE way of preventing the event\'s default action. ' +
-				  'When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-				  'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.');
-		}
-	}
+	
 	return false;
 };
 
