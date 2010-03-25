@@ -140,6 +140,40 @@ Util.OOP = {
 	},
 	
 	/**
+	 * Makes the given child a subclass of "parent" using prototype
+	 * inheritance.
+	 *
+	 * This function must be called before any properties are added to the
+	 * child's prototype. If the child constructor wants the parent constructor
+	 * to run, it must call that constructor explicitly.
+	 *
+	 * The name of this function is bastardized from Perl.
+	 */
+	bless: function bless_as_subclass(child, parent) {
+		if (child.__superClass__) {
+			throw new Error("The given child is already a subclass of " +
+				"something.");
+		}
+		
+		// The implementation of this is borrowed from the __extends runtime
+		// function in CoffeeScript 0.5.5.
+		
+		// Create an anonymous class with the same prototype as the parent
+		// class. We can then use an instance of "ctor" as the prototype for
+		// the child class. This is preferable to trying to directly create an
+		// object of parent to serve as the prototype, because the parent
+		// constructor may require arguments or have side-effects. Subclasses
+		// must call the parent constructor explicitly to get its effects.
+		var ctor = function() {};
+		ctor.prototype = parent.prototype;
+		
+		child.__superClass__ = parent.prototype;
+		child.prototype = new ctor();
+		// Use the correct function as the child's constructor property.
+		child.prototype.constructor = child;
+	},
+	
+	/**
 	 * Creates a new instance of the given parent class, and copies all of
 	 * that instance's properties onto the given child index.
 	 *
