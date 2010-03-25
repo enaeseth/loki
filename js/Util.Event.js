@@ -95,22 +95,12 @@ Util.Event.observe = function observe_event(target, type, listener, context) {
  */
 Util.Event.remove_event_listener = function(node, type, listener)
 {
-	try
-	{
-		node.removeEventListener(type, listener, false); // I think that with "false" this is equivalent to the IE way below
-	}
-	catch(e)
-	{
-		try
-		{
-			node.detachEvent('on' + type, listener);
-		}
-		catch(f)
-		{
-			throw(new Error('Util.Event.remove_event_listener(): Neither the W3C nor the IE way of removing an event listener worked. ' +
-							'When the W3C way was tried, an error with the following message was thrown: <<' + e.message + '>>. ' +
-							'When the IE way was tried, an error with the following message was thrown: <<' + f.message + '>>.'));
-		}
+	if (node.removeEventListener) {
+		node.removeEventListener(type, listener, false);
+	} else if (node.detachEvent) {
+		node.detachEvent('on' + type, listener);
+	} else {
+		throw new Util.Unsupported_Error('modern event handling');
 	}
 };
 
