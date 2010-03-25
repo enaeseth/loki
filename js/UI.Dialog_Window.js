@@ -105,8 +105,8 @@ Util.OOP.mixin(UI.Dialog_Window, {
 		return base + 'auxil/loki_dialog.html';
 	},
 	
-	append: function append_html_to_dialog_root(html, extract) {
-		var elements = this.build(html, extract);
+	append: function append_html_to_dialog_root(html, extract, dest) {
+		var elements = this.build(html, extract, dest);
 		this.root.appendChild(elements);
 		return elements;
 	},
