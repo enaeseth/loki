@@ -155,3 +155,56 @@ UI.Dialog_Window._display_options = {
 	dependent: true,
 	dialog: true
 };
+
+// The following code defines the infrastructure by which dialog windows
+// tell Loki that they have loaded. In most browsers, this infrastructure is
+// not necessary; we can just listen for the newly-opened window's "load"
+// event. However, in Internet Explorer 8, trying to listen for that "load"
+// event causes a race condition that we often lose, where "load" fires before
+// we can register the event listener. So, dialog windows include some
+// JavaScript that calls _loki_dialog_postback, which will trigger the onload
+// callback associated with that window.
+
+// The list of dialog windows that Loki is waiting for, and their associated
+// onload callbacks.
+var _loki_dialog_queue = [];
+
+// The list of dialog windows that posted back without having any onload
+// callback registered for them.
+var _loki_unmatched_dialogs = [];
+
+function _loki_enqueue_dialog(dialog_window, onload) {
+	var i;
+	
+	// Check to see if this dialog window posted back before it was queued; if
+	// so, we need to trigger the callback right here.
+	for (i = 0; i < _loki_unmatched_dialogs.length; i++) {
+		if (_loki_unmatched_dialogs[i] === dialog_window) {
+			_loki_unmatched_dialogs.splice(i, 1);
+			onload();
+			return;
+		}
+	}
+	
+	_loki_dialog_queue.push({window: dialog_window, onload: onload});
+}
+
+window._loki_dialog_postback = function(dialog_window) {
+	var i, callback, called = false;
+	
+	for (i = 0; i < _loki_dialog_queue.length; i++) {
+		if (_loki_dialog_queue[i].window === dialog_window) {
+			callback = _loki_dialog_queue[i].onload;
+			_loki_dialog_queue.splice(i, 1);
+			
+			if (!called) {
+				callback();
+				called = true;
+			}
+		}
+	}
+	
+	if (!called) {
+		_loki_unmatched_dialogs.push(dialog_window);
+	}
+};
