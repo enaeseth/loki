@@ -66,8 +66,12 @@ Util.Event.add_event_listener = function(node, type, listener)
  * @param {object}	context	the "this context" in which to call the listener
  * @type void
  */
-Util.Event.observe = function(target, type, listener, context)
-{
+Util.Event.observe = function observe_event(target, type, listener, context) {
+	if (typeof(type) !== 'string') {
+		throw new TypeError('The event type to observe must be a string, ' +
+			'not ' + type + '.');
+	}
+	
 	if (target.addEventListener) {
 		if (context) {
 			target.addEventListener(type, function event_listener_proxy() {
