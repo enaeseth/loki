@@ -401,12 +401,10 @@ UI.Listbox.prototype._clear_error = function()
  */
 UI.Listbox.prototype._create_root_elem = function(listbox_id)
 {
-	messagebox('Listbox: this._doc_obj', this._doc_obj);
-	this._root_elem = this._doc_obj.createElement('DIV');
-	messagebox('Listbox: created root elem', this._root_elem);
-	this._root_elem.id = listbox_id;
-	Util.Element.add_class(this._root_elem, 'listbox');
-	messagebox('Listbox: created root elem', this._root_elem);
+	this._root_elem = Util.Document.create_element(this._doc_obj, 'div', {
+		id: listbox_id,
+		className: 'listbox'
+	});
 };
 
 ///////////////////////////////////
@@ -575,7 +573,7 @@ UI.Listbox.prototype._refresh_items_chunk = function()
 
 	// Clear list of old displayed items 
 	Util.Node.remove_child_nodes(this._items_chunk_elem);
-
+	
 	// Display new list of items
 	var item_index, item, item_chunk;
 	for ( var i = starting_index; i < ending_index && i < this._filtered_indices.length; i++ )
