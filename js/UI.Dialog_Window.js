@@ -115,6 +115,92 @@ Util.OOP.mixin(UI.Dialog_Window, {
 		
 		return false;
 	},
+	
+	/**
+	 * Creates submit and cancel buttons at the bottom of the window.
+	 *
+	 * The buttons will be labelled with the given "submit_l" and "cancel_l",
+	 * or the defaults of 'OK' and 'Cancel' if unspecified.
+	 *
+	 * When the submit button is pressed, the dialog's submit() method is
+	 * called. Similarly, when the cancel button is pressed, the dialog's
+	 * cancel() method is called.
+	 *
+	 * This method also listens for "Enter" and "Escape" keys being pressed
+	 * on the dialog. When used outside of an element where they have existing
+	 * meaning (e.g., textareas, selects), they will also cause submit() and
+	 * cancel() to be called (respectively).
+	 *
+	 * The dialog's construct() method should call this method if the above-
+	 * described behavior is desired.
+	 */
+	use_submit_and_cancel: function use_submit_and_cancel(submit_l, cancel_l) {
+		var buttons = {};
+		
+		this.append('<div class="submit_and_cancel_chunk">' +
+			'<button type="button" class="ok">OK</button>' +
+			'<button type="button" class="cancel">Cancel</button>' +
+			'</div>',
+			{
+				submit: '.ok',
+				cancel: '.cancel'
+			}, buttons);
+		
+		Util.Event.observe(buttons.submit, 'click', this.submit, this);
+		Util.Event.observe(buttons.cancel, 'click', this.cancel, this);
+		
+		if (submit_l)
+			buttons.submit.innerHTML = submit_l;
+		if (cancel_l)
+			buttons.cancel.innerHTML = cancel_l;
+		
+		// Listen for Enter and Escape.
+		var enter_unsafe = {TEXTAREA: true, BUTTON: true, SELECT: true,
+			OPTION: true};
+		function check_enter_escape(event) {
+			var target = event.target || event.srcElement;
+
+			// Enter key
+			if (event.keyCode == 13) {
+				// Enter
+				if (target && !(target.tagName in enter_unsafe)) {
+					this.submit();
+					return Util.Event.prevent_default(event);
+				}
+			} else if (event.keyCode == 27) {
+				// Escape
+				this.cancel();
+				return Util.Event.prevent_default(event);
+			}
+		}
+		Util.Event.observe(this.document, 'keydown', check_enter_escape, this);
+	},
+	
+	/**
+	 * Called when the dialog's task is being submitted.
+	 * The default implementation simply closes the window.
+	 */
+	submit: function submit_dialog_window() {
+		// this default implementation should probably not ever be called, so
+		// try to warn if it is
+		if (typeof(console) === 'object') {
+			if (typeof(console.warn) !== 'undefined') {
+				console.warn('default implementation of ' +
+					'UI.Dialog_Window.submit() called; merely closing window');
+			}
+		}
+		
+		this.close();
+	},
+	
+	/**
+	 * Called when the dialog's task is being cancelled.
+	 * The default implementation simply closes the window.
+	 */
+	cancel: function cancel_dialog_window() {
+		this.close();
+	},
+	
 	get_default_dialog_uri: function get_default_dialog_uri() {
 		var base = this.loki.settings.base_uri;
 		return base + 'auxil/loki_dialog.html';
