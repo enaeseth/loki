@@ -100,6 +100,21 @@ Util.OOP.mixin(UI.Dialog_Window, {
 		}
 	},
 	
+	/**
+	 * Closes the dialog window.
+	 *
+	 * It is safe to call open() on this instance again after the window is
+	 * closed. The window object's construct() method will again be called to
+	 * set up the dialog.
+	 */
+	close: function close_dialog_window() {
+		if (this.window && !this.window.closed) {
+			this.window.close();
+			return true;
+		}
+		
+		return false;
+	},
 	get_default_dialog_uri: function get_default_dialog_uri() {
 		var base = this.loki.settings.base_uri;
 		return base + 'auxil/loki_dialog.html';
