@@ -99,7 +99,7 @@ UI.Loki = function Loki()
 		new Util.Request(report_uri, {
 			method: "POST",
 			headers: {'Content-Type': 'application/json'},
-			body: Util.JSON.dump(self.crash_report(exc))
+			body: JSON.stringify(self.crash_report(exc))
 		});
 		return true;
 	};
