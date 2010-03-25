@@ -1579,6 +1579,9 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 		masseuses: [UI.Table_Masseuse],
 		menugroups: [UI.Table_Menugroup]
 	});
+	this.add('media', {
+		buttons: [UI.Media_Button]
+	});
 	this.add('images', {
 		buttons: [UI.Image_Button],
 		masseuses: [UI.Image_Masseuse],
@@ -1626,10 +1629,10 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 	
 	this.put_set('default', ['strong', 'em', 'headline', 'br', 'hr',
 		'highlight', 'align', 'blockquotes', 'lists', 'find', 'images',
-		'links', 'cleanup']);
+		'media', 'links', 'cleanup']);
 	this.put_set('power', ['strong', 'em', 'headline', 'br', 'hr', 'pre',
-		'clipboard', 'highlight', 'align', 'blockquotes', 'lists',
-		'find', 'tables', 'images', 'links', 'anchors', 'cleanup', 'source']);
+		'clipboard', 'highlight', 'align', 'blockquotes', 'lists', 'find',
+		'tables', 'images', 'media', 'links', 'anchors', 'cleanup', 'source']);
 	this.put_set('developer', ['power', 'debug']);
 };
 
