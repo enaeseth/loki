@@ -26,7 +26,12 @@ UI.Media_Dialog = function MediaDialog(loki, options) {
 	this.sources = options.sources || {};
 	this.default_source = options.default_source;
 	
-	this.helper = new UI.Media_Helper();
+	// Make a clone of the source objects we get, as we add properties to them:
+	Util.Object.enumerate(this.sources, function clone_source(name, source) {
+		this.sources[name] = Util.Object.clone(source);
+	}, this);
+	
+	this.helper = new UI.Media_Helper(loki);
 };
 
 // UI.Media_Dialog inherits from UI.Dialog_Window.
@@ -47,6 +52,8 @@ Util.OOP.mixin(UI.Media_Dialog, {
 		
 		Util.Object.enumerate(this.sources,
 			Util.Function.bind(this._create_source_panel, this));
+		
+		this.use_submit_and_cancel();
 	},
 	
 	/**
@@ -54,6 +61,36 @@ Util.OOP.mixin(UI.Media_Dialog, {
 	 */
 	populate: function populate_media_dialog() {
 		
+	},
+	
+	submit: function submit_media_dialog() {
+		var selected_tab = this.tabset.get_selected_tab().name;
+		var markup;
+		var selection;
+		
+		if (selected_tab == 'custom') {
+			markup = this.views.custom.markup;
+			
+			if (!markup) {
+				alert("No valid media HTML has been entered.");
+				return;
+			}
+		} else {
+			selection = this.sources[selected_tab].selection;
+			
+			if (!selection || !selection.resource) {
+				alert("No media resource is selected.");
+				return;
+			} else if (!selection.file) {
+				alert("Please select which file you wish to insert.");
+				return;
+			}
+			
+			markup = selection.file.markup;
+		}
+		
+		this.helper.insert(markup);
+		this.close();
 	},
 	
 	_create_tabset: function create_media_tabset() {
@@ -101,9 +138,13 @@ Util.OOP.mixin(UI.Media_Dialog, {
 			}, source);
 		panel.appendChild(fieldset);
 		
+		source.selection = null;
+		
 		listbox.add_event_listener('change', function resource_changed() {
 			var resource = listbox.get_selected_item();
 			var selector = source.file_selector;
+			
+			source.selection = {resource: resource, file: null};
 			
 			Util.Element.add_class(fieldset, 'empty');
 			if (!resource)
@@ -134,18 +175,17 @@ Util.OOP.mixin(UI.Media_Dialog, {
 			
 			Util.Element.remove_class(fieldset, 'empty');
 			
-			console.info(resource.title, files.length);
 			if (files.length == 1)
 				file_changed();
 		});
 		
 		function file_changed() {
-			console.trace();
 			var resource = listbox.get_selected_item();
 			var index = source.file_selector.selectedIndex;
 			var option = source.file_selector.options[index];
 			var file = resource.files[Number(option.value)];
-			console.debug(file);
+			
+			source.selection.file = file;
 			
 			var temp = self.document.createElement('DIV');
 			temp.innerHTML = file.markup;
@@ -262,6 +302,7 @@ Util.OOP.mixin(UI.Media_Dialog, {
 			var temp;
 			
 			view.target.innerHTML = '';
+			view.markup = null;
 			
 			if (html.length == 0) {
 				view.preview.className = 'empty';
@@ -277,6 +318,7 @@ Util.OOP.mixin(UI.Media_Dialog, {
 					
 					Util.Element.remove_class(view.preview, 'problem');
 					view.target.appendChild(temp.firstChild);
+					view.markup = html;
 				} else {
 					Util.Element.add_class(view.preview, 'problem');
 				}

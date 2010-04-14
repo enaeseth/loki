@@ -50,6 +50,8 @@ UI.Masseuse.prototype.init = function(loki)
 	return this;
 };
 
+UI.Masseuse.fake_id_pattern = /^_loki_[a-z]+$/;
+
 UI.Masseuse.prototype.assign_fake_id = function assign_fake_element_id(elem) {
 	var base = 'az';
 	
@@ -75,8 +77,14 @@ UI.Masseuse.prototype.assign_fake_id = function assign_fake_element_id(elem) {
 	return elem.id;
 };
 
+UI.Masseuse.prototype.is_fake = function is_element_take(elem) {
+	if (elem.getAttribute('loki:fake'))
+		return true;
+	
+	return (elem.id && UI.Masseuse.fake_id_pattern.test(elem.id))
+};
+
 UI.Masseuse.prototype.remove_fake_id = function remove_fake_element_id(elem) {
-	var pattern = /^_loki_[a-z]+$/;
-	if (elem.id && pattern.test(elem.id))
+	if (elem.id && UI.Masseuse.fake_id_pattern.test(elem.id))
 		elem.removeAttribute('id');
 };

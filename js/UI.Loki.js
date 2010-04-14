@@ -397,7 +397,7 @@ UI.Loki = function Loki()
 			self.set_html( _textarea.value );
 
 			// Make the document editable
-			_make_document_editable();
+			Util.Document.make_editable(_document);
 
 			// Add certain event listeners to the document and elsewhere
 			_add_double_click_listeners();
@@ -1580,7 +1580,8 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 		menugroups: [UI.Table_Menugroup]
 	});
 	this.add('media', {
-		buttons: [UI.Media_Button]
+		buttons: [UI.Media_Button],
+		masseuses: [UI.Media_Masseuse]
 	});
 	this.add('images', {
 		buttons: [UI.Image_Button],

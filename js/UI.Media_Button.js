@@ -9,21 +9,15 @@ UI.Media_Button = function MediaButton() {
 	this.image = 'media.png';
 	this.title = 'Insert Media';
 	
+	var helper = null;
+	
+	this.init = function(loki) {
+		this.superclass.init.call(this, loki);
+		helper = new UI.Media_Helper(this._loki);
+		return this;
+	};
+	
 	this.click_listener = function open_media_dialog() {
-		var dialog = new UI.Media_Dialog(self._loki, {
-			default_source: 'reason',
-			sources: {
-				reason: {
-					label: 'Carleton',
-					url: 'media.json?_=' + Math.floor(new Date().getTime() / 1000),
-					// url: '//eric.test.carleton.edu/test/media/media.php?site=122870'
-				},
-				
-				youtube: {
-					label: 'YouTube'
-				}
-			}
-		});
-		dialog.open();
+		helper.open_dialog();
 	};
 };

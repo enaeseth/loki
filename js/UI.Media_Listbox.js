@@ -41,11 +41,19 @@ UI.Media_Listbox = function Media_Listbox(loki) {
 			return s.toLowerCase()
 		});
 		
-		// display video and audio type icons
+		// display the video and audio types icons before any possible other
+		// types
 		if (Util.Array.contains(types, 'video'))
 			add_type_icon('Video', 'video.png');
 		if (Util.Array.contains(types, 'audio'))
 			add_type_icon('Audio', 'audio.png');
+		
+		var misc_shown = false;
+		Util.Array.for_each(types, function(type_name) {
+			if (type_name == 'video' || type_name == 'audio')
+				return;
+			
+		});
 		
 		return chunk;
 	};

@@ -36,6 +36,11 @@ img.loki__named_anchor {
 	background-repeat: no-repeat;*/
 }
 
+img.loki__media_placeholder {
+    background: url('../images/toolbar/media.png') no-repeat center center;
+    border: none;
+}
+
 table.loki__borderless_table {
 	border-width: 1px;
 	border-color: #BCBCBC;

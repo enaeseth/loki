@@ -26,13 +26,12 @@ UI.Image_Helper = function()
 		var images;
 		var image;
 		var real_image;
-		var anchor_masseuse = (new UI.Anchor_Masseuse).init(this._loki);
 		
 		function is_valid_image(node) {
 			if (!Util.Node.is_tag(node, 'IMG'))
 				return false;
 			
-			return !anchor_masseuse.is_placeholder(node);
+			return !node.getAttribute('loki:fake');
 		}
 		
 		images = Util.Range.find_nodes(rng, is_valid_image, true);
@@ -104,7 +103,7 @@ UI.Image_Helper = function()
 	
 	this.insert_image = function insert_image(params)
 	{
-		var image, clean_src, selected_image, sel, range;
+		var image, clean_src, selected_image, sel, rng;
 		
 		image = self._loki.document.createElement('IMG');
 		clean_src = UI.Clean.clean_URI(params.uri);

@@ -3,10 +3,86 @@
  */
 UI.Media_Helper = function Media_Helper(loki) {
 	this.loki = loki;
+	this.masseuse = (new UI.Media_Masseuse).init(loki);
 };
 
 // Media helper methods:
 Util.OOP.mixin(UI.Media_Helper, {
+	/**
+	 * Inserts the given media element into the Loki editing document.
+	 */
+	insert: function insert_media(element, massage) {
+		if (typeof(massage) == 'undefined')
+			massage = true;
+		
+		var temp;
+		
+		if (typeof(element) == 'string') {
+			temp = this.loki.document.createElement('DIV');
+			temp.innerHTML = element;
+			
+			if (massage)
+				this.masseuse.massage(temp.firstChild);
+			
+			element = temp.removeChild(temp.firstChild);
+			temp = null;
+		} else if (element.ownerDocument != this.loki.document) {
+			element = Util.Document.import_node(this.loki.document, element,
+				true);
+			if (massage) {
+				temp = this.loki.document.createElement('DIV');
+				temp.appendChild(element);
+				this.masseuse.massage(element);
+				element = temp.removeChild(temp.firstChild);
+			}
+		}
+		
+		this.loki.focus();
+		var selected = this.get_selected();
+		if (selected) {
+			selected.parentNode.replaceChild(element, selected);
+		} else {
+			var sel = Util.Selection.get_selection(this.loki.window);
+			var range = Util.Range.create_range(sel);
+			
+			Util.Range.delete_contents(range);
+			Util.Range.insert_node(range, element);
+		}
+		
+		return element;
+	},
+	
+	/**
+	 * Returns the media element that is selected, or `null` if no media
+	 * element is selected.
+	 */
+	get_selected: function get_selected_media() {
+		return null;
+	},
+	
+	/**
+	 * Opens a media selection dialog.
+	 */
+	open_dialog: function open_media_dialog() {
+		var dialog = new UI.Media_Dialog(this.loki, {
+			default_source: 'reason',
+			sources: {
+				reason: {
+					label: 'Carleton',
+					url: 'media.json?_=' + Math.floor(new Date().getTime() / 1000),
+					// url: '//eric.test.carleton.edu/test/media/media.php?site=122870'
+				},
+				
+				youtube: {
+					label: 'YouTube'
+				}
+			}
+		});
+		dialog.open();
+		
+		return dialog;
+	},
+	
 	/**
 	 * Resizes a media element to fit the given container dimensions.
 	 */
