@@ -1,0 +1,32 @@
+body {
+    background: #EEE;
+    margin: 0;
+    font-family: "Helvetica Neue", Calibri, Verdana;
+}
+
+h1 {
+    background: #31467B;
+    color: white;
+    font-size: 150%;
+    font-weight: normal;
+    padding: 0.3em 0.4em;
+    margin: 0 0 1em 0;
+}
+
+form {
+    margin: 1em;
+}
+
+#results {
+    margin: 1em;
+    border: 1px solid #DDD;
+    padding: 0.5em;
+    background: white;
+    font-family: monospace;
+    white-space: pre;
+}
+
+textarea {
+    width: 75%;
+    height: 15em;
+}
