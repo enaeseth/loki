@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+"""
+The Loki development server.
+"""
+
+from __future__ import with_statement
+from BaseHTTPServer import *
+from shutil import copyfileobj
+import cgi
+import sys
+import os
+
+
+TOOLS = os.path.abspath(os.path.dirname(__file__))
+SUPPORT = os.path.join(TOOLS, 'support')
+LOKI = os.path.dirname(TOOLS)
+HELPERS = os.path.join(LOKI, 'helpers', 'python')
+
+sys.path.insert(0, HELPERS)
+sys.path.insert(0, SUPPORT)
+import build
+
+class Handler(BaseHTTPRequestHandler):
+    options = 'all'
+    html_generator = 'loki'
+    
+    def do_GET(self):
+        if self.path == '/' or not self.path:
+            self.render_index(content='')
+        elif self.path == '/dev.css':
+            self.render_static(os.path.join(SUPPORT, 'dev.css'))
+        elif self.path == '/loki.js':
+            self.render_loki()
+        elif self.path.startswith('/loki/'):
+            self.render_static(os.path.join(LOKI, self.path[6:]))
+        else:
+            self.send_error(404)
+    
+    def do_POST(self):
+        if self.path == '/' or not self.path:
+            data = self.rfile.read(int(self.headers['Content-Length']))
+            args = cgi.parse_qs(data)
+            self.render_index(content=args.get('content', [''])[0])
+        else:
+            self.send_error(405)
+    
+    def render_loki(self):
+        self.send_response(200)
+        self.send_header('Content-Type', self.content_types['.js'])
+        self.end_headers()
+        
+        build.compile_js('2.0-dev', os.path.join(LOKI, 'js'), self.wfile)
+    
+    def render_index(self, **args):
+        with open(os.path.join(SUPPORT, 'index.html')) as f:
+            template = f.read()
+        
+        args.update(dict(options=self.options,
+            html_generator=self.html_generator))
+        
+        html = template % args
+        
+        self.send_response(200)
+        self.send_header('Content-Type', self.content_types['.html'])
+        self.send_header('Content-Length', '%d' % len(html))
+        self.end_headers()
+        
+        self.wfile.write(html)
+    
+    def render_static(self, path):
+        with open(path, 'rb') as f:
+            self.send_response(200)
+            fs = os.fstat(f.fileno())
+            date = self.date_time_string(fs.st_mtime)
+            self.send_header('Content-Type', self.get_type(path))
+            self.send_header('Content-Length', '%d' % fs.st_size)
+            self.send_header('Last-Modified', date)
+            self.end_headers()
+            
+            copyfileobj(f, self.wfile)
+        
+    def get_type(self, path):
+        base, ext = os.path.splitext(path)
+        return self.content_types.get(ext, 'application/octet-stream')
+        
+    content_types = {
+        '.html': 'text/html; charset=utf-8',
+        '.js': 'text/javascript; charset=utf-8',
+        '.css': 'text/css; charset=utf-8',
+        '.txt': 'text/plain; charset=utf-8',
+        '.xml': 'text/xml; charset=utf-8',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.jar': 'application/x-jar'
+    }
+
+if __name__ == '__main__':
+    from optparse import OptionParser
+    
+    parser = OptionParser('%prog [-p port]')
+    parser.add_option('-a', '--address',
+        help='the address (and hence interface) to listen on [default: (all)]')
+    parser.add_option('-o', '--options', dest='components',
+        help='the Loki options to use [default: "all"]')
+    parser.add_option('--html-generator',
+        help='the HTML generator that Loki should use [default: "loki"]')
+    parser.add_option('-p', '--port', type='int',
+        help='the port to listen on [default: 9000]')
+    parser.set_defaults(host='', port=9000, components='all',
+        html_generator='loki')
+    
+    options, args = parser.parse_args()    
+    Handler.options = options.components
+    Handler.html_generator = options.html_generator
+    
+    address = (options.host, options.port)
+    httpd = HTTPServer(address, Handler)
+    
+    try:
+        print 'Listening on %s.' % (':'.join(str(p) for p in address))
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8" />
+  <title>Loki Development Server</title>
+  
+  <link rel="stylesheet" href="/dev.css">
+  <script src="loki.js" type="text/javascript"></script>
+  <script type="text/javascript">
+    var loki;
+    var last_html;
+    
+    function on_loki_loaded(editor) {
+        loki = editor;
+    }
+    
+    Loki.convert_all_textareas({
+      options: '%(options)s',
+      base_uri: '/loki/',
+      html_generator: '%(html_generator)s'
+    }, on_loki_loaded);
+    
+    setInterval(function() {
+        if (!loki)
+            return;
+        
+        var html = loki.get_html();
+        if (html == last_html)
+          return;
+        
+        last_html = html;
+        
+        var container = document.getElementById('results');
+        while (container.firstChild)
+            container.removeChild(container.firstChild);
+        container.appendChild(document.createTextNode(html));
+    }, 500);
+  </script>
+</head>
+<body>
+  <h1>Loki Development Server</h1>
+  
+  <form action="" method="post">
+      <textarea name="content">%(content)s</textarea>
+      <br /><input type="submit" name="Submit" />
+  </form>
+  
+  <div id="results"></div>
+</body>
+</html>
