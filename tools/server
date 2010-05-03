@@ -8,6 +8,7 @@ The Loki development server.
 from __future__ import with_statement
 from BaseHTTPServer import *
 from shutil import copyfileobj
+import webbrowser
 import cgi
 import sys
 import os
@@ -121,6 +122,7 @@ if __name__ == '__main__':
     
     try:
         print 'Listening on %s.' % (':'.join(str(p) for p in address))
+        webbrowser.open('http://localhost:%d/' % options.port)
         httpd.serve_forever()
     except KeyboardInterrupt:
         print
