@@ -85,6 +85,48 @@ Util.Node.find_children = function find_matching_node_children(node, match) {
 };
 
 /**
+ * Performs a recursive walk over a node and its elements.
+ *
+ * For `node` itself, and all of its descendants, walk will call the given
+ * callback function with the node as its sole parameter.
+ *
+ * You can optionally provide a `filter` to restrict which nodes get passed to
+ * the callback. The `filter` can either be a DOM node type number, a tag name,
+ * or a boolean test function.
+ */
+Util.Node.walk = function walk_node(node, filter, callback) {
+	var queue = [node];
+	var i;
+	var type;
+	
+	if (arguments.length == 2) {
+		callback = filter;
+		filter = Util.Function.optimist;
+	}
+	
+	if (typeof(filter) == 'number') {
+		type = filter;
+		filter = function(node) { return node.nodeType == type; };
+	} else if (typeof(filter) == 'string') {
+		filter = Util.Node.curry_is_tag(filter);
+	} else if (typeof(filter) != 'function') {
+		throw new TypeError('invalid filter');
+	}
+	
+	while (queue.length > 0) {
+		node = queue.shift();
+		
+		if (callback(node) === false)
+			return;
+		
+		for (i = 0; i < node.childNodes.length; i++) {
+			if (filter(node.childNodes[i]))
+				queue.push(node.childNodes[i]);
+		}
+	}
+};
+
+/**
  * <p>Recurses through the ancestor nodes of the specified node,
  * until either (a) a node is found which meets the conditions
  * specified inthe function boolean_test, or (b) the root of the
