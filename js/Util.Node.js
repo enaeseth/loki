@@ -23,8 +23,8 @@ Util.Node.NOTATION_NODE                  = 12;
 
 // Constants which indicate which direction to iterate through a node
 // list, e.g. in get_nearest_non_whitespace_sibling_node
-Util.Node.NEXT							 = 1;
-Util.Node.PREVIOUS						 = 2;
+Util.Node.NEXT                           = 1;
+Util.Node.PREVIOUS                       = 2;
 
 /**
  * Removes child nodes of <code>node</code> for which
