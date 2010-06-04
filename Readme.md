@@ -3,7 +3,7 @@ Loki 2.0
 
 ### A WYSIWYG browser-based semantic HTML editor. ###
 
-Copyright © 2006 Carleton College.
+Copyright © 2006-2010 Carleton College.
 
 Synopsis
 --------
