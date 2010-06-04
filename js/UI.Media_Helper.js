@@ -94,19 +94,18 @@ Util.OOP.mixin(UI.Media_Helper, {
 	 * Opens a media selection dialog.
 	 */
 	open_dialog: function open_media_dialog(element) {
+		var sources = this.loki.settings.media_sources || {};
+		var default_source = this.loki.settings.default_media_source;
+		
+		if (!default_source) {
+			var names = Util.Object.names(sources);
+			if (names.length)
+				default_source = names[0];
+		}
+		
 		var dialog = new UI.Media_Dialog(this.loki, {
-			default_source: 'reason',
-			sources: {
-				reason: {
-					label: 'Carleton',
-					url: 'media.json?_=' + Math.floor(new Date().getTime() / 1000),
-					// url: '//eric.test.carleton.edu/test/media/media.php?site=122870'
-				},
-				
-				youtube: {
-					label: 'YouTube'
-				}
-			}
+			default_source: default_source,
+			sources: sources
 		});
 		dialog.open(element);
 		
