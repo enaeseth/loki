@@ -38,7 +38,7 @@ Util.OOP.mixin(UI.Media_Helper, {
 		}
 		
 		this.loki.focus();
-		var selected = this.get_selected();
+		var selected = this.get_selected(true);
 		if (selected) {
 			selected.parentNode.replaceChild(element, selected);
 		} else {
@@ -55,13 +55,16 @@ Util.OOP.mixin(UI.Media_Helper, {
 	/**
 	 * Returns the media element that is selected, or `null` if no media
 	 * element is selected.
+	 *
+	 * If the `placeholder` argument is true, return the media's placeholder
+	 * element instead of the preserved actual media element.
 	 */
-	get_selected: function get_selected_media() {
+	get_selected: function get_selected_media(placeholder) {
 		var sel = Util.Selection.get_selection(this.loki.window);
 		var rng = Util.Range.create_range(sel);
 		
 		var elements;
-		var placeholder;
+		var placeholder_element;
 		var original;
 		
 		function is_media_placeholder(node) {
@@ -81,8 +84,10 @@ Util.OOP.mixin(UI.Media_Helper, {
 				'currently selected.');
 		}
 		
-		placeholder = elements[0];
-		return this.masseuse.get_original_element(placeholder) || null;
+		placeholder_element = elements[0];
+		return (placeholder) ?
+			placeholder_element :
+			this.masseuse.get_original_element(placeholder) || null;
 	},
 	
 	/**
