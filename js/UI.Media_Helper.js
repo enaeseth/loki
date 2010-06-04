@@ -87,7 +87,7 @@ Util.OOP.mixin(UI.Media_Helper, {
 		placeholder_element = elements[0];
 		return (placeholder) ?
 			placeholder_element :
-			this.masseuse.get_original_element(placeholder) || null;
+			this.masseuse.get_original_element(placeholder_element) || null;
 	},
 	
 	/**
