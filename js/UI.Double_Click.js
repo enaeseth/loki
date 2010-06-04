@@ -9,8 +9,8 @@ UI.Double_Click = function DoubleClick()
 		this._loki = loki;
 		return this;
 	};
-	
-	this.double_click = function() {
-		throw new Error('unimplemented');
-	};
+};
+
+UI.Double_Click.prototype.double_click = function _no_double_click() {
+	throw new Error('unimplemented');
 };

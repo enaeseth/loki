@@ -854,7 +854,7 @@ UI.Loki = function Loki()
 	function _add_double_click_listeners()
 	{
 		function add(listener_class) {
-			var listener = (new listener_class()).init(self);
+			var listener = (new listener_class(self)).init(self);
 			Util.Event.observe(_body, 'dblclick', function(ev) {
 				listener.double_click(ev);
 			});
