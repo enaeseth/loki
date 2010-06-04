@@ -389,7 +389,7 @@ UI.Image_Dialog = function()
 				: Util.URI.strip_https_and_http(img_item.link);
 
 			// Determine alt text
-			var alt = img_item.title;
+			var alt = img_item.description;
 		}
 		else // if ( this._tabset.get_name_of_selected_tab() == 'custom' )
 		{

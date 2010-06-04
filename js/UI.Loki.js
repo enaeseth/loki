@@ -1581,7 +1581,8 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 	});
 	this.add('media', {
 		buttons: [UI.Media_Button],
-		masseuses: [UI.Media_Masseuse]
+		masseuses: [UI.Media_Masseuse],
+		double_click_listeners: [UI.Media_Double_Click]
 	});
 	this.add('images', {
 		buttons: [UI.Image_Button],

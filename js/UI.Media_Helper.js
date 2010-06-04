@@ -57,13 +57,38 @@ Util.OOP.mixin(UI.Media_Helper, {
 	 * element is selected.
 	 */
 	get_selected: function get_selected_media() {
-		return null;
+		var sel = Util.Selection.get_selection(this.loki.window);
+		var rng = Util.Range.create_range(sel);
+		
+		var elements;
+		var placeholder;
+		var original;
+		
+		function is_media_placeholder(node) {
+			if (!Util.Node.is_tag(node, 'IMG'))
+				return false;
+			
+			return Util.Element.has_class(node,
+				UI.Media_Masseuse.placeholder_class);
+		}
+		
+		elements = Util.Range.find_nodes(rng, is_media_placeholder, true);
+		
+		if (!elements || !elements.length) {
+			return null;
+		} else if (elements.length > 1) {
+			throw new UI.Multiple_Items_Error('Multiple media elements are ' +
+				'currently selected.');
+		}
+		
+		placeholder = elements[0];
+		return this.masseuse.get_original_element(placeholder) || null;
 	},
 	
 	/**
 	 * Opens a media selection dialog.
 	 */
-	open_dialog: function open_media_dialog() {
+	open_dialog: function open_media_dialog(element) {
 		var dialog = new UI.Media_Dialog(this.loki, {
 			default_source: 'reason',
 			sources: {
@@ -78,7 +103,7 @@ Util.OOP.mixin(UI.Media_Helper, {
 				}
 			}
 		});
-		dialog.open();
+		dialog.open(element);
 		
 		return dialog;
 	},
@@ -202,5 +227,58 @@ Util.OOP.mixin(UI.Media_Helper, {
 		}
 		
 		return !!(initial.tag && initial.count == 0 && object_balance == 0);
+	},
+	
+	/**
+	 * Extracts a set of URL's from a media element.
+	 *
+	 * The `element` argument can either be a DOM element node or a string
+	 * containing HTML.
+	 *
+	 * Returns an array containing all unique possibly-relevant URL's that
+	 * were found, or, if the optional `map` parameter is true, returns an
+	 * object where the keys are those URL's.
+	 */
+	extract_urls: function extract_urls_from_media_element(element, map) {
+		var urls = {};
+		
+		function clean(url) {
+			// XXX: total hax; real entity unfolding is needed in HTML_Parser
+			return url.replace('&amp;', '&');
+		}
+		
+		if (typeof(element) == 'string') {
+			var parser = new Util.HTML_Parser();
+			
+			parser.add_listener('open', function(tag, attributes) {
+				if ('src' in attributes)
+					urls[clean(attributes.src)] = true;
+				if ('href' in attributes)
+					urls[clean(attributes.href)] = true;
+				if ('data' in attributes)
+					urls[clean(attributes.data)] = true;
+				
+				if (tag.toLowerCase() == 'param' && attributes.name == 'movie')
+					urls[clean(attributes.value)] = true;
+			});
+			
+			parser.parse(element);
+		} else {
+			Util.Node.walk(element, Util.Node.ELEMENT_NODE, function(node) {
+				if (node.src)
+					urls[node.src] = true;
+				if (node.href)
+					urls[node.href] = true;
+				if (node.getAttribute('data'))
+					urls[node.getAttribute('data')] = true;
+				
+				if (node.nodeName == 'PARAM' && node.value) {
+					if (node.name.toLowerCase() == 'movie')
+						urls[node.value] = true;
+				}
+			});
+		}
+		
+		return (map) ? urls : Util.Object.names(urls);
 	}
 });

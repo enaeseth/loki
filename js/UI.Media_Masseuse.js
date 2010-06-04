@@ -3,7 +3,7 @@ UI.Media_Masseuse = function Media_Masseuse() {
 	Util.OOP.inherits(this, UI.Masseuse);
 	
 	var targets = ['OBJECT', 'VIDEO', 'AUDIO'];
-	var placeholder_class = 'loki__media_placeholder';
+	var placeholder_class = UI.Media_Masseuse.placeholder_class;
 	
 	this.init = function init_media_masseuse(loki)
 	{
@@ -71,4 +71,10 @@ UI.Media_Masseuse = function Media_Masseuse() {
 		
 		node.parentNode.replaceChild(actual, node);
 	};
+	
+	this.get_original_element = function get_original_media_element(placeholder) {
+		return this.massaged[placeholder.id];
+	};
 };
+
+UI.Media_Masseuse.placeholder_class = 'loki__media_placeholder';

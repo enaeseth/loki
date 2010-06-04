@@ -32,6 +32,7 @@ UI.Media_Dialog = function MediaDialog(loki, options) {
 	}, this);
 	
 	this.helper = new UI.Media_Helper(loki);
+	this.selection = null;
 };
 
 // UI.Media_Dialog inherits from UI.Dialog_Window.
@@ -59,8 +60,23 @@ Util.OOP.mixin(UI.Media_Dialog, {
 	/**
 	 * Dialog_Window callback function: populates the values on the dialog.
 	 */
-	populate: function populate_media_dialog() {
+	populate: function populate_media_dialog(element) {
+		this._fill_custom_panel(element);
 		
+		if (element) {
+			this.selection = {
+				element: element,
+				urls: this.helper.extract_urls(element),
+				source: null,
+				resource: null,
+				file: null
+			};
+			
+			Util.Object.enumerate(this.sources,
+				Util.Function.bind(this._locate_selected_media, this));
+		} else {
+			this.selection = null;
+		}
 	},
 	
 	submit: function submit_media_dialog() {
@@ -121,6 +137,7 @@ Util.OOP.mixin(UI.Media_Dialog, {
 		} else if (source.url) {
 			this._download_source_media(name, source);
 		} else {
+			source.active_media = null;
 			listbox._report_error('No media is available from ' +
 				source.label + '.');
 			return;
@@ -200,6 +217,8 @@ Util.OOP.mixin(UI.Media_Dialog, {
 	},
 	
 	_fill_source_media: function fill_source_media(name, source, media) {
+		source.active_media = media;
+		
 		Util.Array.for_each(media, function(resource) {
 			source.listbox.append_item(resource);
 		});
@@ -272,10 +291,52 @@ Util.OOP.mixin(UI.Media_Dialog, {
 				}
 				
 				dialog._fill_source_media(name, source, media);
+				if (dialog.selection && !dialog.selection.source) {
+					dialog._locate_selected_media(name, source);
+				}
 			}
 		};
 		
 		request = new Util.Request(source.url, options);
+	},
+	
+	_locate_selected_media: function locate_selected_media(name, source) {
+		if (!source.active_media)
+			return;
+		
+		var selection_urls = this.selection.urls;
+		
+		// find the resource file that has one of the URL's of the selected
+		// media
+		Util.Array.find(source.active_media, function(resource) {
+			return Util.Array.find(resource.files, function(file) {
+				var file_urls = this.helper.extract_urls(file.markup, true);
+				
+				var match = Util.Array.find(selection_urls, function(url) {
+					return (url in file_urls);
+				});
+				
+				if (!match)
+					return false;
+				
+				try {
+					var i = source.listbox.get_index_of_item(resource);
+				} catch (e) {
+					return false;
+				}
+				
+				// omg we found it
+				
+				this.selection.source = name;
+				this.selection.resource = resource;
+				this.selection.file = file;
+				
+				source.listbox.select_item_by_index(i);
+				this.tabset.select_tab(name);
+				this._fill_custom_panel(null);
+				return true;
+			}, this);
+		}, this);
 	},
 	
 	_create_custom_panel: function create_custom_media_panel() {
@@ -326,5 +387,14 @@ Util.OOP.mixin(UI.Media_Dialog, {
 		}, this);
 		
 		this.tabset.get_tab('custom').panel.appendChild(contents);
+	},
+	
+	_fill_custom_panel: function fill_custom_media_panel(element) {
+		if (!element) {
+			this.views.custom.input.value = '';
+		} else {
+			var gen = new Util.HTML_Generator({indent_text: '  '});
+			this.views.custom.input.value = gen.generate(element);
+		}
 	}
 });
