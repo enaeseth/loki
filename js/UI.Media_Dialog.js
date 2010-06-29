@@ -352,6 +352,7 @@ Util.OOP.mixin(UI.Media_Dialog, {
 	
 	_create_custom_panel: function create_custom_media_panel() {
 		var view = this.views.custom = {};
+		var active_html;
 		
 		var contents = this.build('<div id="custom_preview" class="empty">' +
 			'<div class="prompt">Paste the HTML to embed your media in the ' +
@@ -369,9 +370,14 @@ Util.OOP.mixin(UI.Media_Dialog, {
 				target: '#embed_target'
 			}, this.views.custom);
 		
-		Util.Event.observe(view.input, 'change', function() {
+		function update_preview() {
 			var html = Util.trim(view.input.value);
 			var temp;
+			
+			if (html == active_html)
+				return; // nothing has changed since this function last ran.
+			
+			active_html = html;
 			
 			view.target.innerHTML = '';
 			view.markup = null;
@@ -395,7 +401,10 @@ Util.OOP.mixin(UI.Media_Dialog, {
 					Util.Element.add_class(view.preview, 'problem');
 				}
 			}
-		}, this);
+		}
+		
+		Util.Event.observe(view.input, 'keyup', update_preview, this);
+		Util.Event.observe(view.input, 'mouseup', update_preview, this);
 		
 		this.tabset.get_tab('custom').panel.appendChild(contents);
 	},
