@@ -33,6 +33,7 @@ UI.Media_Dialog = function MediaDialog(loki, options) {
 	
 	this.helper = new UI.Media_Helper(loki);
 	this.selection = null;
+	this._remaining_sources = 0;
 };
 
 // UI.Media_Dialog inherits from UI.Dialog_Window.
@@ -72,6 +73,7 @@ Util.OOP.mixin(UI.Media_Dialog, {
 				file: null
 			};
 			
+			this._remaining_sources = Util.Object.names(this.sources).length;
 			Util.Object.enumerate(this.sources,
 				Util.Function.bind(this._locate_selected_media, this));
 		} else {
@@ -308,10 +310,11 @@ Util.OOP.mixin(UI.Media_Dialog, {
 			return;
 		
 		var selection_urls = this.selection.urls;
+		this._remaining_sources--;
 		
 		// find the resource file that has one of the URL's of the selected
 		// media
-		Util.Array.find(source.active_media, function(resource) {
+		var found = Util.Array.find(source.active_media, function(resource) {
 			return Util.Array.find(resource.files, function(file) {
 				var file_urls = this.helper.extract_urls(file.markup, true);
 				
@@ -340,6 +343,11 @@ Util.OOP.mixin(UI.Media_Dialog, {
 				return true;
 			}, this);
 		}, this);
+		
+		if (!found && this._remaining_sources == 0) {
+			// none of the media sources have this resource; show custom tab
+			this.tabset.select_tab('custom');
+		}
 	},
 	
 	_create_custom_panel: function create_custom_media_panel() {
