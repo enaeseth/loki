@@ -18,6 +18,6 @@ UI.Media_Button = function MediaButton() {
 	};
 	
 	this.click_listener = function open_media_dialog() {
-		helper.open_dialog();
+		helper.open_dialog(helper.get_selected());
 	};
 };
