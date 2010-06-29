@@ -1,0 +1,124 @@
+#custom_preview {
+    float: left;
+    min-width: 250px;
+    min-height: 250px;
+    margin-right: 0.5em;
+    border: 3px solid #A2A2A2;
+    background: #EEE;
+    padding: 10px;
+    text-align: center;
+}
+
+#custom_preview div.prompt, #custom_preview div.invalid {
+    display: none;
+    font-size: 110%;
+    color: #333;
+    height: 2em;
+    line-height: 1em;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+#custom_preview.empty div.prompt {
+    display: block;
+}
+
+#custom_preview.problem {
+    border-color: #884B4A;
+}
+
+#custom_preview.problem div.invalid {
+    display: block;
+    color: #0D0606;
+}
+
+#custom_entry label {
+    margin-bottom: 3px;
+    display: block;
+}
+
+#custom_entry textarea {
+    font-family: monospace;
+    min-height: 200px;
+    width: 200px;
+    margin: 0;
+}
+
+.media_avatar {
+    position: relative;
+}
+
+.media_avatar .media_types {
+    position: absolute;
+    margin: 0 4px 4px 0;
+    right: 0px;
+    bottom: 0px;
+    z-index: 1;
+}
+
+.media_avatar .media_types img {
+    margin-left: 4px;
+}
+
+#media_dialog .fieldset {
+    border-color: #A1A1A1;
+    overflow: hidden;
+}
+
+.empty.media.fieldset form {
+    display: none;
+}
+
+div.media_preview {
+    float: left;
+    width: 215px;
+    min-height: 70px;
+    background: #EEE;
+}
+
+form.file_selection {
+    margin-left: 225px;
+}
+
+.listbox .items_chunk {
+	/*height:310px;*/
+	height:325px;
+	padding:3px 0 0 3px;
+}
+.listbox .items_chunk .item_chunk {
+	height:145px;
+	height:153px;
+	width:125px;
+	padding:6px 3px 3px 3px;
+	clear:right;
+	float:left;
+	text-align:center;
+
+	/* margin:0px 4px 4px 0px; */
+	/* background-color:#FFFFFF;
+	background-color:#EEEEEE; */
+}
+/* div#image_listbox div.legend {
+	background-color:#3366FF;
+	padding-bottom:1em;
+} */
+* html .listbox .items_chunk .force_clear_for_ie {
+	clear:both;
+}
+.listbox .items_chunk .selected, .listbox .items_chunk .selected:hover {
+	background-image:url(../images/selected_image_bg.gif);
+	background-repeat:no-repeat;
+	border:1px solid #E3E3E3;
+	cursor:default;
+}
+.listbox .items_chunk a:hover {
+	background:transparent url(../images/hover_image_bg.gif) no-repeat;
+	border:1px solid #E3E3E3;
+}
+
+.listbox .items_chunk .item_chunk img {
+    border: none;
+}
+
+
+

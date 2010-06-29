@@ -158,7 +158,7 @@ UI.Listbox.prototype.get_index_of_item = function(item)
  *
  * @param	index			the index of the item to select
  */
-UI.Listbox.prototype.select_item_by_index = function(index, dont_refresh, debug)
+UI.Listbox.prototype.select_item_by_index = function(index)
 {
 	var item_chunk = this._get_item_chunk(index);
 

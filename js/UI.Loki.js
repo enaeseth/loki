@@ -99,7 +99,7 @@ UI.Loki = function Loki()
 		new Util.Request(report_uri, {
 			method: "POST",
 			headers: {'Content-Type': 'application/json'},
-			body: Util.JSON.dump(self.crash_report(exc))
+			body: JSON.stringify(self.crash_report(exc))
 		});
 		return true;
 	};
@@ -397,7 +397,7 @@ UI.Loki = function Loki()
 			self.set_html( _textarea.value );
 
 			// Make the document editable
-			_make_document_editable();
+			Util.Document.make_editable(_document);
 
 			// Add certain event listeners to the document and elsewhere
 			_add_double_click_listeners();
@@ -854,7 +854,7 @@ UI.Loki = function Loki()
 	function _add_double_click_listeners()
 	{
 		function add(listener_class) {
-			var listener = (new listener_class()).init(self);
+			var listener = (new listener_class(self)).init(self);
 			Util.Event.observe(_body, 'dblclick', function(ev) {
 				listener.double_click(ev);
 			});
@@ -1579,6 +1579,11 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 		masseuses: [UI.Table_Masseuse],
 		menugroups: [UI.Table_Menugroup]
 	});
+	this.add('media', {
+		buttons: [UI.Media_Button],
+		masseuses: [UI.Media_Masseuse],
+		double_click_listeners: [UI.Media_Double_Click]
+	});
 	this.add('images', {
 		buttons: [UI.Image_Button],
 		masseuses: [UI.Image_Masseuse],
@@ -1626,10 +1631,10 @@ UI.Loki.Options._add_bundled = function add_bundled_loki_options() {
 	
 	this.put_set('default', ['strong', 'em', 'headline', 'br', 'hr',
 		'highlight', 'align', 'blockquotes', 'lists', 'find', 'images',
-		'links', 'cleanup']);
+		'media', 'links', 'cleanup']);
 	this.put_set('power', ['strong', 'em', 'headline', 'br', 'hr', 'pre',
-		'clipboard', 'highlight', 'align', 'blockquotes', 'lists',
-		'find', 'tables', 'images', 'links', 'anchors', 'cleanup', 'source']);
+		'clipboard', 'highlight', 'align', 'blockquotes', 'lists', 'find',
+		'tables', 'images', 'media', 'links', 'anchors', 'cleanup', 'source']);
 	this.put_set('developer', ['power', 'debug']);
 };
 

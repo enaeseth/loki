@@ -111,8 +111,9 @@ Util.Window = {
 Util.Window.alert = function(alertandum)
 {
 	// Open window
-	var alert_window = new Util.Window;
-	alert_window.open('', '_blank', 'status=1,scrollbars=1,resizable,width=600,height=300');
+	var alert_window = Util.Window.open('', {
+		display: 'status=1,scrollbars=1,resizable,width=600,height=300'
+	});
 
 	// Add the alertatandum to a document chunk
 	var doc_chunk = alert_window.document.createElement('DIV'); // use a div because document frags don't work as expected on IE
@@ -138,16 +139,17 @@ Util.Window.alert = function(alertandum)
 	}
 
 	// Append the document chunk to the window
-	alert_window.body.appendChild(doc_chunk);
+	alert_window.document.body.appendChild(doc_chunk);
 };
 
 Util.Window.alert_debug = function(message)
 {
-	var alert_window = new Util.Window;
-	alert_window.open('', '_blank', 'status=1,scrollbars=1,resizable,width=600,height=300');
+	var alert_window = Util.Window.open('', {
+		display: 'status=1,scrollbars=1,resizable,width=600,height=300'
+	});
 	
 	var text_chunk = alert_window.document.createElement('P');
 	text_chunk.style.fontFamily = 'monospace';
 	text_chunk.appendChild(alert_window.document.createTextNode(message));
-	alert_window.body.appendChild(text_chunk);
+	alert_window.document.body.appendChild(text_chunk);
 }
