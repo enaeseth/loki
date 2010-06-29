@@ -209,6 +209,9 @@ Util.OOP.mixin(UI.Media_Dialog, {
 			var media = temp.firstChild;
 			var dest = source.preview;
 			
+			while (dest.firstChild)
+				dest.removeChild(dest.firstChild);
+			
 			self.helper.resize(media, dest.clientWidth, dest.clientHeight);
 			dest.appendChild(media);
 		}
